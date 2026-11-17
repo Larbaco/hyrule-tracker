@@ -164,7 +164,9 @@
 .story-chapter ul { list-style: none; padding: 0 0 0 16px; }
 .story-chapter li { display: flex; justify-content: space-between; gap: 9px; padding: 6px 0; font-size: 13px; }
 .story-chapter li small { color: var(--hyrule-muted); }
-.story-chapter video { display: block; width: 100%; margin-top: 10px; }
+.story-chapter summary::after { content: ""; width: 6px; height: 6px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(-45deg); flex: none; margin-inline: 2px 4px; }
+.story-chapter[open] summary::after { transform: rotate(45deg); }
+.side-quest p { margin: 7px 0 5px 17px; max-width: 65ch; color: var(--hyrule-muted); font-size: 13px; line-height: 1.55; }
 .file-action { position: relative; overflow: hidden; }
 .file-action input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; min-height: 0; }
 .file-action:focus-within { outline: 2px solid var(--hyrule-accent); outline-offset: 3px; }
@@ -249,3 +251,5 @@
 .language-switch:hover { border-color: var(--hyrule-accent); background: rgba(139,221,172,.12); }
 .language-switch .flag { display: block; flex: none; }
 .language-switch.labelled { margin-top: 10px; }
+
+.credits-panel p { margin: 0 0 .5em; color: var(--hyrule-muted); font-size: .9em; line-height: 1.45; }

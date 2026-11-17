@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import type { AppState, TrackedCategory, TrackedItem, UiPrefs, ChangeRow, OverlayMode, AvailableEntry } from '../shared/types';
 import { api, timeAgo } from './api';
 import { symbolIcons, categoryColor } from './icons';
@@ -7,7 +7,7 @@ import { buildCards, tileItems, Card, TileModel } from './view';
 import { Masonry } from './Masonry';
 import { CompanionPage, Icon, Sidebar, PageHeader, type Page } from './CompanionPages';
 import { LanguageSwitch } from './LanguageFlags';
-import { currentLocale, message, setLocale, t, type Locale } from './i18n';
+import { currentLocale, day, message, setLocale, t, tv, type Locale } from './i18n';
 import { useStored } from './Recreation';
 import { ObjectiveName } from './ObjectiveName';
 import { UpdateDialog } from './UpdateDialog';
@@ -43,9 +43,13 @@ export function App() {
   }, []);
 
   const updatePrefs = (p: UiPrefs) => { setPrefs(p); void api.setPrefs(p); };
+  const [scanError, setScanError] = useState(false);
   const scan = async () => {
     setScanning(true);
-    try { setState(await api.scanFolders()); } finally { setScanning(false); }
+    setScanError(false);
+    try { setState(await api.scanFolders()); }
+    catch { setScanError(true); }
+    finally { setScanning(false); }
   };
   async function refreshProgress() {
     setRefreshing(true);
@@ -55,17 +59,29 @@ export function App() {
     finally { setRefreshing(false); }
   }
 
+  // Typing stays responsive: the filter runs on a deferred copy of the query,
+  // against text normalised once per state/language rather than on every keystroke.
+  const deferredQuery = useDeferredValue(query);
+  const searchIndex = useMemo(() => {
+    if (!state) return null;
+    const categories = new Map<string, string>();
+    const items = new Map<string, string>();
+    for (const cat of state.categories) {
+      categories.set(cat.id, cleanText(`${cat.label} ${t(cat.label)}`));
+      for (const item of cat.items) items.set(item.id, cleanText([item.name, t(item.name), item.chapter && t(item.chapter), item.where && t(item.where)].join(' ')));
+    }
+    return { categories, items };
+  }, [state, locale]);
   const cards = useMemo(() => {
-    if (!state) return [];
-    const clean = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
-    const search = clean(query.trim());
+    if (!state || !searchIndex) return [];
+    const search = cleanText(deferredQuery.trim());
     if (!search) return buildCards(state.categories);
     return buildCards(state.categories.flatMap(cat => {
-      if (clean(`${cat.label} ${t(cat.label)}`).includes(search)) return [cat];
-      const items = cat.items.filter(item => clean([item.name, t(item.name), item.chapter && t(item.chapter), item.where && t(item.where)].join(' ')).includes(search));
+      if (searchIndex.categories.get(cat.id)?.includes(search)) return [cat];
+      const items = cat.items.filter(item => searchIndex.items.get(item.id)?.includes(search));
       return items.length ? [{ ...cat, items, total: items.length, done: items.filter(i => i.done).length }] : [];
     }));
-  }, [state, query, locale]);
+  }, [state, searchIndex, deferredQuery]);
   type Selection = { stack: Extract<TileModel, { kind: 'stack' }> } | { cat: TrackedCategory; item: TrackedItem } | null;
   const selectedItem = useMemo((): Selection => {
     if (!state || !selected) return null;
@@ -93,6 +109,7 @@ export function App() {
         <Icon name="refresh" size={16} />{t(refreshing ? 'Atualizando…' : 'Atualizar agora')}
       </button>
       {refreshError && <small role="alert">{t('Falha na atualização. Tente novamente.')}</small>}
+      {scanError && <small role="alert">{t('Não foi possível buscar os saves. Tente novamente.')}</small>}
     </div>
     <LanguageSwitch locale={locale} onChange={changeLanguage} />
   </>;
@@ -109,7 +126,7 @@ export function App() {
     <div className="app">
       <PageHeader page="checklist" state={state} headerActions={headerActions} />
       <Toolbar state={state} cards={cards} prefs={prefs} onPrefs={updatePrefs} query={query} onQuery={setQuery} />
-      {state.message && <div className="banner">{t(state.message)}</div>}
+      {state.message && <div className="banner">{tv(state.message, state.messageValues)}</div>}
       {!query.trim() && <AvailablePanel state={state} open={showAvailable} selected={selected} onSelect={setSelected}
         onToggle={() => setShowAvailable(v => !v)} />}
       <div className="body">
@@ -153,6 +170,9 @@ export function App() {
     </div>
   );
 }
+
+/** Search text: accents removed, lower case. */
+const cleanText = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
 function AuthorCredit() {
   return <small className="author-credit">{t('Criado por João Victor Prado')}</small>;
@@ -240,19 +260,6 @@ function AvailablePanel({ state, open, selected, onSelect, onToggle }: { state: 
   );
 }
 
-/** Where the numbers come from right now: the running game, or the save files. */
-function LiveBadge({ state }: { state: AppState }) {
-  const l = state.live;
-  if (!l.enabled || l.status === 'off' || l.status === 'unavailable') return null;
-  if (l.using) return <span className="live-badge on" title={t("Reading progress live from the game (read-only)")}>{t("● Live")}</span>;
-  const text: Record<string, string> = {
-    'no-game': 'Game not running: using saves',
-    searching: 'Looking for the game\'s progress…',
-    waiting: l.detail ?? 'Waiting for the game',
-  };
-  return <span className="live-badge" title={t(text[l.status] ?? '')}>{t(l.status === 'searching' ? 'Buscando conexão' : 'Saves')}</span>;
-}
-
 function SettingsButton({ state }: { state: AppState }) {
   const [open, setOpen] = useState(false);
   const [hk, setHk] = useState({ toggleOverlay: state.hotkeys.toggleOverlay, lockOverlay: state.hotkeys.lockOverlay });
@@ -296,7 +303,7 @@ function SettingsButton({ state }: { state: AppState }) {
           <label>{t("Lock/unlock overlay")}{' '}<input value={hk.lockOverlay} onChange={e => setHk({ ...hk, lockOverlay: e.target.value })} /></label>
           <span className="muted small">{t("Format like Control+Shift+O, Alt+F9. Works while the game has focus.")}</span>
           <button className="primary" onClick={() => void api.setHotkeys(hk)}>{t("Save hotkeys")}</button>
-          {state.hotkeys.errors.map(e => <span key={e} className="err">{e}</span>)}
+          {state.hotkeys.errors.map(e => <span key={e} className="err">{t(e)}</span>)}
           <b>{t("Advanced")}</b>
           <label className="check">
             <input type="checkbox" checked={state.changeLog.enabled} onChange={e => void api.setChangeLog(e.target.checked)} />{t("Keep a change log")}</label>
@@ -326,7 +333,7 @@ function CardView({ card, hideCollected, selected, onSelect, collapsed, onToggle
       <div className="bar"><div className="fill" style={{ width: `${pct}%` }} /></div>
       {!collapsed && (
         <>
-          {card.hint && <div className="hint">{t(card.hint)}</div>}
+          {card.hint && <div className="hint">{tv(card.hint, card.hintValues)}</div>}
           {card.kind === 'counter' ? (
             <div className="counter-note">{card.value === null ? t('Not in this save yet') : `${card.value} ${t('of')} ${card.max}`}</div>
           ) : card.sections.map((s, i) => {
@@ -439,7 +446,9 @@ function Details({ cat, item, dev, onClose }: { cat: TrackedCategory; item: Trac
     : 'Not collected yet';
   // "Lake Hylia: Tunnel on the south-west shore" -> heading "Tunnel on the south-west shore", area below it.
   const title = item.chapter && item.name.startsWith(`${item.chapter}: `) ? item.name.slice(item.chapter.length + 2) : item.name;
-  const identified = ['Identified by you', 'You identified', 'Recognised automatically'].some(p => item.evidence?.startsWith(p));
+  // Matches the evidence texts written for spots the user identified (core/pools.ts) and for
+  // identified spots exported into data/save-mapping.json (main/controller.ts exportLearned).
+  const identified = IDENTIFIED_EVIDENCE.some(p => item.evidence?.startsWith(p));
   // Checklist columns from a local checklist, shown with the developer tools.
   const shown = new Set([item.chapter, item.requirement].filter(Boolean));
   const extra = dev ? Object.entries(item.details ?? {}).filter(([, v]) => !shown.has(v) && !item.name.includes(v)) : [];
@@ -457,7 +466,8 @@ function Details({ cat, item, dev, onClose }: { cat: TrackedCategory; item: Trac
       {item.logic && !item.done && (
         <p className="logic small">
           {item.logic.ages.length
-            ? <><b className="ok">{t("You can get this now")}</b>{' '}{t("as")}{' '}{new Intl.ListFormat(currentLocale(), { type: 'disjunction' }).format(item.logic.ages.map(age => t(age)))}{item.logic.night ? `, ${t('at night')}` : ''}.</>
+            ? <b className="ok">{message(item.logic.night ? 'You can get this now as {ages}, at night.' : 'You can get this now as {ages}.',
+                { ages: new Intl.ListFormat(currentLocale(), { type: 'disjunction' }).format(item.logic.ages.map(age => t(age))) })}</b>
             : <><b>{t("Not yet.")}</b>{' '}{t("Still needed:")}{' '}{item.logic.missing.map(needText).join('; ')}.</>}
           {item.logic.note && <><br />{t(item.logic.note)}</>}
         </p>
@@ -474,12 +484,22 @@ function Details({ cat, item, dev, onClose }: { cat: TrackedCategory; item: Trac
           {extra.map(([k, v]) => <p key={k}><b>{k}:</b> {v}</p>)}
           {item.logic?.needs && <p><b>{t("Logic:")}</b> <code>{item.logic.needs}</code></p>}
           {item.confidence
-            ? <p><b>{t("Detection:")}</b> {item.confidence}{item.evidence ? `: ${item.evidence}` : t('')}</p>
-            : item.evidence && <p>{item.evidence}</p>}
+            ? <p><b>{t("Detection:")}</b> {item.confidence}{item.evidence ? `: ${localDates(item.evidence)}` : ''}</p>
+            : item.evidence && <p>{localDates(item.evidence)}</p>}
         </div>
       )}
     </div>
   );
+}
+
+const IDENTIFIED_EVIDENCE = ['Identified by you', 'You identified', 'Recognised automatically', 'Identified in the tracker', 'Recognised in the tracker'];
+
+/** ISO dates (2026-11-12) inside evidence text, written the way the current language writes dates. */
+function localDates(text: string): string {
+  return text.replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, (whole, y: string, m: string, d: string) => {
+    const at = new Date(Number(y), Number(m) - 1, Number(d));
+    return Number.isNaN(at.getTime()) ? whole : day(at);
+  });
 }
 
 /** A "still needed" entry as a phrase: "adult" -> "to be an adult", "reach X as child" -> "a way to X as a child". */
@@ -556,7 +576,7 @@ function DevPanel({ state }: { state: AppState }) {
           <Rows rows={state.snapshotDiff.rows} />
         </>
       )}
-      <h4>{t("Latest save")}{' '}{ch ? `(${ch.slot}, ${timeAgo(ch.atMs)})` : t('')}</h4>
+      <h4>{t("Latest save")}{' '}{ch ? `(${ch.slot}, ${timeAgo(ch.atMs)})` : ''}</h4>
       {!ch && <p className="muted small">{t("Changes appear here after the game writes its next save.")}</p>}
       {ch && (
         <>

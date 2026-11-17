@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { UpdateState } from '../shared/types';
 import { api } from './api';
-import { t } from './i18n';
+import { percent, t } from './i18n';
 
 // Asks before downloading and shows the changelog of the new version. Never installs on its own.
 export function UpdateDialog() {
@@ -31,7 +31,7 @@ export function UpdateDialog() {
         )}
         {u.status === 'downloading' && (
           <div className="update-progress">
-            <p>{t('Baixando a atualização…')} {u.percent ?? 0}%</p>
+            <p>{t('Baixando a atualização…')} {percent((u.percent ?? 0) / 100)}</p>
             <div className="update-bar"><div style={{ width: `${u.percent ?? 0}%` }} /></div>
           </div>
         )}

@@ -36,7 +36,9 @@ export function regionsForArea(area: string | undefined, allRegions: string[]): 
   if (!area) return [];
   const base = area.split('/').pop()!.replace(/_(Adult|Child)$/i, '');
   const key = norm(base);
-  if (ALIASES[key]) return ALIASES[key];
+  // Nothing left after normalizing (e.g. "_Child", digits only): would match every region.
+  if (!key) return [];
+  if (Object.hasOwn(ALIASES, key)) return ALIASES[key];
   // Otherwise: a checklist region whose normalized name equals or starts with the area's.
   return allRegions.filter(r => { const n = norm(r.replace(/\(.*\)/, '')); return n === key || n.startsWith(key) || key.startsWith(n); });
 }

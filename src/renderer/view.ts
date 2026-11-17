@@ -19,12 +19,16 @@ export interface Card {
   done: number;
   total: number;
   hint?: string;
+  /** Values for the hint's {placeholders}, when the main process sends them. */
+  hintValues?: Record<string, string | number>;
   value?: number | null;
   max?: number;
   counterConfidence?: string;
   wide?: boolean;
 }
 
+/** The hint and, if the main process attached them, the values for its {placeholders} (`hintValues`). */
+const hintOf = (c?: TrackedCategory): Partial<Card> => ({ hint: c?.hint, hintValues: c?.hintValues });
 const single = (c: TrackedCategory, item: TrackedItem): TileModel => ({ kind: 'single', key: item.id, categoryId: c.id, item });
 
 export function buildCards(cats: TrackedCategory[]): Card[] {
@@ -58,10 +62,10 @@ export function buildCards(cats: TrackedCategory[]): Card[] {
 
   // Hearts: containers first, then pieces.
   push('hearts', 'Hearts', 'heart_containers', 'A', [all('heart_containers', 'major'), all('heart_pieces', 'numbered', 'Pieces of Heart')],
-    { hint: get('heart_pieces')?.hint }, ['heart_containers', 'heart_pieces']);
+    hintOf(get('heart_pieces')), ['heart_containers', 'heart_pieces']);
 
   push('gold_skulltulas', 'Gold Skulltulas', 'gold_skulltulas', 'A', [all('gold_skulltulas', 'numbered')],
-    { hint: get('gold_skulltulas')?.hint }, ['gold_skulltulas']);
+    hintOf(get('gold_skulltulas')), ['gold_skulltulas']);
 
   push('songs', 'Songs', 'songs', 'A', [all('songs')], {}, ['songs']);
 
@@ -107,7 +111,7 @@ export function buildCards(cats: TrackedCategory[]): Card[] {
     if (c.kind === 'counter') {
       cards.push({ id: c.id, label: c.label, colorCat: c.id, part: c.part, kind: 'counter', sections: [], done: c.done, total: c.total, value: c.value, max: c.max, counterConfidence: c.counterConfidence });
     } else {
-      push(c.id, c.label, c.id, c.part, [all(c.id, c.id === 'heart_pieces' ? 'numbered' : undefined)], { hint: c.hint });
+      push(c.id, c.label, c.id, c.part, [all(c.id, c.id === 'heart_pieces' ? 'numbered' : undefined)], hintOf(c));
     }
   }
   // Keep Part A cards in the order above, then B and C.

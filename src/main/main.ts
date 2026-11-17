@@ -2,10 +2,12 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, Menu, globalShortcut, screen, desktopCapturer } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import { Controller } from './controller.js';
 import type { OverlayMode, UpdateState } from '../shared/types.js';
 import { createUpdater } from './updater.js';
 import { SettingsStore } from './settings.js';
+import { boundsVisible, cleanBounds, isLocale, isString, isStringArray, parseHotkeys, parseOverlayPatch, sanitizeUiPrefs, type MainLocale, type Rect } from './validate.js';
 
 const isDev = !app.isPackaged;
 const appDir = app.getAppPath();
@@ -13,18 +15,59 @@ const appDir = app.getAppPath();
 // Development/testing only: run against a scratch settings folder and save folder.
 if (isDev && process.env.OOT_USER_DATA) app.setPath('userData', process.env.OOT_USER_DATA);
 
+// Only one tracker at a time; a second launch focuses the first and exits right away
+// (before it creates settings, windows or hotkeys).
+const primaryInstance = app.requestSingleInstanceLock();
+if (!primaryInstance) app.exit(0);
+
 let main: BrowserWindow | null = null;
 let controller: Controller;
 let settings: SettingsStore;
 let updater: ReturnType<typeof createUpdater> | null = null; // only in the installed app
 
-function rendererUrl(page: string) {
+function rendererUrl(page: string, query = '') {
   const dev = process.env.VITE_DEV_SERVER_URL;
-  return dev ? `${dev}${page}` : `file://${path.join(appDir, 'dist', page)}`;
+  if (dev) return `${dev}${page}${query}`;
+  const url = pathToFileURL(path.join(appDir, 'dist', page));
+  url.search = query;
+  return url.href;
+}
+
+/** The few texts main shows itself (the windows translate everything else). */
+const DIALOG_TEXT: Record<MainLocale, { dataBroken: string; pickFolder: string }> = {
+  'pt-BR': {
+    dataBroken: 'Os arquivos de dados do tracker (data/checklist.json, data/save-mapping.json) estão ausentes ou corrompidos.',
+    pickFolder: 'Selecione a pasta de saves do jogo',
+  },
+  'en-US': {
+    dataBroken: "The tracker's data files (data/checklist.json, data/save-mapping.json) are missing or broken.",
+    pickFolder: "Select the game's save folder",
+  },
+  'es-ES': {
+    dataBroken: 'Faltan o están dañados los archivos de datos del tracker (data/checklist.json, data/save-mapping.json).',
+    pickFolder: 'Selecciona la carpeta de partidas del juego',
+  },
+};
+const dialogText = () => DIALOG_TEXT[isLocale(settings?.data.locale) ? settings.data.locale! : 'en-US'];
+
+/** Saved bounds, if they still land on a connected display (monitors change); else undefined. */
+function restoredBounds(saved: unknown): Rect | undefined {
+  const b = cleanBounds(saved);
+  if (!b) return undefined;
+  try {
+    const match = screen.getDisplayMatching(b);
+    const areas = [match, ...screen.getAllDisplays()].filter(Boolean).map(d => d.workArea);
+    return boundsVisible(b, areas) ? b : undefined;
+  } catch { return undefined; }
+}
+
+/** Windows only show the app's own pages: no navigating away, ever. */
+function lockNavigation(win: BrowserWindow) {
+  win.webContents.on('will-navigate', e => e.preventDefault());
 }
 
 function createMain() {
-  const b = settings.data.mainBounds;
+  const b = restoredBounds(settings.data.mainBounds);
   main = new BrowserWindow({
     width: b?.width ?? 1280, height: b?.height ?? 900, x: b?.x, y: b?.y,
     minWidth: 640, minHeight: 480,
@@ -44,10 +87,12 @@ function createMain() {
   main.on('closed', () => { main = null; overlay?.destroy(); app.quit(); });
   // Links open in the browser, never inside the app.
   main.webContents.setWindowOpenHandler(({ url }) => {
-    const target = new URL(url);
-    if (target.protocol === 'https:' && ['nintendoeverything.com', 'www.nintendo.com', 'zelda.mtwildwood.net'].includes(target.hostname)) void shell.openExternal(url);
+    let target: URL;
+    try { target = new URL(url); } catch { return { action: 'deny' }; }
+    if (target.protocol === 'https:' && ['nintendoeverything.com', 'www.nintendo.com', 'zelda.mtwildwood.net'].includes(target.hostname)) void shell.openExternal(target.href);
     return { action: 'deny' };
   });
+  lockNavigation(main);
   if (isDev && process.env.OOT_DEVTOOLS) main.webContents.openDevTools({ mode: 'detach' });
 }
 
@@ -57,18 +102,20 @@ let overlay: BrowserWindow | null = null;
 function createOverlay() {
   const o = settings.data.overlay;
   const wa = screen.getPrimaryDisplay().workArea;
-  const b = o.bounds ?? { width: 360, height: 420, x: wa.x + wa.width - 380, y: wa.y + 40 };
+  const b = restoredBounds(o.bounds) ?? { width: 360, height: 420, x: wa.x + wa.width - 380, y: wa.y + 40 };
   overlay = new BrowserWindow({
     ...b,
     minWidth: 220, minHeight: 90,
     frame: false, transparent: true, backgroundColor: '#00000000', hasShadow: false,
     alwaysOnTop: true, skipTaskbar: true, resizable: true, focusable: !o.locked, show: false,
-    title: 'Boomerang Tracker overlay',
+    title: 'Hyrule Tracker overlay',
     webPreferences: { preload: path.join(appDir, 'dist-electron', 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false },
   });
   overlay.setAlwaysOnTop(true, 'screen-saver'); // stays above borderless-fullscreen games
   overlay.setVisibleOnAllWorkspaces(true);
-  void overlay.loadURL(rendererUrl('index.html') + '?overlay=1');
+  overlay.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  lockNavigation(overlay);
+  void overlay.loadURL(rendererUrl('index.html', '?overlay=1'));
   const save = () => { if (overlay) settings.update(s => (s.overlay.bounds = overlay!.getBounds())); };
   overlay.on('move', debounce(save, 400));
   overlay.on('resize', debounce(save, 400));
@@ -133,12 +180,19 @@ function logError(where: string, e: unknown) {
   console.error(line);
 }
 
+/** GetWindowThreadProcessId from user32.dll, loaded once. */
+let windowOwner: Promise<(hwnd: bigint, pid: number[]) => number> | undefined;
+function getWindowOwner() {
+  windowOwner ??= import('koffi').then(({ default: koffi }) =>
+    koffi.load('user32.dll').func('uint32_t __stdcall GetWindowThreadProcessId(uint64_t hwnd, _Out_ uint32_t *pid)'));
+  windowOwner.catch(() => { windowOwner = undefined; }); // try again next time
+  return windowOwner;
+}
+
 async function captureGame(pid: number, width = 960): Promise<string | undefined> {
   if (!pid || process.platform !== 'win32') return;
   try {
-    const { default: koffi } = await import('koffi');
-    const user32 = koffi.load('user32.dll');
-    const owner = user32.func('uint32_t __stdcall GetWindowThreadProcessId(uint64_t hwnd, _Out_ uint32_t *pid)');
+    const owner = await getWindowOwner();
     const sources = await desktopCapturer.getSources({ types: ['window'], thumbnailSize: { width, height: Math.round(width * 9 / 16) }, fetchWindowIcons: false });
     for (const source of sources) {
       const hwnd = /^window:(\d+):/.exec(source.id)?.[1];
@@ -152,8 +206,6 @@ async function captureGame(pid: number, width = 960): Promise<string | undefined
 process.on('uncaughtException', e => logError('uncaughtException', e));
 process.on('unhandledRejection', e => logError('unhandledRejection', e));
 
-// Only one tracker at a time; a second launch focuses the first.
-if (!app.requestSingleInstanceLock()) app.quit();
 app.on('second-instance', () => { if (main) { if (main.isMinimized()) main.restore(); main.focus(); } });
 
 /** The app was renamed (formerly "OoT 100 Tracker"): carry settings, names and snapshots over once. */
@@ -183,7 +235,7 @@ function startUpdater() {
   }).catch(e => console.log('update unavailable', e)); // without electron-updater the app runs normally
 }
 
-app.whenReady().then(async () => {
+if (primaryInstance) app.whenReady().then(async () => {
   if (!process.env.OOT_USER_DATA) migrateOldUserData();
   settings = new SettingsStore(path.join(app.getPath('userData'), 'settings.json'));
   try {
@@ -196,8 +248,7 @@ app.whenReady().then(async () => {
     }, settings);
   } catch (e) {
     logError('startup', e);
-    dialog.showErrorBox('Hyrule Tracker',
-      `The tracker's data files (data/checklist.json, data/save-mapping.json) are missing or broken.\n\n${(e as Error).message}`);
+    dialog.showErrorBox('Hyrule Tracker', `${dialogText().dataBroken}\n\n${(e as Error).message}`);
     app.quit();
     return;
   }
@@ -220,46 +271,57 @@ app.whenReady().then(async () => {
   ipcMain.on('update:later', () => updater?.later());
   ipcMain.on('update:install', () => updater?.install());
   ipcMain.handle('prefs:get', () => settings.data.ui);
-  ipcMain.handle('locale:set', (_e, locale: string) => {
-    if (!['pt-BR', 'en-US', 'es-ES'].includes(locale)) return;
+  // Everything from the windows is checked before use (cheap type guards; bad input is ignored).
+  ipcMain.handle('locale:set', (_e, locale: unknown) => {
+    if (!isLocale(locale)) return;
+    if (settings.data.locale !== locale) settings.update(s => (s.locale = locale));
     for (const w of BrowserWindow.getAllWindows()) w.webContents.send('locale', locale);
   });
-  ipcMain.handle('prefs:set', (_e, ui) => { settings.update(s => (s.ui = ui)); return settings.data.ui; });
-  ipcMain.handle('slot:pin', (_e, name: string | null) => controller.pinSlot(name));
-  ipcMain.handle('manual:toggle', (_e, id: string) => controller.toggleManual(id));
-  ipcMain.handle('dev:set', (_e, on: boolean) => controller.setDevPanel(on));
-  ipcMain.handle('live:set', (_e, on: boolean) => controller.setLiveEnabled(on));
+  ipcMain.handle('prefs:set', (_e, ui: unknown) => {
+    const next = sanitizeUiPrefs(ui, settings.data.ui);
+    if (next) settings.update(s => (s.ui = next));
+    return settings.data.ui;
+  });
+  ipcMain.handle('slot:pin', (_e, name: unknown) => (name === null || isString(name, 100)) ? controller.pinSlot(name) : undefined);
+  ipcMain.handle('manual:toggle', (_e, id: unknown) => isString(id) ? controller.toggleManual(id) : undefined);
+  ipcMain.handle('dev:set', (_e, on: unknown) => controller.setDevPanel(on === true));
+  ipcMain.handle('live:set', (_e, on: unknown) => controller.setLiveEnabled(on === true));
   ipcMain.handle('capture:get', () => controller.captureGame());
-  ipcMain.handle('capture:set', (_e, on: boolean) => controller.setCaptureActivity(on === true));
-  ipcMain.handle('log:set', (_e, on: boolean) => controller.setChangeLog(on));
+  ipcMain.handle('capture:set', (_e, on: unknown) => controller.setCaptureActivity(on === true));
+  ipcMain.handle('log:set', (_e, on: unknown) => controller.setChangeLog(on === true));
   ipcMain.handle('log:open', () => shell.openPath(controller.logDir()));
-  ipcMain.handle('snapshot:take', (_e, label: string) => controller.takeSnapshot(label));
+  ipcMain.handle('snapshot:take', (_e, label: unknown) => controller.takeSnapshot(isString(label, 200) ? label : ''));
   ipcMain.handle('snapshot:open-folder', () => shell.openPath(controller.paths.snapshots));
-  ipcMain.handle('identify:answer', (_e, reqId: string, itemIds: string[]) => controller.answerIdentify(reqId, itemIds));
-  ipcMain.handle('identify:skip', (_e, reqId: string) => controller.skipIdentify(reqId));
-  ipcMain.handle('identify:forget', (_e, itemId: string) => controller.forgetIdentification(itemId));
+  ipcMain.handle('identify:answer', (_e, reqId: unknown, itemIds: unknown) =>
+    isString(reqId) && isStringArray(itemIds) ? controller.answerIdentify(reqId, itemIds) : undefined);
+  ipcMain.handle('identify:skip', (_e, reqId: unknown) => isString(reqId) ? controller.skipIdentify(reqId) : undefined);
+  ipcMain.handle('identify:forget', (_e, itemId: unknown) => isString(itemId) ? controller.forgetIdentification(itemId) : undefined);
   ipcMain.handle('identify:export', () => (isDev ? controller.exportLearned() : 'Only available when running from source'));
   ipcMain.handle('overlay:toggle', () => toggleOverlay());
   ipcMain.handle('overlay:lock', () => toggleOverlayLock());
-  ipcMain.handle('overlay:set', (_e, p: { opacity?: number; mode?: OverlayMode }) => {
+  ipcMain.handle('overlay:set', (_e, patch: unknown) => {
+    const p = parseOverlayPatch(patch);
+    if (p.opacity === undefined && !p.mode) return;
     settings.update(s => {
-      if (p.opacity !== undefined) s.overlay.opacity = Math.min(1, Math.max(0.2, p.opacity));
+      if (p.opacity !== undefined) s.overlay.opacity = p.opacity;
       if (p.mode) s.overlay.mode = p.mode;
     });
     applyOverlaySettings();
     publishOverlay();
   });
-  ipcMain.handle('hotkeys:set', (_e, hk: { toggleOverlay: string; lockOverlay: string }) => {
-    settings.update(s => (s.hotkeys = { toggleOverlay: hk.toggleOverlay.trim(), lockOverlay: hk.lockOverlay.trim() }));
+  ipcMain.handle('hotkeys:set', (_e, value: unknown) => {
+    const hk = parseHotkeys(value);
+    if (!hk) return;
+    settings.update(s => (s.hotkeys = hk));
     registerHotkeys();
   });
+  // Pick the save folder by hand. Cancel does nothing; errors are logged, never thrown at the window.
   ipcMain.handle('folder:browse', async () => {
-    const r = await dialog.showOpenDialog(main!, {
-      title: 'Hyrule Tracker',
-      properties: ['openDirectory'],
-      defaultPath: settings.data.saveDir,
-    });
-    if (!r.canceled && r.filePaths[0]) await controller.useFolder(r.filePaths[0]);
+    try {
+      const options = { title: dialogText().pickFolder, properties: ['openDirectory' as const], defaultPath: settings.data.saveDir };
+      const r = main ? await dialog.showOpenDialog(main, options) : await dialog.showOpenDialog(options);
+      if (!r.canceled && r.filePaths[0]) await controller.pickFolder(r.filePaths[0]);
+    } catch (e) { logError('folder:browse', e); }
     return controller.state;
   });
 

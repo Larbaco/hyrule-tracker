@@ -13,6 +13,10 @@ export interface OverlaySettings {
 
 export interface Settings {
   saveDir?: string;
+  /** The save folder was picked by hand: don't replace it with an automatic scan. */
+  manualSaveDir?: boolean;
+  /** Language last chosen in the app (for the few texts main shows itself, like dialogs). */
+  locale?: 'pt-BR' | 'en-US' | 'es-ES';
   /** null = follow the most recently saved slot */
   pinnedSlot: string | null;
   /** manual ticks: "<userDir>|<slot>" -> item id -> true */

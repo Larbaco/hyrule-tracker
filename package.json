@@ -19,7 +19,6 @@
   },
   "devDependencies": {
     "@types/node": "^24.19.2",
-    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^5.2.0",
@@ -34,7 +33,6 @@
   "dependencies": {
     "electron-updater": "^6.8.11",
     "koffi": "3.3.7",
-    "qrcode": "^1.5.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
@@ -72,7 +70,8 @@
     },
     "asar": true,
     "asarUnpack": [
-      "node_modules/koffi/**"
+      "node_modules/koffi/**",
+      "node_modules/@koromix/koffi-*/**"
     ],
     "nsis": {
       "oneClick": false,

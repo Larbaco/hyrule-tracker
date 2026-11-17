@@ -5,7 +5,6 @@
 - **koffi** by Niels Martignène, MIT License (https://github.com/Koromix/koffi). Used to
   read the running game's memory through Windows' `ReadProcessMemory` (read-only).
 - Electron, React and the build tools listed in `package.json`, under their own licenses.
-- **qrcode**, MIT License (https://github.com/soldair/node-qrcode), generates local melody QR codes.
 
 ## Application and images
 

@@ -1353,11 +1353,14 @@
     "side_quests.to_the_great_fairy": {
       "label": "To the Great Fairy",
       "detect": {
-        "name": "Step_Meet_GreatFairy",
-        "eq": "Complete"
+        "any": [
+          { "name": "Step_Meet_GreatFairy", "in": ["GoToHyruleCastle", "Complete"] },
+          { "name": "HavePlayedEvent.Dm_FairyFountain_Din" },
+          { "name": "IsGet.Item_DinFire" }
+        ]
       },
       "confidence": "likely",
-      "evidence": "Quest step enum Step_Meet_GreatFairy = Complete (steps: GoToTopOfMountain → GoToFountain → GetFairyBreath → GoToHyruleCastle)"
+      "evidence": "The first Great Fairy has granted her blessing at GoToHyruleCastle or Complete. The summit fountain cutscene and Din's Fire also confirm that visit."
     },
     "side_quests.stir_the_scarecrows_soul": {
       "label": "Stir the Scarecrow's Soul!",

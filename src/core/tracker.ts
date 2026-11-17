@@ -181,10 +181,16 @@ export class Tracker {
     const hc = categories.find(c => c.id === 'heart_containers');
     if (hp && hc && hearts !== null && held !== null) {
       const total = Math.max(0, (hearts - 3 - hc.done) * 4 + held);
-      if (total !== hp.done) hp.hint = `Your save has ${total} piece${total === 1 ? '' : 's'} in total; ${hp.done} matched to a location so far.`;
+      if (total !== hp.done) {
+        hp.hint = total === 1 ? 'Your save has {n} piece in total; {matched} matched to a location so far.' : 'Your save has {n} pieces in total; {matched} matched to a location so far.';
+        hp.hintValues = { n: total, matched: hp.done };
+      }
     }
     const gs = categories.find(c => c.id === 'gold_skulltulas');
-    if (gs && tokens !== null && tokens !== gs.done) gs.hint = `Your save has ${tokens} token${tokens === 1 ? '' : 's'}; ${gs.done} matched to a location so far.`;
+    if (gs && tokens !== null && tokens !== gs.done) {
+      gs.hint = tokens === 1 ? 'Your save has {n} token; {matched} matched to a location so far.' : 'Your save has {n} tokens; {matched} matched to a location so far.';
+      gs.hintValues = { n: tokens, matched: gs.done };
+    }
     return { categories, summary };
   }
 

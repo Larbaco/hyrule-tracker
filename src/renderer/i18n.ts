@@ -18,7 +18,8 @@ const translations = new Map(entries.trim().split('\n').map(row => {
   return [source, { 'pt-BR': pt, 'en-US': en, 'es-ES': es }] as const;
 }));
 const catalog: Record<string, string[]> = catalogEntries;
-export function t(source: string): string {
+/** A translation found in the dictionaries or by one of the structured patterns, or undefined. */
+function lookup(source: string): string | undefined {
   const direct = translations.get(source)?.[locale];
   if (direct) return direct;
   if (locale !== 'en-US') {
@@ -29,13 +30,23 @@ export function t(source: string): string {
     if (age) return `${t(age[1])} (${t(age[2])})`;
     const floor = /^(B)?(\d+)F$/.exec(source);
     if (floor) return t(floor[1] ? '{n} basement' : '{n} floor').replace('{n}', floor[2]);
-    const tokens = /^(\d+) Gold Skulltula tokens$/.exec(source);
-    if (tokens) return t('{n} Gold Skulltula tokens').replace('{n}', tokens[1]);
   }
+  const tokens = /^(\d+) Gold Skulltula tokens?$/.exec(source);
+  if (tokens) return plural(Number(tokens[1]), '{n} Gold Skulltula token', '{n} Gold Skulltula tokens');
   const numbered = /^(Pensamento de fada|Chamado de Pierre|Entrada de gruta|Pedra falante|Rupees prateadas) (\d+)$/.exec(source);
   if (numbered) return `${t(numbered[1])} ${numbered[2]}`;
+  return undefined;
+}
+export function t(source: string): string {
+  const found = lookup(source);
+  if (found !== undefined) return found;
+  // "Area: spot" headings: translated only when both halves are known, never as a half-translated mix.
   const heading = source.indexOf(': ');
-  if (heading > 0 && !/[.!?]$/.test(source)) return `${t(source.slice(0, heading))}: ${t(source.slice(heading + 2))}`;
+  if (heading > 0 && !/[.!?]$/.test(source)) {
+    const head = lookup(source.slice(0, heading));
+    const body = lookup(source.slice(heading + 2));
+    if (head !== undefined && body !== undefined) return `${head}: ${body}`;
+  }
   return source;
 }
 export const currentLocale = () => locale;
@@ -53,3 +64,13 @@ export function message(source: string, values: Record<string, string | number> 
 }
 export const date = (value: number) => new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' }).format(value);
 export const hour = (value: number) => new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(value);
+/** 0.42 -> "42%" / "42 %" as the locale writes it. */
+export const percent = (fraction: number, digits = 0) => new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: digits }).format(fraction);
+export const day = (value: number | Date) => new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(value);
+/** Picks the singular or plural key for `count` (Intl.PluralRules) and fills {n} and the other values. */
+export function plural(count: number, one: string, other: string, values: Record<string, string | number> = {}) {
+  const key = new Intl.PluralRules(locale).select(count) === 'one' ? one : other;
+  return message(key, { n: count, ...values });
+}
+/** t() for plain text, message() when the main process sent values to fill in. */
+export const tv = (source: string, values?: Record<string, string | number>) => (values ? message(source, values) : t(source));

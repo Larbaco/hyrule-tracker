@@ -107,52 +107,129 @@ function configPaths(base: string, file: string, keys: string[]): string[] {
   } catch { return []; }
 }
 
-/** Look in launcher config, standard data directories and shallow game-library layouts. */
-export function candidateGameFolders(): string[] {
+function baseDirs() {
   const home = os.homedir();
   const roaming = process.env.APPDATA ?? path.join(home, 'AppData', 'Roaming');
   const local = process.env.LOCALAPPDATA ?? path.join(home, 'AppData', 'Local');
-  const native = ['Hookshot', 'Longshot', 'Triforce', 'NX2navi', 'Ocarina Reborn', 'OcarinaReborn', 'ReLink'];
   const storage = [roaming, local, path.join(local, 'Programs'), path.join(home, 'Games')];
-  const known = [...emulatorDataDirs(roaming), ...emulatorDataDirs(local),
+  return { home, roaming, local, storage };
+}
+
+/** Install folders the ports and emulators use by default, or that launcher config points to. Cheap: no directory walk. */
+export function knownGameFolders(): string[] {
+  const { roaming, local, storage } = baseDirs();
+  const native = ['Hookshot', 'Longshot', 'Triforce', 'NX2navi', 'Ocarina Reborn', 'OcarinaReborn', 'ReLink'];
+  return [...emulatorDataDirs(roaming), ...emulatorDataDirs(local),
     ...storage.flatMap(base => native.map(name => path.join(base, name))),
     ...configPaths(local, 'Ocarina Reborn/Config/settings.json', ['game_dir']),
     ...configPaths(local, 'Ocarina Reborn/Config/build-state.json', ['dest']),
     ...configPaths(local, 'LongshotLauncher/builds.json', ['folder']),
     ...configPaths(local, 'LongshotLauncher/settings.json', ['buildsFolder']),
     ...configPaths(local, 'ReLink/install.json', ['Out'])];
-  const volumes = process.platform === 'win32'
-    ? Array.from('CDEFGHIJKLMNOPQRSTUVWXYZ', letter => letter + ':\\').filter(root => fs.existsSync(root))
-    : [];
-  const roots = [...volumes, home, ...storage, path.join(home, 'Downloads'), path.join(home, 'Desktop'), path.join(home, 'Documents')];
-  const found = new Set(known);
+}
+
+interface DirEntry { name: string; isFile(): boolean; isDirectory(): boolean }
+const DRIVE_LETTERS = Array.from('CDEFGHIJKLMNOPQRSTUVWXYZ', letter => letter + ':\\');
+const SCAN_LIMIT = 2500;
+const scanRoots = (home: string, storage: string[], volumes: string[]) =>
+  [...volumes, home, ...storage, path.join(home, 'Downloads'), path.join(home, 'Desktop'), path.join(home, 'Documents')];
+/** Holds a game exe, a portable "user" folder, or a save/nand folder under a game-like name. */
+const looksLikeGame = (dir: string, entries: DirEntry[]) =>
+  entries.some(e => e.isFile() && GAME_FILES.has(e.name.toLowerCase())) ||
+  entries.some(e => e.isDirectory() && e.name.toLowerCase() === 'user') ||
+  (GAME_NAMES.test(path.basename(dir)) && entries.some(e => e.isDirectory() && /^(save|nand)$/i.test(e.name)));
+/** Sub-folders worth descending into (game-like names, library groupings). */
+const subdirsToScan = (entries: DirEntry[], depth: number, library: boolean) => entries.flatMap(entry => {
+  if (!entry.isDirectory()) return [];
+  const named = GAME_NAMES.test(entry.name);
+  const grouping = SEARCH_GROUPS.test(entry.name);
+  return named || grouping || (library && depth >= 2 && !entry.name.startsWith('.')) ? [{ name: entry.name, library: named || grouping }] : [];
+});
+const topLevel = (names: string[]) => names.filter(n => !n.startsWith('.') && !n.startsWith('$'));
+
+/** Look in launcher config, standard data directories and shallow game-library layouts (synchronous; CLI). */
+export function candidateGameFolders(): string[] {
+  const { home, storage } = baseDirs();
+  const volumes = process.platform === 'win32' ? DRIVE_LETTERS.filter(root => fs.existsSync(root)) : [];
+  const found = new Set(knownGameFolders());
   const inspected = new Set<string>();
   function scan(dir: string, depth: number, library: boolean) {
     const key = dir.toLowerCase();
-    if (inspected.has(key) || inspected.size >= 2500) return;
+    if (inspected.has(key) || inspected.size >= SCAN_LIMIT) return;
     inspected.add(key);
     let entries: fs.Dirent[];
     try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
-    if (entries.some(e => e.isFile() && GAME_FILES.has(e.name.toLowerCase())) ||
-        entries.some(e => e.isDirectory() && e.name.toLowerCase() === 'user') ||
-        (GAME_NAMES.test(path.basename(dir)) && entries.some(e => e.isDirectory() && /^(save|nand)$/i.test(e.name)))) found.add(dir);
+    if (looksLikeGame(dir, entries)) found.add(dir);
     if (!depth) return;
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      const named = GAME_NAMES.test(entry.name);
-      const grouping = SEARCH_GROUPS.test(entry.name);
-      if (named || grouping || (library && depth >= 2 && !entry.name.startsWith('.'))) {
-        scan(path.join(dir, entry.name), depth - 1, named || grouping);
-      }
-    }
+    for (const sub of subdirsToScan(entries, depth, library)) scan(path.join(dir, sub.name), depth - 1, sub.library);
   }
-  for (const root of roots) scan(root, 4, SEARCH_GROUPS.test(path.basename(root)));
+  for (const root of scanRoots(home, storage, volumes)) scan(root, 4, SEARCH_GROUPS.test(path.basename(root)));
   // Ports can choose the installation folder's name freely. Check top-level folders on
   // secondary drives for recognizable binaries or a portable user/save layout.
   for (const root of volumes.filter(dir => !/^c:/i.test(dir))) {
-    for (const name of readdir(root).filter(n => !n.startsWith('.') && !n.startsWith('$'))) scan(path.join(root, name), 1, false);
+    for (const name of topLevel(readdir(root))) scan(path.join(root, name), 1, false);
   }
   return [...found];
+}
+
+/** The same search as candidateGameFolders without blocking the main process (fs.promises). */
+export async function candidateGameFoldersAsync(): Promise<string[]> {
+  const { home, storage } = baseDirs();
+  const exists = (p: string) => fs.promises.access(p).then(() => true, () => false);
+  const volumes = process.platform === 'win32'
+    ? (await Promise.all(DRIVE_LETTERS.map(async root => (await exists(root)) ? root : null))).filter((r): r is string => !!r)
+    : [];
+  const found = new Set(knownGameFolders());
+  const inspected = new Set<string>();
+  async function scan(dir: string, depth: number, library: boolean): Promise<void> {
+    const key = dir.toLowerCase();
+    if (inspected.has(key) || inspected.size >= SCAN_LIMIT) return;
+    inspected.add(key);
+    let entries: fs.Dirent[];
+    try { entries = await fs.promises.readdir(dir, { withFileTypes: true }); } catch { return; }
+    if (looksLikeGame(dir, entries)) found.add(dir);
+    if (!depth) return;
+    for (const sub of subdirsToScan(entries, depth, library)) await scan(path.join(dir, sub.name), depth - 1, sub.library);
+  }
+  for (const root of scanRoots(home, storage, volumes)) await scan(root, 4, SEARCH_GROUPS.test(path.basename(root)));
+  for (const root of volumes.filter(dir => !/^c:/i.test(dir))) {
+    let names: string[] = [];
+    try { names = await fs.promises.readdir(root); } catch { /* drive not ready */ }
+    for (const name of topLevel(names)) await scan(path.join(root, name), 1, false);
+  }
+  return [...found];
+}
+
+/**
+ * A folder the user picked by hand: the profile folder, a slot_* folder, the game or
+ * emulator folder, or any folder up to a few levels above a profile folder. Returns the
+ * profile folders found (empty if none).
+ */
+export function resolvePickedFolder(dir: string, maxDepth = 2): string[] {
+  const direct = resolveUserFolders(dir);
+  if (direct.length) return direct;
+  if (!fs.existsSync(dir)) return [];
+  const out: string[] = [];
+  let level = [dir];
+  let visited = 0;
+  for (let depth = 0; depth < maxDepth && level.length && !out.length; depth++) {
+    const next: string[] = [];
+    for (const d of level) {
+      let entries: fs.Dirent[];
+      try { entries = fs.readdirSync(d, { withFileTypes: true }); } catch { continue; }
+      for (const e of entries) {
+        if (!e.isDirectory() || e.name.startsWith('.') || e.name.startsWith('$') || /^slot_\d+$/i.test(e.name)) continue;
+        if (++visited > 200) return [...new Set(out)];
+        const p = path.join(d, e.name);
+        // Each folder may itself be a game, save or profile folder (resolveUserFolders knows the layouts).
+        const found = resolveUserFolders(p);
+        if (found.length) out.push(...found);
+        else next.push(p);
+      }
+    }
+    level = next;
+  }
+  return [...new Set(out)];
 }
 
 /**
@@ -183,6 +260,20 @@ export function userFolderForExe(exe: string, appData?: string): string | null {
 export function autoDetectUserFolder(): string | null {
   const all = candidateGameFolders().flatMap(g => resolveUserFolders(g));
   return latestUserFolder(all);
+}
+
+/**
+ * Full search across drives without blocking (run once at start and when asked). Returns
+ * the best save folder and the game folders found, for cheap re-checks later.
+ */
+export async function autoDetectUserFolderAsync(): Promise<{ dir: string | null; candidates: string[] }> {
+  const candidates = await candidateGameFoldersAsync();
+  return { dir: latestUserFolder(candidates.flatMap(g => resolveUserFolders(g))), candidates };
+}
+
+/** Cheap re-check: only these folders and the default install locations, no drive walk. */
+export function detectInFolders(candidates: string[]): string | null {
+  return latestUserFolder([...new Set([...candidates, ...knownGameFolders()])].flatMap(g => resolveUserFolders(g)));
 }
 
 export function latestUserFolder(folders: string[]): string | null {
@@ -249,8 +340,11 @@ export async function readSaveStable(file: string, { attempts = 5, delayMs = 300
       if (buf.length < 0x28 || buf.readUInt32LE(0) !== MAGIC) throw new IncompleteSaveError('Bad magic (file may be mid-write)');
       return { buf, data: parseGameData(buf), mtimeMs: after.mtimeMs };
     } catch (e) {
+      // Missing file or folder: retrying won't bring it back, fail right away.
+      const code = (e as NodeJS.ErrnoException)?.code;
+      if (code === 'ENOENT' || code === 'ENOTDIR' || code === 'EISDIR') throw e;
       lastErr = e;
-      await new Promise(r => setTimeout(r, delayMs));
+      if (i < attempts - 1) await new Promise(r => setTimeout(r, delayMs));
     }
   }
   throw lastErr;

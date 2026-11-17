@@ -1,4 +1,4 @@
-import { currentLocale, languages, message, number, setLocale, t, type Locale } from './i18n';
+import { currentLocale, languages, message, percent, setLocale, t, tv, type Locale } from './i18n';
 import { GameItemIcon } from './GameItemIcon';
 import { useEffect, useRef, useState } from 'react';
 import type { AppState, TrackedCategory, OverlayMode } from '../shared/types';
@@ -44,7 +44,7 @@ export function Overlay() {
         </div>
       )}
       {state.status !== 'ok' || !s ? (
-        <div className="ov-msg">{t(state.message ?? 'Waiting for a save…')}</div>
+        <div className="ov-msg">{state.message ? tv(state.message, state.messageValues) : t('Waiting for a save…')}</div>
       ) : (
         <>
           <div className="ov-head">
@@ -56,7 +56,7 @@ export function Overlay() {
           <div className="ov-summary">
             <span className={bumped.has('hearts') ? 'bump' : ''} title={t('Corações')}><GameItemIcon id="heart" size={21} /> {s.hearts ?? '?'}{s.heartPiecesHeld ? <small> +{s.heartPiecesHeld}/4</small> : null}</span>
             <span className={bumped.has('tokens') ? 'bump' : ''} title={t('Skulltulas douradas')}><GameItemIcon id="gold_skulltula" size={21} /> {s.tokens ?? '?'}</span>
-            <span className={`ov-pct ${bumped.has('pct') ? 'bump' : ''}`}>{number(s.percent)}%</span>
+            <span className={`ov-pct ${bumped.has('pct') ? 'bump' : ''}`}>{percent(s.percent / 100, 1)}</span>
           </div>
           {s.claimable.length > 0 && <div className="ov-claim">{t("Claim:")}{' '}{s.claimable.map(c => t(c.reward)).join(', ')}</div>}
           {state.identify.length > 0 && <div className="ov-claim">? {state.identify.length}{t("to identify: open the tracker")}</div>}
@@ -72,6 +72,8 @@ export function Overlay() {
 function useBumps(values: Record<string, number>, ms = 4000): Set<string> {
   const prev = useRef<Record<string, number> | null>(null);
   const [bumped, setBumped] = useState<Set<string>>(new Set());
+  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  useEffect(() => () => { for (const timer of timers.current) clearTimeout(timer); timers.current.clear(); }, []);
   const sig = JSON.stringify(values);
   useEffect(() => {
     const before = prev.current;
@@ -80,10 +82,13 @@ function useBumps(values: Record<string, number>, ms = 4000): Set<string> {
     const up = Object.keys(values).filter(k => before[k] !== undefined && values[k] > before[k]);
     if (!up.length) return;
     setBumped(b => new Set([...b, ...up]));
-    // Each change clears only its own keys; no cleanup, so a quick second change
-    // doesn't leave the first one pulsing.
-    setTimeout(() => setBumped(b => new Set([...b].filter(k => !up.includes(k)))), ms);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Each change clears only its own keys and isn't cancelled by the next change, so a quick
+    // second change doesn't leave the first one pulsing. Pending timers are cleared on unmount.
+    const timer = setTimeout(() => {
+      timers.current.delete(timer);
+      setBumped(b => new Set([...b].filter(k => !up.includes(k))));
+    }, ms);
+    timers.current.add(timer);
   }, [sig]);
   return bumped;
 }

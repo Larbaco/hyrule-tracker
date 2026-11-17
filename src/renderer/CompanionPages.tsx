@@ -1,21 +1,21 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import type { Activity, AppState, TrackedItem } from '../shared/types';
-import { GUIDE, LOCAL_NAMES } from '../core/companion';
+import { LOCAL_NAMES, MASK_SALE_NAMES } from '../core/companion';
 import { api } from './api';
 import { enemyPhoto, regionPhoto } from './referenceImages';
 import { LanguageSwitch } from './LanguageFlags';
-import { currentLocale, date, hour, languages, number, t, type Locale } from './i18n';
+import { currentLocale, date, hour, languages, number, plural, t, tv, type Locale } from './i18n';
 import { ObjectiveName } from './ObjectiveName';
 import { GameItemIcon, trackedItemIcon } from './GameItemIcon';
 import { Minigames } from './Minigames';
 import atlas from '../../data/atlas.json';
-import { PhotoStudio, Quiz, Gossip, useStored } from './Recreation';
+import { Quiz, Gossip, useStored } from './Recreation';
 import './companion.css';
 
 const pages = {
   overview: 'Visão geral', map: 'Mapa de Hyrule', checklist: 'Checklist 100%', threads: 'Fios do Tempo+',
   hall: 'Salão dos Inimigos', minigames: 'Minijogos', timeline: 'Registro do dia', medals: 'Meus dados',
-  gossip: 'Missões de rumores', photo: 'Estúdio de fotos', quiz: 'Quiz diário', settings: 'Configurações',
+  gossip: 'Missões de rumores', quiz: 'Quiz diário', settings: 'Configurações',
 };
 export type Page = keyof typeof pages;
 const pageDescriptions: Record<Page, string> = {
@@ -28,13 +28,12 @@ const pageDescriptions: Record<Page, string> = {
   timeline: 'Consulte o progresso registrado pelo tracker ao longo de cada dia.',
   medals: 'Veja seus totais e os marcos conquistados na jornada.',
   gossip: 'Siga as pistas e fotografe as regiões indicadas.',
-  photo: 'Explore os desafios de fotografia e organize suas capturas.',
   quiz: 'Teste seus conhecimentos sobre Hyrule no desafio diário.',
   settings: 'Configure o idioma, a origem da partida e a janela flutuante.',
 };
 const navGroups: Page[][] = [
   ['overview', 'map', 'checklist', 'threads', 'minigames', 'hall'],
-  ['timeline', 'medals', 'gossip', /* 'photo' hidden for now */ 'quiz'],
+  ['timeline', 'medals', 'gossip', 'quiz'],
   ['settings'],
 ];
 const iconPaths: Record<string, string> = {
@@ -47,7 +46,6 @@ const iconPaths: Record<string, string> = {
   timeline: 'M12 8v5l3 2M3 12a9 9 0 1 0 2.6-6.4L3 8m0-4v4h4',
   medals: 'M8 3h8v6l-4 4-4-4zM12 13a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
   gossip: 'M12 22s7-5 7-12a7 7 0 0 0-14 0c0 7 7 12 7 12Zm0-15v.1m0 3v4',
-  photo: 'M3 6h4l2-3h6l2 3h4v14H3zm9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
   quiz: 'M9 8a3 3 0 1 1 4.5 2.6c-1.5.8-1.5 1.5-1.5 3.4m0 4h.01M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z',
   settings: 'M3 6h7m4 0h7M3 12h12m4 0h2M3 18h2m4 0h12M10 4h4v4h-4zm5 6h4v4h-4zM5 16h4v4H5z',
   triangle: 'M12 3 2 21h20L12 3ZM7 12h10l-5 9z',
@@ -60,24 +58,28 @@ export function Icon({ name, size = 20 }: { name: string; size?: number }) {
 function sourceName(state: AppState) {
   return state.sourceLabel ?? (state.saveDir ? 'Partida local' : 'Aguardando partida');
 }
-function connectionStatus(state: AppState) {
-  if (state.saveReadError) return { label: 'Falha ao ler o save', connected: false };
+/** Connection label (a key, translated where shown) and an already translated detail line. */
+function connectionStatus(state: AppState): { label: string; detail?: string; connected: boolean } {
+  // Why live reading isn't in use right now (e.g. the game is on another file), from the main process.
+  const live = state.live;
+  const liveDetail = live.enabled && !live.using && live.detail ? tv(live.detail, live.detailValues) : undefined;
+  if (state.saveReadError) return { label: 'Falha ao ler o save', detail: liveDetail, connected: false };
   if (state.status === 'ok' && state.summary) return {
-    label: state.live.using ? 'Ao vivo' : 'Save conectado',
-    detail: state.live.using ? undefined : 'Acompanhando o último save',
+    label: live.using ? 'Ao vivo' : 'Save conectado',
+    detail: live.using ? undefined : liveDetail ?? t('Acompanhando o último save'),
     connected: true,
   };
-  if (state.status === 'loading' || state.live.status === 'searching') {
-    return { label: 'Buscando conexão', connected: false };
+  if (state.status === 'loading' || live.status === 'searching') {
+    return { label: 'Buscando conexão', detail: liveDetail, connected: false };
   }
-  return { label: 'Sem partida', connected: false };
+  return { label: 'Sem partida', detail: liveDetail, connected: false };
 }
 
 export function Sidebar({ page, onPage, state }: { page: Page; onPage: (p: Page) => void; state: AppState }) {
   const connection = connectionStatus(state);
   return <aside className="tracker-sidebar">
     <div className="tracker-brand"><img className="brand-icon" src="./brand/icon.webp" alt="" /><div><strong>Hyrule Tracker</strong><small>Ocarina of Time</small></div></div>
-    <button className={connection.connected ? 'sidebar-source connected' : 'sidebar-source'} title={t(connection.detail ?? connection.label)} onClick={() => onPage('settings')}>
+    <button className={connection.connected ? 'sidebar-source connected' : 'sidebar-source'} title={connection.detail ?? t(connection.label)} onClick={() => onPage('settings')}>
       <span className="status-dot" aria-hidden="true" />
       <b>{t(sourceName(state))}</b>
       <small>{t(connection.label)}</small>
@@ -94,7 +96,7 @@ export function PageHeader({ page, state, headerActions }: { page: Page; state: 
   return <header className="page-header">
     <div><h1>{t(pages[page])}</h1><p className="page-description">{t(pageDescriptions[page])}</p></div>
     <div className="page-header-actions">
-      <span className={connection.connected ? 'connection connected' : 'connection'} title={connection.detail && t(connection.detail)} role="status"><i aria-hidden="true" />{t(connection.label)}</span>
+      <span className={connection.connected ? 'connection connected' : 'connection'} title={connection.detail} role="status"><i aria-hidden="true" />{t(connection.label)}</span>
       {headerActions}
     </div>
   </header>;
@@ -102,11 +104,29 @@ export function PageHeader({ page, state, headerActions }: { page: Page; state: 
 
 const value = (n: number | null | undefined) => n == null ? '—' : number(n);
 
-function saveActions(onScan: () => void, scanning: boolean) {
-  return <div className="page-actions">
-    <button className="action primary" disabled={scanning} onClick={onScan}>{scanning ? t('Buscando…') : t('Buscar saves')}</button>
-    <button className="action" onClick={() => void api.browseFolder()}>{t("Escolher pasta")}</button>
-  </div>;
+/**
+ * "Search saves" and "Choose folder". Choosing a folder by hand is always possible, even while
+ * a search is running, so a slow or failing search never leaves the user stuck. `notFound`
+ * (search done, nothing found) puts the manual choice first and explains it.
+ */
+function SaveActions({ onScan, scanning, loading = false, notFound = false }: { onScan: () => void; scanning: boolean; loading?: boolean; notFound?: boolean }) {
+  const [browseError, setBrowseError] = useState('');
+  async function browse() {
+    setBrowseError('');
+    try {
+      const next = await api.browseFolder();
+      // The main process reports a folder it can't use through the state message.
+      if (next?.status === 'error' && next.message) setBrowseError(next.message);
+    } catch { setBrowseError('Não foi possível abrir a pasta escolhida. Tente novamente.'); }
+  }
+  return <>
+    <div className="page-actions">
+      <button className={notFound ? 'action' : 'action primary'} disabled={scanning || loading} onClick={onScan}>{scanning || loading ? t('Buscando…') : t('Buscar saves')}</button>
+      <button className={notFound ? 'action primary' : 'action'} onClick={() => void browse()}>{t("Escolher pasta")}</button>
+    </div>
+    {notFound && <p className="quiet">{t('Não encontrou? Selecione manualmente a pasta do perfil que contém as pastas slot_*.')}</p>}
+    {browseError && <p className="notice" role="alert">{t(browseError)}</p>}
+  </>;
 }
 
 export function CompanionPage({ page, state, onPage, onScan, scanning, onLanguage, headerActions }: { page: Page; state: AppState; onPage: (page: Page) => void; onScan: () => void; scanning: boolean; onLanguage: (locale: Locale) => void; headerActions: ReactNode }) {
@@ -120,7 +140,6 @@ export function CompanionPage({ page, state, onPage, onScan, scanning, onLanguag
     timeline: <Timeline state={state} />,
     medals: <Medals state={state} />,
     gossip: <Gossip state={state} />,
-    photo: <PhotoStudio state={state} />,
     quiz: <Quiz />,
     settings: <Settings state={state} onScan={onScan} scanning={scanning} onLanguage={onLanguage} />,
   };
@@ -131,15 +150,16 @@ function Overview({ state, onPage, onScan, scanning }: { state: AppState; onPage
   const s = state.summary;
   if (!s) return <section className="focus-panel empty-state">
     <img className="brand-icon big" src="./brand/icon.webp" alt="" /><h2>{state.status === 'loading' ? t('Buscando sua partida') : t('Encontre a sua partida')}</h2>
-    <p>{t(state.message || 'Procurando saves do remake nos locais de instalação.')}</p>
-    {state.status !== 'loading' && saveActions(onScan, scanning)}
+    <p>{state.message ? tv(state.message, state.messageValues) : t('Procurando saves do remake nos locais de instalação.')}</p>
+    <SaveActions onScan={onScan} scanning={scanning} loading={state.status === 'loading'} notFound={state.status !== 'loading'} />
   </section>;
   const chests = state.categories.find(c => c.id === 'chests');
+  // Details are translated here (plurals need the count).
   const metrics = [
-    { label: 'Corações', icon: 'heart', count: s.hearts, max: 20, detail: s.heartPiecesHeld == null ? 'Capacidade máxima' : `${s.heartPiecesHeld}/4 ${t('pedaços para o próximo')}` },
-    { label: 'Skulltulas douradas', icon: 'gold_skulltula', count: s.tokens, max: 100, detail: s.claimable.length ? 'Recompensa disponível' : s.nextReward ? `${t('Próxima recompensa aos')} ${s.nextReward.tokens}` : 'Todas as recompensas alcançadas' },
-    { label: 'Baús abertos', icon: 'chest', count: chests?.done, max: chests?.total, detail: 'Exploração de Hyrule' },
-    { label: 'Rupees', icon: 'rupee', count: state.companion?.rupees, detail: 'Saldo atual' },
+    { label: 'Corações', icon: 'heart', count: s.hearts, max: 20, detail: s.heartPiecesHeld == null ? t('Capacidade máxima') : plural(s.heartPiecesHeld, '{n}/4 pedaço para o próximo', '{n}/4 pedaços para o próximo') },
+    { label: 'Skulltulas douradas', icon: 'gold_skulltula', count: s.tokens, max: 100, detail: s.claimable.length ? t('Recompensa disponível') : s.nextReward ? `${t('Próxima recompensa aos')} ${s.nextReward.tokens}` : t('Todas as recompensas alcançadas') },
+    { label: 'Baús abertos', icon: 'chest', count: chests?.done, max: chests?.total, detail: t('Exploração de Hyrule') },
+    { label: 'Rupees', icon: 'rupee', count: state.companion?.rupees, detail: t('Saldo atual') },
   ];
   const artwork = state.saveImage || regionPhoto('HyruleField')?.file;
   return <>
@@ -155,7 +175,7 @@ function Overview({ state, onPage, onScan, scanning }: { state: AppState; onPage
       <div className="progress-place">{t(s.area || sourceName(state))}<small>{s.lastSavedMs ? date(s.lastSavedMs) : t('Último save')}</small></div>
     </section>
     <section className="metric-strip" aria-label={t("Resumo da partida")}>
-      {metrics.map(m => <div className="metric" key={m.label}><span className="metric-label"><GameItemIcon id={m.icon} size={25} />{t(m.label)}</span><strong>{value(m.count)}{m.max != null && <small>/{m.max}</small>}</strong><span>{t(m.detail)}</span></div>)}
+      {metrics.map(m => <div className="metric" key={m.label}><span className="metric-label"><GameItemIcon id={m.icon} size={25} />{t(m.label)}</span><strong>{value(m.count)}{m.max != null && <small>/{m.max}</small>}</strong><span>{m.detail}</span></div>)}
     </section>
     <div className="home-grid">
       <section className="focus-panel"><div className="section-line"><h2>{t("Fios do Tempo+")}</h2><button className="text-action" onClick={() => onPage('threads')}>{t("Ver jornada")}</button></div>
@@ -177,8 +197,8 @@ function Settings({ state, onScan, scanning, onLanguage }: { state: AppState; on
       <h2>{t("Fonte da partida")}</h2>
       <p>{t(sourceName(state))}</p>
       <code className="save-path">{state.saveDir || t('Pasta do save ainda não encontrada.')}</code>
-      {state.message && <p className="notice" role="status">{t(state.message)}</p>}
-      {saveActions(onScan, scanning)}
+      {state.message && <p className="notice" role="status">{tv(state.message, state.messageValues)}</p>}
+      <SaveActions onScan={onScan} scanning={scanning} loading={state.status === 'loading'} notFound={!state.saveDir && state.status !== 'loading'} />
       {!!state.slots.length && <label className="inline-field">{t('Slot')}<select value={state.slotMode === 'manual' ? state.activeSlot : ''} onChange={e => void api.pinSlot(e.target.value || null)}>
         <option value="">{t("Seguir o save mais recente")}</option>
         {state.slots.map(slot => <option key={slot.name} value={slot.name}>{slot.name} · {t(slot.area ?? '?')} · {date(slot.mtimeMs)}</option>)}
@@ -191,7 +211,11 @@ function Settings({ state, onScan, scanning, onLanguage }: { state: AppState; on
       {state.slotMode === 'manual' && <p className="notice">{t("Slot fixado. Selecione o save mais recente para voltar ao modo ao vivo.")}</p>}
       <button className="action" onClick={() => void api.toggleOverlay()}>{state.overlay.visible ? t('Ocultar painel no jogo') : t('Mostrar painel no jogo')}</button>
     </section>
-    <section className="focus-panel setting-panel"><h2>{t("Referências")}</h2><div className="page-actions"><a className="action" target="_blank" rel="noreferrer" href={GUIDE}>{t("Guia de 100%")}</a><a className="action" target="_blank" rel="noreferrer" href="https://www.nintendo.com/en-gb/Games/Smart-device-games/ZELDA-NOTES-2790439.html">Zelda Notes</a><a className="action" target="_blank" rel="noreferrer" href="https://zelda.mtwildwood.net/en-gb/">{t("Créditos das imagens")}</a></div></section>
+    <section className="focus-panel setting-panel credits-panel"><h2>{t("Créditos")}</h2>
+      <p>{t("Mapas de Hyrule e das masmorras, posições dos colecionáveis e fotos dos locais: Ocarina Atlas (licença MIT), que credita o atlas e as imagens de jogo ao Nintendúo.")}</p>
+      <p>{t("Imagens de itens, colecionáveis e HUD: Zelda Wiki e Mt. Wildwood Zelda Wiki. Imagens de inimigos e regiões: Mt. Wildwood Zelda Wiki.")}</p>
+      <p>{t("As imagens do jogo pertencem aos seus respectivos detentores de direitos. Veja todos os créditos em THIRD_PARTY_NOTICES.md, incluído com o aplicativo.")}</p>
+    </section>
   </>;
 }
 
@@ -326,7 +350,6 @@ function RegionAtlas({ region, state, era, filter, hideDone }: { region: string;
 }
 
 function Threads({ state }: { state: AppState }) {
-  const [videos, setVideos] = useState<Record<string, string>>({});
   const chapters = state.companion?.chapters ?? [];
   const side = state.categories.find(c => c.id === 'side_quests');
   return <div className="story-grid">
@@ -334,16 +357,36 @@ function Threads({ state }: { state: AppState }) {
       {chapters.length ? chapters.map(c => <details className="story-chapter" key={c.id}>
         <summary><span className={c.stages.every(s => s.done) ? 'story-dot done' : 'story-dot'} /><ObjectiveName done={c.stages.every(s => s.done)}>{t(c.title)}</ObjectiveName><small>{c.stages.filter(s => s.done).length}/{c.stages.length}</small></summary>
         <ul>{c.stages.map(s => <li key={s.label}><span><ObjectiveName done={s.done}>{t(s.label)}</ObjectiveName></span><small>{s.done ? t('Concluído') : s.started ? t('Em andamento') : t('Aguardando')}</small></li>)}</ul>
-        <label className="action file-action">{t("Abrir cena gravada")}<input type="file" accept="video/*" onChange={e => {
-          const file = e.target.files?.[0]; if (!file) return;
-          if (videos[c.id]) URL.revokeObjectURL(videos[c.id]);
-          setVideos(prev => ({ ...prev, [c.id]: URL.createObjectURL(file) }));
-        }} /></label>
-        {!!videos[c.id] && <video controls src={videos[c.id]} />}
       </details>) : <p className="quiet">{t("Encontre um save para ver a história.")}</p>}
     </section>
     <section className="focus-panel"><h2>{t("Missões secundárias")}{' '}{side && <small>{side.done}/{side.total}</small>}</h2>
-      {side?.items.map(i => <div className="chapter-line" key={i.id}><span className={i.done ? 'story-dot done' : 'story-dot'} /><b><ObjectiveName done={i.done}>{t(i.name)}</ObjectiveName></b></div>)}
+      {side?.items.length ? side.items.map(i => {
+        const sold = i.id === 'side_quests.happy_mask_shopkeeper' ? state.companion?.maskSales : null;
+        const fountains = i.id === 'side_quests.to_the_great_fairy' ? state.categories.find(c => c.id === 'great_fairies') : undefined;
+        const status = i.done ? 'Concluído' : sold || fountains?.done ? 'Em andamento' : i.state === 'unknown' ? 'Situação não mapeada' : 'Aguardando';
+        return (
+          <details className="story-chapter side-quest" key={i.id}>
+            <summary>
+              <span className={i.done ? 'story-dot done' : 'story-dot'} aria-hidden="true" />
+              <b><ObjectiveName done={i.done}>{t(i.name)}</ObjectiveName></b>
+              <small>{t(status)}{sold != null && ` · ${sold}/${MASK_SALE_NAMES.length}`}{fountains && ` · ${fountains.done}/${fountains.total}`}</small>
+            </summary>
+            <p>{t(i.where ?? 'Detalhes da missão indisponíveis.')}</p>
+            {sold != null && <ul aria-label={t('Vendas de máscaras')}>{MASK_SALE_NAMES.map((mask, index) => (
+              <li key={mask}>
+                <span><ObjectiveName done={index < sold}>{t(mask)}</ObjectiveName></span>
+                <small>{t(index < sold ? 'Vendida' : 'Aguardando')}</small>
+              </li>
+            ))}</ul>}
+            {fountains && <ul aria-label={t('Grandes Fadas')}>{fountains.items.map(f => (
+              <li key={f.id}>
+                <span><ObjectiveName done={f.done}>{t(f.name)}</ObjectiveName></span>
+                <small>{t(f.done ? 'Concluído' : 'Aguardando')}</small>
+              </li>
+            ))}</ul>}
+          </details>
+        );
+      }) : <p className="quiet">{t("Encontre um save para ver as missões secundárias.")}</p>}
     </section>
   </div>;
 }
@@ -375,8 +418,8 @@ function Hall({ state }: { state: AppState }) {
 
 function dayStamp(ts = Date.now()) { const d = new Date(ts); return [d.getFullYear(), d.getMonth() + 1, d.getDate()].map(n => String(n).padStart(2, '0')).join('-'); }
 function activityText(a: Activity) {
-  return [...(a.hearts ? [`+${a.hearts} ${t('Corações')}`] : []), ...(a.pieces ? [`+${a.pieces} ${t('Pieces of Heart')}`] : []),
-    ...a.entries.slice(0, 4).map(t), ...(a.enemies ? [`+${a.enemies} ${t('inimigos')}`] : []), ...(a.rupees ? [`+${a.rupees} ${t('Rupees')}`] : [])].join(' · ');
+  return [...(a.hearts ? [plural(a.hearts, '+{n} Coração', '+{n} Corações')] : []), ...(a.pieces ? [plural(a.pieces, '+{n} Pedaço de coração', '+{n} Pedaços de coração')] : []),
+    ...a.entries.slice(0, 4).map(e => t(e)), ...(a.enemies ? [plural(a.enemies, '+{n} inimigo', '+{n} inimigos')] : []), ...(a.rupees ? [plural(a.rupees, '+{n} Rupee', '+{n} Rupees')] : [])].join(' · ');
 }
 function ActivityList({ activity, photos = false }: { activity: Activity[]; photos?: boolean }) {
   return <ol className="activity-list">{activity.map((a, index) => <li key={`${a.ms}-${index}`}>
@@ -385,7 +428,9 @@ function ActivityList({ activity, photos = false }: { activity: Activity[]; phot
   </li>)}</ol>;
 }
 function Timeline({ state }: { state: AppState }) {
-  const [day, setDay] = useState(dayStamp);
+  // Follows today (also past midnight) until the user picks another day.
+  const [picked, setDay] = useState<string>();
+  const day = picked ?? dayStamp();
   const events = (state.activity ?? []).filter(a => dayStamp(a.ms) === day);
   const totals = events.reduce((a, e) => [a[0] + (e.enemies ?? 0), a[1] + (e.rupees ?? 0), a[2] + (e.pieces ?? 0)], [0, 0, 0]);
   return <section className="focus-panel"><div className="section-line"><h2>{t("Atividade da partida")}</h2><label className="inline-field">{t("Dia")}{' '}<input type="date" value={day} onChange={e => setDay(e.target.value)} /></label></div>

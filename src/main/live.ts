@@ -91,7 +91,8 @@ export class LiveSource {
   }
 
   private set(info: LiveInfo) {
-    const changed = info.status !== this.info.status || info.detail !== this.info.detail;
+    const changed = info.status !== this.info.status || info.detail !== this.info.detail ||
+      JSON.stringify(info.detailValues) !== JSON.stringify(this.info.detailValues);
     this.info = info;
     if (changed) { console.log('[live]', info.status, info.detail ?? ''); this.opts.onStatus(); }
   }
@@ -141,7 +142,7 @@ export class LiveSource {
     if (!matchesReference(live.agreement)) {
       this.snapshot = undefined;
       this.lastPrint = undefined;
-      return this.set({ status: 'waiting', detail: describeMismatch(live.agreement) });
+      return this.set({ status: 'waiting', ...describeMismatch(live.agreement) });
     }
     const wasLive = this.info.status === 'live';
     this.set({ status: 'live' });
@@ -210,9 +211,13 @@ async function findGame(): Promise<{ pid: number; emulator?: boolean } | undefin
   return undefined;
 }
 
-function describeMismatch(a: Agreement[]): string {
+/** A translatable key (source text) plus its values; the window translates it. */
+function describeMismatch(a: Agreement[]): Pick<LiveInfo, 'detail' | 'detailValues'> {
   const b = a.find(x => x.type === 'Bool');
   const k = a.find(x => x.type === 'Bool64bitKey');
   const kept = b?.refTrue ? Math.round((100 * b.liveTrueOfRefTrue!) / b.refTrue) : 100;
-  return `The game is running, but its progress doesn't match your latest save (${kept}% of flags, ${k ? k.checked - k.agree : 0} collected objects missing). On the title screen, or a different file?`;
+  return {
+    detail: "The game is running, but its progress doesn't match your latest save ({percent}% of flags, {missing} collected objects missing). On the title screen, or a different file?",
+    detailValues: { percent: kept, missing: k ? k.checked - k.agree : 0 },
+  };
 }

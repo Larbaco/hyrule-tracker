@@ -19,8 +19,8 @@ O despertar do Sábio da Luz tem `Step_SageOfLight`. A fuga da torre tem `Step_E
 | Secundária | ID de GameData |
 | --- | --- |
 | Amiga de Malon e Epona | `Step_Get_Epona` |
-| Loja de máscaras | `Step_SubEvent_MaskSalesman` |
-| Visita à primeira Grande Fada | `Step_Meet_GreatFairy` |
+| Loja de máscaras | `Step_SubEvent_MaskSalesman` para conclusão e vendas. Em saves sem o passo, o empréstimo da próxima máscara confirma a venda anterior. |
+| Ao encontro da Grande Fada | Concluída só com as 6 fontes das Grandes Fadas (mesmas regras da categoria Grandes Fadas); a página mostra o progresso N/6. |
 | Canção da Família Real | `Step_SubEvent_GetMelodySun` |
 | Canção do espantalho | `Step_SubEvent_GetScarecrow` |
 | Trocas até a espada de Biggoron | `Step_SubEvent_GetSwordBigGoron` |

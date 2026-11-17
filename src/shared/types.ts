@@ -60,6 +60,8 @@ export interface TrackedCategory {
   note?: string;
   /** e.g. "Your save has 3 pieces; 0 matched to a location yet" */
   hint?: string;
+  /** Values for the hint's {placeholders} (translate with message(hint, hintValues)) */
+  hintValues?: Record<string, string | number>;
   items: TrackedItem[];
   done: number;
   total: number;
@@ -126,6 +128,8 @@ export interface AppState {
   status: 'ok' | 'no-folder' | 'no-slots' | 'error' | 'loading';
   saveReadError?: boolean;
   message?: string;
+  /** Values for the message's {placeholders} (translate with message(message, messageValues)) */
+  messageValues?: Record<string, string | number>;
   saveDir?: string;
   sourceLabel?: string;
   companion?: import('../core/companion.js').CompanionProgress;
@@ -171,6 +175,8 @@ export interface AppState {
 export interface LiveInfo {
   status: 'off' | 'unavailable' | 'no-game' | 'searching' | 'waiting' | 'live';
   detail?: string;
+  /** Values for the detail's {placeholders} */
+  detailValues?: Record<string, string | number>;
 }
 
 /** "Which one was this?" question shown after collecting an unplaced Skulltula/heart piece. */

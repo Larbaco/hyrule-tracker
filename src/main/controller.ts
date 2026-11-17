@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseGameData, GameDataFile, GameDataError } from '../gamedata/parser.js';
-import { autoDetectUserFolder, installationLabel, latestUserFolder, resolveUserFolders, listSlots, mostRecentSlot, readSaveStable, userFolderForExe, SlotInfo } from '../gamedata/saves.js';
+import { autoDetectUserFolderAsync, detectInFolders, installationLabel, latestUserFolder, resolvePickedFolder, resolveUserFolders, listSlots, mostRecentSlot, readSaveStable, userFolderForExe, SlotInfo } from '../gamedata/saves.js';
 import { loadNames } from '../gamedata/names.js';
 import { Tracker, ChecklistFile, MappingFile, DescriptionsFile, applyDescriptions } from '../core/tracker.js';
 import { regionsForArea } from '../core/areas.js';
@@ -18,6 +18,10 @@ import { SettingsStore } from './settings.js';
 import type { Activity, AppState, ChangeRow, Summary, Toast, SlotSummary } from '../shared/types.js';
 import { canonicalStage, companionProgress, extendChecklist, RUPEES, type CompanionData } from '../core/companion.js';
 import { evaluateAtlas, type AtlasRule } from '../core/atlas.js';
+
+/** While no save folder is known, re-check the known game folders after 8 s, 30 s, then every 60 s. */
+const POLL_FIRST_MS = 8_000;
+const POLL_STEPS_MS = [8_000, 30_000, 60_000];
 
 export interface ControllerPaths {
   appDir: string; // holds data/ (and local/ in development)
@@ -40,7 +44,6 @@ export class Controller {
   private lastHeartStats?: { hearts: number | null; pieces: number | null };
   private lastSaveImage?: { key: string; value?: string };
   private lastCaptureAt = 0;
-  private firstSaveTimer?: NodeJS.Timeout;
   /** last parsed save per slot, for "just collected" and the change list */
   private lastParsed = new Map<string, { mtimeMs: number; data: GameDataFile; buf: Buffer }>();
   /** the save shown last (any slot) */
@@ -122,19 +125,67 @@ export class Controller {
 
   async start() {
     let dir = this.settings.data.saveDir;
-    if (!dir || !resolveUserFolders(dir).length) {
-      dir = autoDetectUserFolder() ?? undefined;
-    }
-    await this.useFolder(dir);
-    this.firstSaveTimer = setInterval(() => {
-      if (!this.userDir) void this.scanFolders();
-    }, 8000);
+    const saved = !!dir && resolveUserFolders(dir).length > 0;
+    // Cheap first: the default install folders. The full drive search runs in the background.
+    if (!saved) dir = detectInFolders([]) ?? undefined;
+    await this.useFolder(dir, { manual: saved && this.settings.data.manualSaveDir });
+    if (!this.userDir) void this.fullScan().then(() => this.schedulePoll());
     if (this.settings.data.live.enabled) await this.startLive();
   }
 
+  /** Game folders the last full search found: re-checked cheaply until a save appears. */
+  private candidates: string[] = [];
+  private scanning?: Promise<void>;
+  private pollTimer?: NodeJS.Timeout;
+  private pollDelay = POLL_FIRST_MS;
+  private stopped = false;
+
+  /** Search every drive (async, once at a time). Uses what it finds unless a folder is already in use. */
+  private fullScan(): Promise<void> {
+    this.scanning ??= (async () => {
+      try {
+        const { dir, candidates } = await autoDetectUserFolderAsync();
+        this.candidates = candidates;
+        if (dir && !this.userDir && !this.stopped) await this.useFolder(dir);
+      } catch (e) { console.error('save scan', e); }
+    })().finally(() => { this.scanning = undefined; });
+    return this.scanning;
+  }
+
+  /** While no save folder is known: re-check the known candidates, less and less often (8 s, 30 s, then every 60 s). */
+  private schedulePoll() {
+    clearTimeout(this.pollTimer);
+    this.pollTimer = undefined;
+    if (this.userDir || this.stopped) { this.pollDelay = POLL_FIRST_MS; return; }
+    this.pollTimer = setTimeout(() => {
+      this.pollTimer = undefined;
+      if (this.userDir || this.stopped) return;
+      const found = detectInFolders(this.candidates);
+      this.pollDelay = POLL_STEPS_MS.find(ms => ms > this.pollDelay) ?? POLL_STEPS_MS[POLL_STEPS_MS.length - 1];
+      void (found ? this.useFolder(found) : Promise.resolve()).finally(() => this.schedulePoll());
+    }, this.pollDelay);
+  }
+
+  /** "Find saves": a full search now. */
   async scanFolders() {
-    const found = autoDetectUserFolder();
+    await this.fullScan();
+    const found = detectInFolders(this.candidates);
     if (found || !this.userDir) await this.useFolder(found ?? undefined);
+    this.schedulePoll();
+    return this.state;
+  }
+
+  /**
+   * A folder picked by hand: the profile folder, a slot_* folder, the game folder or a folder a
+   * few levels above the profile. If no save is there, keep the current folder and say so.
+   */
+  async pickFolder(dir: string) {
+    const users = resolvePickedFolder(dir);
+    if (!users.length) {
+      this.patch({ message: 'No slot_* folder found in {path}. Select the game profile folder.', messageValues: { path: dir } });
+      return this.state;
+    }
+    await this.useFolder(latestUserFolder(users)!, { manual: true });
     return this.state;
   }
 
@@ -196,10 +247,11 @@ export class Controller {
   /** Newest save read (the live source's reference). */
   private lastShownSave?: GameDataFile;
 
-  async useFolder(dir: string | undefined) {
+  /** `manual`: picked by hand, so later automatic searches don't replace it. */
+  async useFolder(dir: string | undefined, { manual = false } = {}) {
     const users = dir ? resolveUserFolders(dir) : [];
     if (dir && !users.length && this.userDir) {
-      this.patch({ message: 'A pasta escolhida não contém um save compatível.' });
+      this.patch({ message: 'A pasta escolhida não contém um save compatível.', messageValues: undefined });
       return;
     }
     this.refreshId++;
@@ -219,9 +271,14 @@ export class Controller {
     if (!users.length) return this.fail('no-slots', 'A pasta escolhida não contém um save compatível.');
     // If a game folder holds several profiles, use the most recently played one.
     this.userDir = latestUserFolder(users)!;
-    if (this.settings.data.saveDir !== this.userDir) this.settings.update(s => {
+    // Found a folder: no more background searching.
+    clearTimeout(this.pollTimer);
+    this.pollTimer = undefined;
+    this.pollDelay = POLL_FIRST_MS;
+    if (this.settings.data.saveDir !== this.userDir || !!this.settings.data.manualSaveDir !== manual) this.settings.update(s => {
+      if (s.saveDir !== this.userDir) s.pinnedSlot = null;
       s.saveDir = this.userDir;
-      s.pinnedSlot = null;
+      s.manualSaveDir = manual || undefined;
     });
     this.watcher = new SaveWatcher(this.userDir, () => void this.refresh(true));
     this.watcher.start();
@@ -233,7 +290,8 @@ export class Controller {
    * own. Not while a slot is pinned (that's a choice of save), and only if it has saves.
    */
   private async followGame(exe: string | undefined) {
-    if (!exe || this.settings.data.pinnedSlot) return;
+    // A folder picked by hand is a choice too (like a pinned slot).
+    if (!exe || this.settings.data.pinnedSlot || (this.settings.data.manualSaveDir && this.userDir)) return;
     const dir = userFolderForExe(exe);
     if (!dir || path.resolve(dir).toLowerCase() === path.resolve(this.userDir ?? '').toLowerCase()) return;
     const game = path.dirname(exe).replace(/\\bin$/i, '');
@@ -242,8 +300,8 @@ export class Controller {
     await this.useFolder(dir);
   }
 
-  private fail(status: AppState['status'], message: string) {
-    this.state = { ...this.state, status, message, saveReadError: false, slots: [], categories: [], summary: undefined, companion: undefined, atlasStatus: undefined,
+  private fail(status: AppState['status'], message: string, values?: Record<string, string | number>) {
+    this.state = { ...this.state, status, message, messageValues: values, saveReadError: false, slots: [], categories: [], summary: undefined, companion: undefined, atlasStatus: undefined,
       saveDir: this.userDir, sourceLabel: undefined, saveImage: undefined };
     this.emit();
   }
@@ -253,7 +311,7 @@ export class Controller {
     if (!this.userDir) return;
     const refreshId = ++this.refreshId;
     const slots = listSlots(this.userDir);
-    if (!slots.length) return this.fail('no-slots', `No slot_* folders with a progress.sav in:\n${this.userDir}`);
+    if (!slots.length) return this.fail('no-slots', 'No slot_* folders with a progress.sav in {path}.', { path: this.userDir });
     const pinned = slots.some(s => s.name === this.settings.data.pinnedSlot) ? this.settings.data.pinnedSlot : null;
     const slot: SlotInfo = (pinned && slots.find(s => s.name === pinned)) || mostRecentSlot(slots);
 
@@ -265,8 +323,11 @@ export class Controller {
     } catch (e) {
       if (refreshId !== this.refreshId) return;
       // Keep showing the last good state; just report the problem.
-      const msg = e instanceof GameDataError ? `This save doesn't look like an Ocarina of Time save: ${e.message}` : `Couldn't read ${slot.name}/progress.sav: ${(e as Error).message}`;
-      this.state = { ...this.state, status: this.state.summary ? 'ok' : 'error', message: msg, saveReadError: true };
+      const error = (e as Error)?.message ?? String(e);
+      const [msg, messageValues] = e instanceof GameDataError
+        ? ["This save doesn't look like an Ocarina of Time save: {error}", { error }]
+        : ["Couldn't read {slot}/progress.sav: {error}", { slot: slot.name, error }];
+      this.state = { ...this.state, status: this.state.summary ? 'ok' : 'error', message: msg, messageValues, saveReadError: true };
       this.emit();
       return;
     }
@@ -338,11 +399,12 @@ export class Controller {
     this.lastShownBySlot.set(slot.name, cur);
     if (!prev || cur.mtimeMs >= prev.mtimeMs || !liveSnap) this.lastShown = cur;
 
-    const warn = read.data.warnings.length ? `Save format warning: ${read.data.warnings[0]}` : undefined;
+    const warning = read.data.warnings[0];
     this.state = {
       ...this.state,
       status: 'ok',
-      message: warn,
+      message: warning ? 'Save format warning: {warning}' : undefined,
+      messageValues: warning ? { warning } : undefined,
       saveReadError: false,
       saveDir: this.userDir,
       sourceLabel: this.state.saveDir === this.userDir ? this.state.sourceLabel : installationLabel(this.userDir),
@@ -579,8 +641,18 @@ export class Controller {
     const cur = slot && this.lastParsed.get(slot);
     if (!slot || !cur || !this.userDir) return;
     // Re-read so the snapshot is exactly what is on disk now.
-    const info = listSlots(this.userDir).find(s => s.name === slot)!;
-    const { buf, data } = await readSaveStable(info.progress);
+    const info = listSlots(this.userDir).find(s => s.name === slot);
+    if (!info) {
+      // The slot vanished (deleted, or the game is rewriting it): report it, don't throw.
+      this.patch({ message: '{slot} is no longer in the save folder.', messageValues: { slot } });
+      return;
+    }
+    let read: { buf: Buffer; data: GameDataFile };
+    try { read = await readSaveStable(info.progress); } catch (e) {
+      this.patch({ message: "Couldn't read {slot}/progress.sav: {error}", messageValues: { slot, error: (e as Error)?.message ?? String(e) } });
+      return;
+    }
+    const { buf, data } = read;
     fs.mkdirSync(this.paths.snapshots, { recursive: true });
     const prevFile = this.listSnapshots()[0]?.file;
     const d = new Date();
@@ -599,7 +671,7 @@ export class Controller {
     this.emit();
   }
 
-  stop() { clearInterval(this.firstSaveTimer); this.watcher?.stop(); this.live?.stop(); }
+  stop() { this.stopped = true; clearTimeout(this.pollTimer); this.watcher?.stop(); this.live?.stop(); }
 }
 
 

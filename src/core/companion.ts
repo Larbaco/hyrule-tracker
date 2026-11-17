@@ -22,7 +22,6 @@ export interface CompanionData {
   grottos: ChestPlacement[];
 }
 
-export const GUIDE = 'https://nintendoeverything.com/zelda-ocarina-of-time-100-percent-completion-guide/';
 export const CHAPTERS = [
   { id: 'deku', title: 'A Grande Árvore Deku', stages: [['Meet_DekuTree', 'Acorde na floresta Kokiri'], ['Get_StoneOfForest', 'Conquiste a Pedra da Floresta']] },
   { id: 'zelda', title: 'A princesa de Hyrule', stages: [['Goto_HyruleCastle', 'Encontre Zelda no Castelo de Hyrule']] },
@@ -147,7 +146,20 @@ export function extendChecklist(checklist: ChecklistFile, mapping: MappingFile, 
   };
   add('main_quests', 'Missões principais', CHAPTERS.map(c => [c.id, c.title, { all: c.stages.map(([key]) => found('Step_' + key)) }]), 'A', 'side_quest');
   const side = checklist.categories.find(c => c.id === 'side_quests')!;
-  side.items.push({ id: 'side_quests.royal_family_song', number: 7, name: 'A Song of the Royal Family', iconId: 'side_quest' });
+  side.items.push({
+    id: 'side_quests.royal_family_song', number: 7, name: 'A Song of the Royal Family', iconId: 'side_quest',
+    where: "In Kakariko Graveyard, play Zelda's Lullaby at the Royal Family's Tomb to open it. Read the inscription at the back of the tomb to learn the Sun's Song.",
+  });
+  // The quest covers every Great Fairy fountain (6), not just the first visit.
+  const fairies = checklist.categories.find(c => c.id === 'great_fairies')?.items ?? [];
+  const fairyRules = fairies.map(f => mapping.entries[f.id]?.detect).filter((r): r is Rule => !!r);
+  if (fairyRules.length && mapping.entries['side_quests.to_the_great_fairy']) {
+    mapping.entries['side_quests.to_the_great_fairy'] = {
+      ...mapping.entries['side_quests.to_the_great_fairy'],
+      detect: { all: fairyRules },
+      evidence: 'Concluída quando as 6 fontes das Grandes Fadas foram visitadas (categoria Grandes Fadas).',
+    };
+  }
   mapping.entries['side_quests.royal_family_song'] = { label: 'A Song of the Royal Family', detect: found('Step_SubEvent_GetMelodySun'), confidence: 'confirmed', evidence: 'Etapa de conclusão da Canção do Sol.' };
   const masks = checklist.categories.find(c => c.id === 'masks')!;
   for (const [id, label] of [['Goron', 'Goron Mask'], ['Zora', 'Zora Mask'], ['Gerudo', 'Gerudo Mask']]) {
@@ -216,6 +228,28 @@ export function extendChecklist(checklist: ChecklistFile, mapping: MappingFile, 
 }
 
 const numeric = (value: Value | undefined) => typeof value === 'number' && Number.isFinite(value) ? value : null;
+export const MASK_SALE_NAMES = ['Keaton Mask', 'Skull Mask', 'Spooky Mask', 'Bunny Hood'] as const;
+const MASK_SALES_BY_STEP = [
+  ['NotReady', 'Ready', 'Step01', 'Step01_Hint'],
+  ['Step02', 'Step03', 'Step03_Hint'],
+  ['Step04', 'Step05', 'Step05_Hint'],
+  ['Step06', 'Step07', 'Step07_Hint'],
+  ['Step08', 'Complete'],
+].map(steps => steps.map(step => murmur3(step)));
+
+function maskSales(get: (name: string) => Value | undefined): number | null {
+  const step = get('Step_SubEvent_MaskSalesman');
+  const soldByStep = typeof step === 'number' ? MASK_SALES_BY_STEP.findIndex(steps => steps.includes(step >>> 0)) : -1;
+  // Borrowing the next mask confirms the preceding sale, even if the quest step is missing.
+  const soldByEvidence = [
+    get('IsGet.Armor_Child_Mask_Skull') === true,
+    get('IsGet.Armor_Child_Mask_Spooky') === true,
+    get('IsGet.Armor_Child_Mask_Bunny') === true,
+    get('IsAfterSell_Mask_Bunny') === true || get('IsGet.Armor_Child_Mask_Truth') === true,
+  ].lastIndexOf(true) + 1;
+  return soldByStep < 0 && soldByEvidence === 0 ? null : Math.max(soldByStep, soldByEvidence);
+}
+
 export const RUPEES = murmur3('PlayerStatus.CurrentRupee');
 export function companionProgress(data: CompanionData, save: GameDataFile) {
   const get = (name: string) => save.entries.get(murmur3(name))?.value;
@@ -225,6 +259,7 @@ export function companionProgress(data: CompanionData, save: GameDataFile) {
     rupees: getKey(RUPEES),
     enemies: counters.length ? counters.reduce((sum, n) => sum + n, 0) : null,
     visited: Object.keys(LOCAL_NAMES).filter(stage => get('IsVisitLocation.' + stage) === true),
+    maskSales: maskSales(get),
     minigameScores: Object.fromEntries(Object.entries(bestShot).map(([id, name]) => [id, numeric(get(name))])),
     trials: TRIALS.map(t => ({ id: t.id, label: t.label, done: get(t.result) === true, frames: numeric(get(t.time)) })),
     rematches: data.rematches.map(r => {

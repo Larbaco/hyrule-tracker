@@ -57,6 +57,43 @@ describe('expanded remake coverage', () => {
     ], local)).toEqual({ collected: 'done', pending: 'todo', unmapped: 'unknown' });
   });
 
+  it('keeps the Great Fairy quest open until all six fountains are visited', () => {
+    const checklist = load('checklist.json');
+    const map = load('save-mapping.json');
+    extendChecklist(checklist, map, data);
+    const tracker = new Tracker(checklist, map);
+    const key = murmur3('Step_Meet_GreatFairy');
+    const blessing = murmur3('IsGet.Item_DinFire');
+    const local: GameDataFile = { ...save, entries: new Map([
+      [key, { hash: key, type: 'Enum', value: murmur3('GoToHyruleCastle'), recordOffset: 0 }],
+      [blessing, { hash: blessing, type: 'Bool', value: true, recordOffset: 0 }],
+    ]) };
+    const { categories } = tracker.evaluate(local);
+    const quest = (s: GameDataFile) => tracker.evaluate(s).categories.find(c => c.id === 'side_quests')?.items.find(i => i.id === 'side_quests.to_the_great_fairy')?.done;
+    expect(quest(local)).toBe(false);
+    expect(categories.find(c => c.id === 'great_fairies')).toMatchObject({ done: 1, total: 6 });
+    for (const flag of ['IsGet.Item_FairyBless_MP', 'IsGet.Item_FaroreWind', 'IsGet.Item_FairyBless_MPDouble', 'IsGet.Item_NayruLove', 'IsGet.Item_FairyBless_DefenseDouble']) {
+      const k = murmur3(flag);
+      local.entries.set(k, { hash: k, type: 'Bool', value: true, recordOffset: 0 });
+    }
+    expect(tracker.evaluate(local).categories.find(c => c.id === 'great_fairies')).toMatchObject({ done: 6, total: 6 });
+    expect(quest(local)).toBe(true);
+  });
+
+  it('counts sold masks independently of the full quest completion flag', () => {
+    const key = murmur3('Step_SubEvent_MaskSalesman');
+    const local: GameDataFile = { ...save, entries: new Map() };
+    for (const [step, sold] of [['Step01_Hint', 0], ['Step02', 1], ['Step03_Hint', 1], ['Step05', 2], ['Step07', 3], ['Step08', 4], ['Complete', 4]] as const) {
+      local.entries.set(key, { hash: key, type: 'Enum', value: murmur3(step), recordOffset: 0 });
+      expect(companionProgress(data, local)).toMatchObject({ maskSales: sold });
+    }
+    local.entries.clear();
+    expect(companionProgress(data, local)).toMatchObject({ maskSales: null });
+    const mask = murmur3('IsGet.Armor_Child_Mask_Skull');
+    local.entries.set(mask, { hash: mask, type: 'Bool', value: true, recordOffset: 0 });
+    expect(companionProgress(data, local)).toMatchObject({ maskSales: 1 });
+  });
+
   it('reads minigame victories and keeps unobservable prizes available for manual tracking', () => {
     const checklist = load('checklist.json');
     const map = load('save-mapping.json');
@@ -114,6 +151,9 @@ describe('expanded remake coverage', () => {
       writeHearts(7);
       await controller.start();
       expect(controller.state.summary?.hearts).toBe(7);
+      const sideQuests = controller.state.categories.find(c => c.id === 'side_quests')?.items;
+      expect(sideQuests).toHaveLength(7);
+      expect(sideQuests?.every(i => i.where)).toBe(true);
       writeHearts(8);
       await controller.refresh(false);
       expect(controller.state.summary?.hearts).toBe(7);
