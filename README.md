@@ -44,7 +44,7 @@ The Linux build is new and hasn't been tested on many systems yet. **Please tell
    sudo sysctl kernel.yama.ptrace_scope=0
    ```
    This lets programs of your user read each other's memory, as on Windows. Without it the tracker still follows your saves.
-4. In a Wayland-only session, Electron can open the app natively without an environment override. When `DISPLAY` is set, the app requests X11 (XWayland on Wayland) for overlay placement, global shortcuts, and game-window captures. Set `HYRULE_TRACKER_WAYLAND=1` to leave the decision to Electron. On a Wayland desktop with XWayland, pass `--ozone-platform=x11` on launch to select X11 explicitly. Overlay placement, global shortcuts, and game-window captures may be limited in native Wayland. The overlay requires windowed or borderless mode outside Gamescope.
+4. In a Wayland-only session, Electron can open the app natively without an environment override. When `DISPLAY` is set, the app requests X11 (XWayland on Wayland) for overlay placement and global shortcuts. Set `HYRULE_TRACKER_WAYLAND=1` to leave the decision to Electron. On a Wayland desktop with XWayland, pass `--ozone-platform=x11` on launch to select X11 explicitly. Overlay placement and global shortcuts may be limited in native Wayland. The overlay requires windowed or borderless mode outside Gamescope.
 5. If the AppImage closes right away on Ubuntu 24.04+ with a sandbox error, start it with `--no-sandbox`. Older distros may need `libfuse2`.
 
 ## ✨ Features
@@ -58,7 +58,7 @@ The Linux build is new and hasn't been tested on many systems yet. **Please tell
 | 🎯 | **Minigames** | 18 activities with wins, prizes and scores: shooting galleries, Bombchu Bowling, fishing, races. Deku Theater and expert modes accept manual marking. |
 | ⚔️ | **Hall of Enemies** | 84 statues, 25 rematches and three trials, with best times from your save and reference images. |
 | | **Easter Eggs and Secrets** | Browse region photos and discover hidden details, reactions and dialogue. Mark finds by hand in a single list that works with or without a connected save. |
-| 📅 | **Daily log and My data** | Progress seen while the tracker is open, local captures and medals calculated from your game. |
+| 📅 | **Daily log and My data** | Progress seen while the tracker is open, thumbnails from game saves and medals calculated from your game. |
 | 🧩 | **Daily quiz** | Test your knowledge of the game with rotating questions. |
 | 📱 | **Second screen** | Open the tracker on a phone, tablet or another computer on the same Wi-Fi while you play on the TV. The page shows the address to type, and the layout adapts to phones and tablets, portrait or landscape. |
 
@@ -98,7 +98,7 @@ Turn on **Show in-game overlay** in Settings. It can show counters, remaining ob
 <summary>❓ <b>My game does not appear</b></summary>
 
 1. Confirm that you saved inside the game. The tracker looks for `progress.sav` inside a `slot_*` directory.
-2. Open **Settings → Find saves**. For secondary drives or custom emulator folders, use **Choose folder** and select the profile folder that contains the slots.
+2. Open **Settings → Find saves** and select a program to open its most recent save. Use the **Slot** selector to switch slots. If a program is missing from the list, use **Choose folder** to select its profile folder.
 3. For **Live** reading, keep the game loaded and select **Follow latest save**. The indicator changes to **Live** when the tracker finds the running game.
 4. If the status stays **Save connected**, save in the game or click **Refresh now** to confirm the on-disk reading follows your changes.
 
@@ -109,7 +109,7 @@ Turn on **Show in-game overlay** in Settings. It can show counters, remaining ob
 - 📴 Works **offline**. Preferences, manual marks and activity are stored in `%APPDATA%\Hyrule Tracker` (Windows) or `~/.config/Hyrule Tracker` (Linux).
 - 🗺️ Maps, photos and WebP icons are bundled with the app. The only internet access is the update check on GitHub.
 - 📱 **Second screen** serves the tracker on your local network (port `5184`), so any device on it can see your progress and tick items. It is on by default; turn it off on the **Second screen** page.
-- 👀 Save and memory reading is **read-only**. Window captures for the history can be turned off in **Settings**.
+- 👀 Save and memory reading is **read-only**. The tracker reads new journal thumbnails directly from game saves.
 - 🏠 Everything is local: no Nintendo account, remote database or VPS.
 
 ## 🛠️ Development

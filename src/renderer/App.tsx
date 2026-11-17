@@ -11,6 +11,7 @@ import { LanguageSwitch } from './LanguageFlags';
 import { currentLocale, day, loadLocale, message, percent, setLocale, t, tail, tv, type Locale } from './i18n';
 import { ObjectiveName } from './ObjectiveName';
 import { PageProgress } from './PageProgress';
+import { PageSkeleton } from './PageSkeleton';
 import { UpdateDialog } from './UpdateDialog';
 import { enemyPhoto } from './referenceImages';
 import { GameItemIcon, itemImage, trackedItemIcon } from './GameItemIcon';
@@ -154,17 +155,6 @@ export function App() {
   }, [state, cards, selected]);
 
   const lost = connection === 'lost';
-  if (!state || !prefs) return <main className="startup-screen">
-    <img className="brand-logo" src="./brand/logo.webp" alt="Hyrule Tracker" />
-    {lost ? <p role="alert">{t('Sem conexão com o PC. Tentando reconectar…')}</p>
-      : startupFailed ? <p role="alert">{t('Não foi possível abrir o diário.')}</p>
-      : <p role="status">{t('Preparando o diário…')}</p>}
-    {(lost || startupFailed) && <button type="button" className="primary" onClick={() => setStartupAttempt(attempt => attempt + 1)}>{t('Tentar novamente')}</button>}
-    <AuthorCredit />
-  </main>;
-
-  const visible = (c: Card) =>
-    query.trim() || (!prefs.hiddenCategories.includes(c.id) && (c.part === 'A' || (c.part === 'B' && prefs.showParts.B) || (c.part === 'C' && prefs.showParts.C)));
   const parts: { part: 'A' | 'B' | 'C'; title: string }[] = [
     { part: 'A', title: '100% checklist' },
     { part: 'B', title: 'Quest progress' },
@@ -172,7 +162,7 @@ export function App() {
   ];
   const headerActions = <>
     <div className="refresh-action">
-      <button type="button" className="action" title={t(refreshing ? 'Atualizando…' : 'Atualizar agora')} aria-label={t(refreshing ? 'Atualizando…' : 'Atualizar agora')} onClick={() => void refreshProgress()} disabled={refreshing || scanning || state.status === 'loading'}>
+      <button type="button" className="action" title={t(refreshing ? 'Atualizando…' : 'Atualizar agora')} aria-label={t(refreshing ? 'Atualizando…' : 'Atualizar agora')} onClick={() => void refreshProgress()} disabled={!state || !prefs || refreshing || scanning || state.status === 'loading'}>
         <Icon name="refresh" size={16} /><span className="action-label">{t(refreshing ? 'Atualizando…' : 'Atualizar agora')}</span>
       </button>
       {refreshError && <small role="alert">{t('Falha na atualização. Tente novamente.')}</small>}
@@ -181,13 +171,24 @@ export function App() {
     </div>
     <LanguageSwitch locale={locale} onChange={changeLanguage} />
   </>;
+  const changePage = (next: Page) => { setMapFocus(undefined); setPage(next); };
 
   return (
     <div className="tracker-shell" lang={locale}>
-      <UpdateDialog />
-      <Sidebar page={page} onPage={p => { setMapFocus(undefined); setPage(p); }} state={state} />
-      <MobileNav page={page} onPage={p => { setMapFocus(undefined); setPage(p); }} state={state} />
-      {page !== 'checklist' ? (
+      {state && prefs && <UpdateDialog />}
+      <Sidebar page={page} onPage={changePage} state={state} />
+      <MobileNav page={page} onPage={changePage} state={state} />
+      {!state || !prefs || state.status === 'loading' ? (
+        <main className={page === 'checklist' ? 'app' : 'companion-page'} key={page}>
+          <PageHeader page={page} state={state} headerActions={headerActions} connectionLost={lost} />
+          <div className="page-content">
+            {(lost || startupFailed) && (!state || !prefs) ? <section className="focus-panel">
+              {!lost && <p role="alert">{t('Não foi possível abrir o diário.')}</p>}
+              <button type="button" className="action primary" onClick={() => setStartupAttempt(attempt => attempt + 1)}>{t('Tentar novamente')}</button>
+            </section> : <PageSkeleton page={page} label={state?.status === 'loading' ? 'Buscando sua partida' : undefined} />}
+          </div>
+        </main>
+      ) : page !== 'checklist' ? (
         <CompanionPage mapFocus={mapFocus} onShowInChecklist={showInChecklist} page={page}
           todoView={page === 'todo' ? <WhatToDo state={state} onShowInChecklist={showInChecklist} onShowOnMap={showOnMap} /> : undefined} state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} connectionLost={lost} />
       ) : state.status !== 'ok' ? (
@@ -204,11 +205,12 @@ export function App() {
         <span className="muted">{message('{n} objetivos ao seu alcance agora', { n: state.available.length })}</span>
         <span aria-hidden="true">→</span>
       </button>}
-      <div className="body">
+      <div className="body page-content">
         <main className="grid-wrap">
           {query.trim() && !cards.length && <p className="quiet">{t('No matching entries')}</p>}
           {parts.map(({ part, title }) => {
-            const list = cards.filter(c => c.part === part && visible(c));
+            const list = cards.filter(c => c.part === part &&
+              (query.trim() || (!prefs.hiddenCategories.includes(c.id) && (c.part === 'A' || prefs.showParts[c.part]))));
             if (!list.length) return null;
             return (
               <section key={part}>
@@ -240,7 +242,7 @@ export function App() {
       )}
       <footer className="tracker-footer"><AuthorCredit /></footer>
       <div className="toasts" aria-live="polite">
-        {state.toasts.map(toast => <div key={toast.id} className="toast">{message(toast.text, toast.values)}</div>)}
+        {state?.toasts.map(toast => <div key={toast.id} className="toast">{message(toast.text, toast.values)}</div>)}
       </div>
     </div>
   );
@@ -549,7 +551,7 @@ function Details({ cat, item, dev, onClose, onShowOnMap }: { cat: TrackedCategor
         <span>{t(cat.label)} #{item.number}</span>
         <button className="x" onClick={onClose} aria-label={t('Close')}>×</button>
       </div>
-      <h3 id="checklist-detail-title"><GameItemIcon id={trackedItemIcon(item)} /> <ObjectiveName done={item.done}>{t(title)}</ObjectiveName>{item.newInRemake && <span className="new">{t("new in remake")}</span>}</h3>
+      <h3 id="checklist-detail-title"><GameItemIcon id={trackedItemIcon(item)} /> <ObjectiveName done={item.done}>{t(title)}</ObjectiveName>{item.newInRemake && <span className="remake-badge">{t("new in remake")}</span>}</h3>
       {item.chapter && <p className="area">{t(item.chapter)}</p>}
       {item.where && <p className="where">{t(item.where)}</p>}
       <p className={`status s-${item.done ? 'done' : item.state}`}>{t(stateText)}</p>

@@ -110,7 +110,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; cursor: point
 .panel h3 { margin: 8px 0; font-size: 19px; }
 .panel h4 { margin: 14px 0 6px; font-size: 14px; }
 .panel p { margin: 6px 0; }
-.new { font-size: 11px; background: #2a5ea8; padding: 1px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+.remake-badge { font-size: 11px; background: #2a5ea8; padding: 1px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
 .status { font-weight: 600; }
 .s-done { color: var(--ok); } .s-no { color: var(--muted); } .s-unmapped { color: var(--warn); } .s-unknown { color: var(--muted); }
 .details .area { color: var(--muted); margin-top: -4px; }

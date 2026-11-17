@@ -1,6 +1,6 @@
 // The only bridge between the UI and the main process.
 import { contextBridge, ipcRenderer } from 'electron';
-import type { AppState, UiPrefs, OverlayMode, UpdateState, PlayerState } from '../shared/types.js';
+import type { AppState, UiPrefs, OverlayMode, UpdateState, PlayerState, SaveFolderChoice } from '../shared/types.js';
 
 const api = {
   getState: (): Promise<AppState> => ipcRenderer.invoke('state:get'),
@@ -36,12 +36,13 @@ const api = {
   toggleManual: (id: string) => ipcRenderer.invoke('manual:toggle', id),
   setEasterEggFound: (id: string, found: boolean): Promise<boolean> => ipcRenderer.invoke('easter-eggs:set', id, found),
   setDevPanel: (on: boolean) => ipcRenderer.invoke('dev:set', on),
-  setCaptureActivity: (on: boolean) => ipcRenderer.invoke('capture:set', on),
   setChangeLog: (on: boolean) => ipcRenderer.invoke('log:set', on),
   openLogFolder: () => ipcRenderer.invoke('log:open'),
   takeSnapshot: (label: string) => ipcRenderer.invoke('snapshot:take', label),
   openSnapshotFolder: () => ipcRenderer.invoke('snapshot:open-folder'),
   browseFolder: (): Promise<AppState> => ipcRenderer.invoke('folder:browse'),
+  findSaveFolders: (): Promise<SaveFolderChoice[]> => ipcRenderer.invoke('folder:find'),
+  selectSaveFolder: (dir: string): Promise<boolean> => ipcRenderer.invoke('folder:select', dir),
   scanFolders: (): Promise<AppState> => ipcRenderer.invoke('folder:scan'),
   /** Serve the tracker on the local network (phone/tablet). */
   setLan: (on: boolean): Promise<AppState['lan']> => ipcRenderer.invoke('lan:set', on),

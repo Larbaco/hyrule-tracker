@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseGameData, GameDataFile, GameDataError } from '../gamedata/parser.js';
-import { autoDetectUserFolderAsync, detectInFolders, installationLabel, latestUserFolder, resolvePickedFolder, resolveUserFolders, listSlots, mostRecentSlot, readSaveStable, userFolderForExe, SlotInfo } from '../gamedata/saves.js';
+import { candidateGameFoldersAsync, detectInFolders, installationLabel, latestSaveFoldersByProgram, latestUserFolder, resolvePickedFolder, resolveUserFolders, listSlots, mostRecentSlot, readSaveStable, userFolderForExe, SlotInfo } from '../gamedata/saves.js';
 import { loadNames } from '../gamedata/names.js';
 import { Tracker, ChecklistFile, MappingFile, DescriptionsFile, applyDescriptions } from '../core/tracker.js';
 import { regionsForArea } from '../core/areas.js';
@@ -33,7 +33,6 @@ export interface ControllerPaths {
   userData: string;
   snapshots: string;
   version: string;
-  captureGame?: (pid: number, width?: number) => Promise<string | undefined>;
   /** Tests only: don't look for a running game. */
   noLive?: boolean;
 }
@@ -57,7 +56,6 @@ export class Controller {
   private lastActivityStats?: ReturnType<typeof companionProgress>;
   private lastHeartStats?: { hearts: number | null; pieces: number | null };
   private lastSaveImage?: { key: string; value?: string };
-  private lastCaptureAt = 0;
   /** last parsed save per slot, for "just collected" and the change list */
   private lastParsed = new Map<string, { mtimeMs: number; data: GameDataFile; buf: Buffer }>();
   /** the save shown last (any slot) */
@@ -108,7 +106,6 @@ export class Controller {
       live: { status: 'off', using: false },
       changeLog: { enabled: settings.data.changeLog, dir: path.join(paths.userData, 'logs') },
       activity: this.loadActivity(),
-      captureActivity: settings.data.captureActivity,
       placements: {
         chests: this.companionData.chests, fairy_thoughts: this.companionData.notes,
         scarecrow_spots: this.companionData.scarecrows, grottos: this.companionData.grottos,
@@ -189,21 +186,38 @@ export class Controller {
 
   /** Game folders the last full search found: re-checked cheaply until a save appears. */
   private candidates: string[] = [];
-  private scanning?: Promise<void>;
+  private scanning?: Promise<string[]>;
+  private detectedFolders = new Set<string>();
   private pollTimer?: NodeJS.Timeout;
   private pollDelay = POLL_FIRST_MS;
   private stopped = false;
 
-  /** Search every drive (async, once at a time). Uses what it finds unless a folder is already in use. */
-  private fullScan(): Promise<void> {
-    this.scanning ??= (async () => {
-      try {
-        const { dir, candidates } = await autoDetectUserFolderAsync();
-        this.candidates = candidates;
-        if (dir && !this.userDir && !this.stopped) await this.useFolder(dir);
-      } catch (e) { console.error('save scan', e); }
-    })().finally(() => { this.scanning = undefined; });
+  private searchGameFolders(): Promise<string[]> {
+    this.scanning ??= candidateGameFoldersAsync().then(candidates => (this.candidates = candidates))
+      .finally(() => { this.scanning = undefined; });
     return this.scanning;
+  }
+
+  private async fullScan() {
+    try {
+      const candidates = await this.searchGameFolders();
+      if (this.userDir || this.stopped) return;
+      const dir = detectInFolders(candidates);
+      if (dir) await this.useFolder(dir);
+    } catch (e) { console.error('save scan', e); }
+  }
+
+  async findSaveFolders() {
+    const candidates = await this.searchGameFolders();
+    const choices = latestSaveFoldersByProgram(this.userDir ? [this.userDir, ...candidates] : candidates);
+    this.detectedFolders = new Set(choices.map(choice => choice.dir));
+    return choices;
+  }
+
+  async selectSaveFolder(dir: string) {
+    if (!this.detectedFolders.has(dir) || !listSlots(dir).length) return false;
+    await this.useFolder(dir, { manual: true });
+    return this.state.saveDir === dir && this.state.status === 'ok';
   }
 
   /** While no save folder is known: re-check the known candidates, less and less often (8 s, 30 s, then every 60 s). */
@@ -223,6 +237,7 @@ export class Controller {
   /** "Find saves": a full search now. */
   async scanFolders() {
     await this.fullScan();
+    if (this.userDir && this.settings.data.manualSaveDir) return this.state;
     const found = detectInFolders(this.candidates);
     if (found || !this.userDir) await this.useFolder(found ?? undefined);
     this.schedulePoll();
@@ -479,14 +494,6 @@ export class Controller {
   private lastShownBySlot = new Map<string, { mtimeMs: number; data: GameDataFile; buf: Buffer }>();
 
   private get activityPath() { return path.join(this.paths.userData, 'activity.json'); }
-  private async captureGame(width: number) {
-    const pid = this.live?.gamePid;
-    return pid ? this.paths.captureGame?.(pid, width) : undefined;
-  }
-  setCaptureActivity(on: boolean) {
-    this.settings.update(s => (s.captureActivity = on));
-    this.patch({ captureActivity: on });
-  }
   private loadActivity(): Activity[] {
     try { const value = JSON.parse(fs.readFileSync(this.activityPath, 'utf8')); return Array.isArray(value) ? value : []; }
     catch { return []; }
@@ -520,17 +527,6 @@ export class Controller {
     const activity = [event, ...prior].slice(0, 500).map((row, i) => i < 16 ? row : { ...row, screenshot: undefined });
     this.state.activity = activity;
     this.persistActivity(activity);
-    if (!screenshot && source === 'live' && this.settings.data.captureActivity && (entries.length || hearts || pieces) &&
-        event.ms - this.lastCaptureAt > 1200) {
-      this.lastCaptureAt = event.ms;
-      void this.captureGame(400).then(image => {
-        const current = this.state.activity ?? [];
-        if (!image || !current.includes(event)) return;
-        const next = current.map(row => row === event ? { ...row, screenshot: image } : row);
-        this.patch({ activity: next });
-        this.persistActivity(next);
-      });
-    }
   }
 
   private persistActivity(activity: Activity[]) {

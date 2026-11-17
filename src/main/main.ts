@@ -1,5 +1,5 @@
 // Electron entry point.
-import { app, BrowserWindow, ipcMain, dialog, shell, Menu, globalShortcut, screen, desktopCapturer } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell, Menu, globalShortcut, screen } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -8,13 +8,13 @@ import type { AppState, OverlayMode, UpdateState } from '../shared/types.js';
 import { createUpdater } from './updater.js';
 import { SettingsStore } from './settings.js';
 import { boundsVisible, cleanBounds, isLocale, isString, isStringArray, parseHotkeys, parseOverlayPatch, sanitizeUiPrefs, type MainLocale, type Rect } from './validate.js';
-import { useX11, x11WindowOwner } from './x11.js';
+import { useX11 } from './x11.js';
 import { lanUrls, startLanServer, type LanServer } from './lan.js';
 
 const isDev = !app.isPackaged;
 const appDir = app.getAppPath();
 
-// Prefer X11 for overlay placement, global shortcuts, and game-window capture when DISPLAY is set.
+// Prefer X11 for overlay placement and global shortcuts when DISPLAY is set.
 // In a Wayland-only session, let Electron select its native backend.
 if (process.platform === 'linux' && useX11(process.env)) app.commandLine.appendSwitch('ozone-platform', 'x11');
 
@@ -222,41 +222,6 @@ function logError(where: string, e: unknown) {
   console.error(line);
 }
 
-/** GetWindowThreadProcessId from user32.dll, loaded once. */
-let windowOwner: Promise<(hwnd: bigint, pid: number[]) => number> | undefined;
-function getWindowOwner() {
-  windowOwner ??= import('koffi').then(({ default: koffi }) =>
-    koffi.load('user32.dll').func('uint32_t __stdcall GetWindowThreadProcessId(uint64_t hwnd, _Out_ uint32_t *pid)'));
-  windowOwner.catch(() => { windowOwner = undefined; }); // try again next time
-  return windowOwner;
-}
-
-/** The process that owns a window (Windows: its HWND; Linux X11: its XID), or undefined. */
-async function windowPidLookup(): Promise<((id: string) => number | undefined) | null> {
-  if (process.platform === 'win32') {
-    const owner = await getWindowOwner();
-    return id => { const result = [0]; owner(BigInt(id), result); return result[0]; };
-  }
-  if (process.platform === 'linux') {
-    const owner = await x11WindowOwner();
-    return owner && (id => owner(Number(id)));
-  }
-  return null;
-}
-
-async function captureGame(pid: number, width = 960): Promise<string | undefined> {
-  if (!pid) return;
-  try {
-    const ownerOf = await windowPidLookup();
-    if (!ownerOf) return;
-    const sources = await desktopCapturer.getSources({ types: ['window'], thumbnailSize: { width, height: Math.round(width * 9 / 16) }, fetchWindowIcons: false });
-    for (const source of sources) {
-      const id = /^window:(\d+):/.exec(source.id)?.[1];
-      if (!id || source.thumbnail.isEmpty()) continue;
-      if (ownerOf(id) === pid) return 'data:image/jpeg;base64,' + source.thumbnail.toJPEG(75).toString('base64');
-    }
-  } catch (err) { console.error('game capture', err); }
-}
 process.on('uncaughtException', e => logError('uncaughtException', e));
 process.on('unhandledRejection', e => logError('unhandledRejection', e));
 
@@ -272,6 +237,17 @@ function migrateOldUserData() {
     for (const f of ['settings.json', 'names.json']) if (fs.existsSync(path.join(old, f))) fs.copyFileSync(path.join(old, f), path.join(now, f));
     if (fs.existsSync(path.join(old, 'snapshots'))) fs.cpSync(path.join(old, 'snapshots'), path.join(now, 'snapshots'), { recursive: true });
   } catch (e) { logError('migrate old settings', e); }
+}
+
+async function installedNx2naviIcon(saveDir: string) {
+  for (let dir = saveDir, depth = 0; depth < 9 && dir !== path.dirname(dir); dir = path.dirname(dir), depth++) {
+    const executable = path.join(dir, 'NX2navi.exe');
+    try {
+      if (!(await fs.promises.stat(executable)).isFile()) continue;
+      const icon = await app.getFileIcon(executable);
+      if (!icon.isEmpty()) return icon.toDataURL();
+    } catch { /* no icon at this location */ }
+  }
 }
 
 // ---------------- Local network (phone/tablet) ----------------
@@ -344,7 +320,6 @@ if (primaryInstance) app.whenReady().then(async () => {
       userData: app.getPath('userData'),
       snapshots: isDev ? path.join(appDir, 'fixtures', 'snapshots') : path.join(app.getPath('userData'), 'snapshots'),
       version: app.getVersion(),
-      captureGame,
     }, settings);
   } catch (e) {
     logError('startup', e);
@@ -391,7 +366,6 @@ if (primaryInstance) app.whenReady().then(async () => {
   ipcMain.handle('manual:toggle', (_e, id: unknown) => isString(id) ? controller.toggleManual(id) : undefined);
   ipcMain.handle('easter-eggs:set', (_e, id: unknown, found: unknown) => controller.setEasterEggFound(id, found));
   ipcMain.handle('dev:set', (_e, on: unknown) => controller.setDevPanel(on === true));
-  ipcMain.handle('capture:set', (_e, on: unknown) => controller.setCaptureActivity(on === true));
   ipcMain.handle('log:set', (_e, on: unknown) => controller.setChangeLog(on === true));
   ipcMain.handle('log:open', () => shell.openPath(controller.logDir()));
   ipcMain.handle('snapshot:take', (_e, label: unknown) => controller.takeSnapshot(isString(label, 200) ? label : ''));
@@ -433,6 +407,15 @@ if (primaryInstance) app.whenReady().then(async () => {
     settings.update(s => (s.lan.enabled = on === true));
     return applyLan();
   });
+  ipcMain.handle('folder:find', async () => {
+    const choices = await controller.findSaveFolders();
+    if (process.platform === 'win32') {
+      const nx2navi = choices.find(choice => choice.program === 'NX2navi');
+      if (nx2navi) nx2navi.icon = await installedNx2naviIcon(nx2navi.dir);
+    }
+    return choices;
+  });
+  ipcMain.handle('folder:select', (_e, dir: unknown) => isString(dir, 4096) && controller.selectSaveFolder(dir));
   ipcMain.handle('folder:scan', () => controller.scanFolders());
   ipcMain.handle('progress:refresh', () => controller.refreshNow());
 

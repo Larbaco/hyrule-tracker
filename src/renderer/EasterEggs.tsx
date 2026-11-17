@@ -4,7 +4,6 @@ import discoveries from '../../data/easter-eggs.json';
 import { api } from './api';
 import { currentLocale, t, tv } from './i18n';
 import { PageProgress } from './PageProgress';
-import './easter-eggs.css';
 
 type Discovery = (typeof discoveries)[number];
 

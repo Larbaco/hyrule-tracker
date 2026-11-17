@@ -65,3 +65,28 @@ O build, o TypeScript e 172 testes passaram. Onze testes dependem de arquivos de
 
 - [x] Remover a legenda genérica de localização embaixo do mapa.
 - [x] Confirmar no Electron e na segunda tela a 320 px que a legenda saiu e que “Seguir Link” abre a região do save. O marcador apareceu no mapa geral e no mapa da Fonte Zora com um save sintético.
+
+# Capturas automáticas
+
+- [x] Desligar por padrão a captura da janela do jogo, inclusive para instalações que tinham o padrão antigo. O Electron confirmou o controle em Configurações, e a segunda tela manteve as miniaturas anteriores. Build, TypeScript e 175 testes passaram.
+- [x] Remover a captura da janela e a opção em Configurações. O diário registrou marcos ao vivo, manteve entradas anteriores e exibiu as miniaturas lidas do save no Electron e na segunda tela.
+
+# Seleção de partidas
+
+- [x] Abrir a lista de perfis detectados ao clicar em Buscar saves, agrupada por programa, e trocar de partida apenas após a escolha.
+- [x] Verificar a busca, o cancelamento por Escape e a seleção no Electron. A busca encontrou Hookshot, Longshot, Triforce, Fritchii, Lichii e ReLink. A segunda tela a 320 px acompanhou a seleção. Build, TypeScript e 176 testes passaram, com 11 ignorados por falta de saves de teste.
+- [x] Mostrar uma linha por programa com o nome e a data do último save. O seletor de slots permaneceu disponível depois da escolha no Electron e na segunda tela.
+- [x] Exibir o atalho configurado entre parênteses no botão do overlay em Configurações. Conferido com o atalho padrão e com uma configuração personalizada no Electron.
+- [x] Exibir os ícones em Buscar saves. O Electron carregou 12 ícones em uma janela de 320 px, incluindo o ícone local de um executável de teste no caminho do NX2navi. Build, TypeScript e 176 testes passaram.
+
+# Carregamento das telas
+
+- [x] Usar um skeleton com o layout de cada tela durante o carregamento, incluindo o carregamento da galeria de descobertas.
+- [x] Suavizar a troca de tela e o feedback dos botões, respeitando a preferência por movimento reduzido.
+- [x] Conferir a 320, 768 e 1280 px as 13 telas do Electron e as 12 da segunda tela. A abertura, a galeria, a tentativa após falha e a reconexão voltaram ao conteúdo. Build, TypeScript e 176 testes passaram.
+- [x] Tornar a animação de troca de página perceptível. O Electron e a segunda tela mostraram quadros intermediários na entrada de 260 ms. A segunda tela também respeitou movimento reduzido.
+
+# Release 1.4.1
+
+- [x] Revisar os issues e atualizar o changelog. Todos os issues existentes já estavam fechados.
+- [x] Gerar os pacotes para Windows e Linux e validar a versão e os hashes nos metadados do atualizador. TypeScript passou e 176 testes foram aprovados.

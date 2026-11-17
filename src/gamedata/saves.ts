@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import type { SaveFolderChoice } from '../shared/types.js';
 import { parseGameData, GameDataFile, MAGIC } from './parser.js';
 import { isWindowsPath, prefixUsers, steamLibraries, toUnixPath, userAppData, winePrefixes } from './wine.js';
 
@@ -36,6 +37,7 @@ export function resolveUserFolders(start: string): string[] {
   const tries = [start, path.join(start, 'save'), path.join(start, 'user', 'save')];
   const out: string[] = [];
   for (const t of tries) {
+    if (t !== start && isUserFolder(t)) out.push(t);
     for (const n of readdir(t)) {
       const p = path.join(t, n);
       if (/^[0-9a-f]{32}$/i.test(n) && isUserFolder(p)) out.push(p);
@@ -96,9 +98,11 @@ export function installationLabel(saveDir: string): string | undefined {
   const dirs: string[] = [];
   for (let dir = saveDir; dir !== path.dirname(dir) && dirs.length < 9; dir = path.dirname(dir)) dirs.push(dir);
   for (const dir of dirs) {
-    const name = installations[path.basename(dir).toLowerCase()];
-    if (name) return name;
-    if (/^(save|user|nand|[0-9a-f]{16,32})$/i.test(path.basename(dir))) continue;
+    const folder = path.basename(dir).toLowerCase();
+    const brand = folder.replace(/[-_. ]v?\d.*$/, '');
+    if (Object.hasOwn(installations, folder)) return installations[folder];
+    if (Object.hasOwn(installations, brand)) return installations[brand];
+    if (/^(save|user|nand|[0-9a-f]{16,32})$/.test(folder)) continue;
     const game = readdir(dir).find(file => {
       if (!isGameFile(file)) return false;
       try { return fs.statSync(path.join(dir, file)).isFile(); } catch { return false; }
@@ -327,13 +331,22 @@ export function autoDetectUserFolder(): string | null {
   return latestUserFolder(all);
 }
 
-/**
- * Full search across drives without blocking (run once at start and when asked). Returns
- * the best save folder and the game folders found, for cheap re-checks later.
- */
-export async function autoDetectUserFolderAsync(): Promise<{ dir: string | null; candidates: string[] }> {
-  const candidates = await candidateGameFoldersAsync();
-  return { dir: latestUserFolder(candidates.flatMap(g => resolveUserFolders(g))), candidates };
+export function latestSaveFoldersByProgram(folders: string[]): SaveFolderChoice[] {
+  const seen = new Set<string>();
+  const latest = new Map<string | undefined, SaveFolderChoice>();
+  for (const dir of new Set(folders.flatMap(resolveUserFolders))) {
+    let real: string;
+    try { real = fs.realpathSync.native(dir); } catch { continue; }
+    if (seen.has(real)) continue;
+    seen.add(real);
+    const slot = mostRecentSlot(listSlots(dir));
+    if (!slot) continue;
+    const program = installationLabel(dir);
+    const lastSavedMs = slot.savedAtMs ?? slot.mtimeMs;
+    const previous = latest.get(program);
+    if (!previous || lastSavedMs > previous.lastSavedMs) latest.set(program, { dir, program, lastSavedMs });
+  }
+  return [...latest.values()].sort((a, b) => b.lastSavedMs - a.lastSavedMs);
 }
 
 /** Cheap re-check: only these folders and the default install locations, no drive walk. */
@@ -357,6 +370,7 @@ export function listSlots(userDir: string): SlotInfo[] {
     const progress = path.join(dir, 'progress.sav');
     try {
       const st = fs.statSync(progress);
+      if (!st.isFile()) continue;
       const caption = path.join(dir, 'caption.sav');
       out.push({ name, dir, progress, caption, mtimeMs: st.mtimeMs, savedAtMs: readSaveTime(caption) });
     } catch { /* slot without progress.sav */ }

@@ -93,6 +93,13 @@ export interface Activity {
   screenshot?: string;
 }
 
+export interface SaveFolderChoice {
+  dir: string;
+  program?: string;
+  lastSavedMs: number;
+  icon?: string;
+}
+
 export interface Summary {
   hearts: number | null;
   maxHeartsPossible: number;
@@ -165,7 +172,6 @@ export interface AppState {
   atlasLinks?: Record<string, string>;
   activity?: Activity[];
   saveImage?: string;
-  captureActivity?: boolean;
   slots: SlotSummary[];
   slotMode: 'recent' | 'manual';
   activeSlot?: string;

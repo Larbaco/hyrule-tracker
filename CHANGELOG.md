@@ -4,6 +4,19 @@ Player-facing changes in each Hyrule Tracker version. Every published version ne
 `scripts/ensure-release.mjs` uses it as the GitHub release text, and the in-app updater shows it before the player decides to update.
 Format: `New`, `Improved`, `Fixed`, `Removed`, `Known` (open issue).
 
+## [1.4.1] - 2026-11-17
+
+### Improved
+- **Find saves.** Pick a detected program by icon, name and latest save date, then choose a slot.
+- **Page loading.** Skeletons match each screen on phones and tablets. Page changes have a short transition that respects reduced motion.
+- **In-game overlay.** Settings shows the shortcut next to the overlay button.
+
+### Fixed
+- **Update window.** Fixed the blue background behind the **New** section.
+
+### Removed
+- **Automatic screenshots.** Removed game-window captures and their setting. The activity log still records progress and can show thumbnails from saves. Thanks to Ryan for raising this on Discord.
+
 ## [1.4.0] - 2026-11-17
 
 ### New

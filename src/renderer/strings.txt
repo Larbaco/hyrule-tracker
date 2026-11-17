@@ -288,7 +288,6 @@ Seguir o save mais recente||Follow the latest save|Seguir la última partida gua
 Rastreamento||Tracking|Seguimiento
 Atualizar ao vivo enquanto o jogo estiver aberto||Track live while the game is open|Actualizar en directo mientras el juego esté abierto
 Guardar o registro de atividade neste PC||Keep the activity log on this PC|Guardar el registro de actividad en este PC
-Fotografar a janela do jogo nos marcos da jornada||Capture the game window at milestones|Capturar la ventana del juego en momentos clave
 Slot fixado. Selecione o save mais recente para voltar ao modo ao vivo.||Slot pinned. Select the latest save to resume live tracking.|Ranura fijada. Selecciona la última partida para reanudar el seguimiento en directo.
 Ocultar painel no jogo||Hide in-game overlay|Ocultar panel en el juego
 Mostrar painel no jogo||Show in-game overlay|Mostrar panel en el juego

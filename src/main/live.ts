@@ -90,7 +90,6 @@ export class LiveSource {
 
   /** Live data, only while it matches the reference save. */
   current() { return this.info.status === 'live' ? this.snapshot : undefined; }
-  get gamePid() { return this.current() ? this.mem?.pid : undefined; }
 
   refreshNow() {
     if (!this.timer) return;

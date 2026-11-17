@@ -1,14 +1,15 @@
-import { Fragment, lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Activity, AppState, PlayerState, TrackedCategory, TrackedItem } from '../shared/types';
+import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import type { Activity, AppState, PlayerState, SaveFolderChoice, TrackedCategory, TrackedItem } from '../shared/types';
 import { LOCAL_NAMES, MASK_SALE_NAMES } from '../core/companion';
 import { api, isRemote } from './api';
 import { enemyPhoto, regionPhoto } from './referenceImages';
 import { LanguageSwitch } from './LanguageFlags';
-import { currentLocale, date, hour, languages, number, plural, t, tv, type Locale } from './i18n';
+import { currentLocale, date, day, hour, languages, number, plural, t, tv, type Locale } from './i18n';
 import { ObjectiveName } from './ObjectiveName';
 import { GameItemIcon, trackedItemIcon } from './GameItemIcon';
 import { Minigames } from './Minigames';
 import { PageProgress } from './PageProgress';
+import { PageSkeleton } from './PageSkeleton';
 import { ZoomPan } from './ZoomPan';
 import { locatePlacement, type AtlasPlace as PositionPlace, type PlayerFix } from '../core/position';
 import atlas from '../../data/atlas.json';
@@ -72,11 +73,12 @@ export function Icon({ name, size = 20 }: { name: string; size?: number }) {
   return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round"><path d={iconPaths[name] ?? iconPaths.triangle} /></svg>;
 }
 
-function sourceName(state: AppState) {
-  return state.sourceLabel ?? t(state.saveDir ? 'Partida local' : 'Aguardando partida');
+function sourceName(state: AppState | null) {
+  return state?.sourceLabel ?? t(state?.saveDir ? 'Partida local' : 'Aguardando partida');
 }
 /** Connection label (a key, translated where shown) and an already translated detail line. */
-function connectionStatus(state: AppState): { label: string; detail?: string; connected: boolean } {
+function connectionStatus(state: AppState | null): { label: string; detail?: string; connected: boolean } {
+  if (!state) return { label: 'Buscando conexão', connected: false };
   // Why live reading isn't in use right now (e.g. the game is on another file), from the main process.
   const live = state.live;
   const liveDetail = !live.using && live.detail ? tv(live.detail, live.detailValues) : undefined;
@@ -111,7 +113,7 @@ function LiveIndicator({ state }: { state: AppState }) {
   </div>;
 }
 
-export function Sidebar({ page, onPage, state }: { page: Page; onPage: (p: Page) => void; state: AppState }) {
+export function Sidebar({ page, onPage, state }: { page: Page; onPage: (p: Page) => void; state: AppState | null }) {
   const connection = connectionStatus(state);
   return <aside className="tracker-sidebar">
     <div className="tracker-brand"><img className="brand-icon" src="./brand/icon.webp" alt="" /><div><strong>Hyrule Tracker</strong><small>Ocarina of Time</small></div></div>
@@ -120,18 +122,18 @@ export function Sidebar({ page, onPage, state }: { page: Page; onPage: (p: Page)
       <b>{sourceName(state)}</b>
       <small>{t(connection.label)}</small>
     </button>
-    <LiveIndicator state={state} />
+    {state && <LiveIndicator state={state} />}
     <nav aria-label={t("Menu principal")}>{navGroups.map(group => isRemote ? group.filter(p => p !== 'second') : group).map((group, index) => <div className="nav-group" key={index}>{group.map(p =>
       <button key={p} type="button" title={t(pages[p])} aria-current={p === page ? 'page' : undefined} onClick={() => onPage(p)}><Icon name={p} size={17} /><span>{t(pages[p])}</span></button>,
     )}</div>)}</nav>
-    <div className="sidebar-footer">v{state.version}</div>
+    {state && <div className="sidebar-footer">v{state.version}</div>}
   </aside>;
 }
 
 /** Phones (portrait): tab bar at the bottom with the main pages; "More" opens a sheet with the rest. Hidden by CSS elsewhere. */
 const tabPages: Page[] = ['overview', 'todo', 'map', 'checklist'];
 const tabNames: Partial<Record<Page, string>> = { overview: 'Início', map: 'Mapa', checklist: 'Checklist' };
-export function MobileNav({ page, onPage, state }: { page: Page; onPage: (p: Page) => void; state: AppState }) {
+export function MobileNav({ page, onPage, state }: { page: Page; onPage: (p: Page) => void; state: AppState | null }) {
   const [open, setOpen] = useState(false);
   const dialog = useModalDialog(open);
   const connection = connectionStatus(state);
@@ -173,7 +175,7 @@ export function MobileNav({ page, onPage, state }: { page: Page; onPage: (p: Pag
   </>;
 }
 
-export function PageHeader({ page, state, headerActions, connectionLost }: { page: Page; state: AppState; headerActions: ReactNode; connectionLost: boolean }) {
+export function PageHeader({ page, state, headerActions, connectionLost }: { page: Page; state: AppState | null; headerActions: ReactNode; connectionLost: boolean }) {
   const connection = connectionStatus(state);
   return <header className="page-header">
     {connectionLost && <p className="notice connection-notice" role="alert">{t('Sem conexão com o PC. Tentando reconectar…')}</p>}
@@ -193,13 +195,46 @@ export const playTime = (sec: number | null | undefined) => {
   return h ? `${number(h)}h ${String(m).padStart(2, '0')}m` : `${m}m`;
 };
 
-/**
- * "Search saves" and "Choose folder". Choosing a folder by hand is always possible, even while
- * a search is running, so a slow or failing search never leaves the user stuck. `notFound`
- * (search done, nothing found) puts the manual choice first and explains it.
- */
-function SaveActions({ onScan, scanning, loading = false, notFound = false }: { onScan: () => void; scanning: boolean; loading?: boolean; notFound?: boolean }) {
+const saveProgramIcons = new Map([
+  ['Triforce', 'triforce.png'], ['ReLink', 'relink.png'], ['Longshot', 'longshot.png'],
+  ['Hookshot', 'hookshot.png'], ['Ocarina Reborn', 'ocarina-reborn.png'],
+  ['Fritchii', 'lichii.png'], ['Lichii', 'lichii.png'], ['Eden', 'eden.ico'],
+  ['Orchid', 'orchid.ico'], ['Eglantine', 'eglantine.ico'], ['PokeDinner', 'eglantine.ico'],
+]);
+
+function SaveActions({ activeDir, notFound = false }: { activeDir?: string; notFound?: boolean }) {
   const [browseError, setBrowseError] = useState('');
+  const [open, setOpen] = useState(false);
+  const [choices, setChoices] = useState<SaveFolderChoice[]>();
+  const [searchError, setSearchError] = useState('');
+  const [selecting, setSelecting] = useState(false);
+  const searchId = useRef(0);
+  const dialog = useModalDialog(open);
+  async function find() {
+    const id = ++searchId.current;
+    setOpen(true);
+    setChoices(undefined);
+    setSearchError('');
+    try {
+      const found = await api.findSaveFolders();
+      if (searchId.current === id) setChoices(found);
+    } catch {
+      if (searchId.current === id) setSearchError('Não foi possível buscar os saves. Tente novamente.');
+    }
+  }
+  function close() {
+    ++searchId.current;
+    setOpen(false);
+  }
+  async function select(dir: string) {
+    setSelecting(true);
+    setSearchError('');
+    try {
+      if (await api.selectSaveFolder(dir)) { close(); return; }
+    } catch { /* keep the picker open so another save can be selected */ }
+    finally { setSelecting(false); }
+    setSearchError('Não foi possível abrir a pasta escolhida. Tente novamente.');
+  }
   async function browse() {
     setBrowseError('');
     try {
@@ -210,11 +245,43 @@ function SaveActions({ onScan, scanning, loading = false, notFound = false }: { 
   }
   return <>
     <div className="page-actions">
-      <button className={notFound ? 'action' : 'action primary'} disabled={scanning || loading} onClick={onScan}>{scanning || loading ? t('Buscando…') : t('Buscar saves')}</button>
+      <button className={notFound ? 'action' : 'action primary'} onClick={() => void find()}>{t('Buscar saves')}</button>
       <button className={notFound ? 'action primary' : 'action'} onClick={() => void browse()}>{t("Escolher pasta")}</button>
     </div>
     {notFound && <p className="quiet">{t('Não encontrou? Selecione manualmente a pasta do perfil que contém as pastas slot_*.')}</p>}
     {browseError && <p className="notice" role="alert">{t(browseError)}</p>}
+    {open && <dialog ref={dialog} className="save-picker" aria-labelledby="save-picker-title"
+      onCancel={event => { event.preventDefault(); if (!selecting) close(); }}>
+      <div className="save-picker-heading">
+        <h2 id="save-picker-title">{t('Buscar saves')}</h2>
+        <button type="button" className="action" disabled={selecting} onClick={close}>{t('Fechar')}</button>
+      </div>
+      {searchError && <p className="notice" role="alert">{t(searchError)}</p>}
+      {choices === undefined && !searchError && <p className="quiet" role="status">{t('Buscando…')}</p>}
+      {choices?.length === 0 && <p className="quiet" role="status">{t('Nenhuma partida encontrada. Abra o jogo e salve uma vez, ou selecione a pasta do jogo.')}</p>}
+      {!!choices?.length && <ul className="save-picker-results">
+        {choices.map(save => {
+          const bundled = saveProgramIcons.get(save.program ?? '');
+          const icon = bundled ? `./program-icons/${bundled}` : save.icon;
+          return <li key={save.dir}>
+            <button type="button" className="save-choice" aria-current={activeDir === save.dir || undefined} disabled={selecting}
+              onClick={() => void select(save.dir)}>
+              <span className="save-choice-program">
+                <span className="save-program-icon" aria-hidden="true">
+                  {icon ? <img src={icon} alt="" width={26} height={26} /> : <Icon name="minigames" size={19} />}
+                </span>
+                <strong>{save.program ?? t('Partida local')}</strong>
+              </span>
+              <time dateTime={new Date(save.lastSavedMs).toISOString()}>{day(save.lastSavedMs)}</time>
+            </button>
+          </li>;
+        })}
+      </ul>}
+      {(searchError || choices?.length === 0) && <div className="page-actions">
+        <button type="button" className="action" onClick={() => void find()}>{t('Tentar novamente')}</button>
+        <button type="button" className="action" onClick={() => { close(); void browse(); }}>{t('Escolher pasta')}</button>
+      </div>}
+    </dialog>}
   </>;
 }
 
@@ -230,14 +297,17 @@ export function CompanionPage({ page, state, onPage, onScan, scanning, onLanguag
     minigames: <Minigames state={state} />,
     timeline: <Timeline state={state} />,
     medals: <Medals state={state} />,
-    secrets: <Suspense fallback={<p className="quiet" role="status">{t('Carregando descobertas…')}</p>}>
+    secrets: <Suspense fallback={<PageSkeleton page="secrets" label="Carregando descobertas…" />}>
       <EasterEggs marks={state.easterEggs} offline={connectionLost} areaPhoto={areaShot} />
     </Suspense>,
     quiz: <Quiz />,
     second: <SecondScreen state={state} />,
-    settings: <Settings state={state} onScan={onScan} scanning={scanning} onLanguage={onLanguage} />,
+    settings: <Settings state={state} onLanguage={onLanguage} />,
   };
-  return <main className="companion-page" key={page}><PageHeader page={page} state={state} headerActions={headerActions} connectionLost={connectionLost} />{view[page]}</main>;
+  return <main className="companion-page" key={page}>
+    <PageHeader page={page} state={state} headerActions={headerActions} connectionLost={connectionLost} />
+    <div className="page-content">{view[page]}</div>
+  </main>;
 }
 
 /**
@@ -287,14 +357,13 @@ function SecondScreen({ state }: { state: AppState }) {
 
 function Overview({ state, onPage, onScan, scanning }: { state: AppState; onPage: (p: Page) => void; onScan: () => void; scanning: boolean }) {
   const s = state.summary;
-  const loading = state.status === 'loading';
   if (!s) return <section className="focus-panel empty-state">
-    <img className="brand-icon big" src="./brand/icon.webp" alt="" /><h2>{t(loading ? 'Buscando sua partida' : 'Encontre a sua partida')}</h2>
-    <p>{isRemote && !loading ? t('Abra o Hyrule Tracker no PC e selecione a pasta da partida.')
+    <img className="brand-icon big" src="./brand/icon.webp" alt="" /><h2>{t('Encontre a sua partida')}</h2>
+    <p>{isRemote ? t('Abra o Hyrule Tracker no PC e selecione a pasta da partida.')
       : state.message ? tv(state.message, state.messageValues) : t('Procurando saves do remake nos locais de instalação.')}</p>
     {isRemote
-      ? <button className="action" disabled={scanning || loading} onClick={onScan}>{t(scanning || loading ? 'Buscando…' : 'Buscar saves')}</button>
-      : <SaveActions onScan={onScan} scanning={scanning} loading={loading} notFound={!loading} />}
+      ? <button className="action" disabled={scanning} onClick={onScan}>{t(scanning ? 'Buscando…' : 'Buscar saves')}</button>
+      : <SaveActions notFound />}
   </section>;
   const chests = state.categories.find(c => c.id === 'chests');
   const metrics = [
@@ -333,7 +402,7 @@ function Overview({ state, onPage, onScan, scanning }: { state: AppState; onPage
   </>;
 }
 
-function Settings({ state, onScan, scanning, onLanguage }: { state: AppState; onScan: () => void; scanning: boolean; onLanguage: (locale: Locale) => void }) {
+function Settings({ state, onLanguage }: { state: AppState; onLanguage: (locale: Locale) => void }) {
   return <>
     <section className="focus-panel setting-panel"><h2>{t("Idioma")}</h2><LanguageSwitch locale={currentLocale()} onChange={onLanguage} labelled /></section>
     <section className="focus-panel setting-panel">
@@ -341,7 +410,7 @@ function Settings({ state, onScan, scanning, onLanguage }: { state: AppState; on
       <p>{sourceName(state)}</p>
       <code className="save-path">{state.saveDir || t('Pasta do save ainda não encontrada.')}</code>
       {state.message && <p className="notice" role="status">{tv(state.message, state.messageValues)}</p>}
-      {!isRemote && <SaveActions onScan={onScan} scanning={scanning} loading={state.status === 'loading'} notFound={!state.saveDir && state.status !== 'loading'} />}
+      {!isRemote && <SaveActions activeDir={state.status === 'ok' ? state.saveDir : undefined} notFound={!state.saveDir} />}
       {!!state.slots.length && <label className="inline-field">{t('Slot')}<select value={state.slotMode === 'manual' ? state.activeSlot : ''} onChange={e => void api.pinSlot(e.target.value || null)}>
         <option value="">{t("Seguir o save mais recente")}</option>
         {state.slots.map(slot => <option key={slot.name} value={slot.name}>{slot.name} · {t(slot.area ?? '?')} · {date(slot.mtimeMs)}</option>)}
@@ -349,9 +418,11 @@ function Settings({ state, onScan, scanning, onLanguage }: { state: AppState; on
     </section>
     {!isRemote && <section className="focus-panel setting-panel"><h2>{t("Rastreamento")}</h2>
       <label className="inline-field"><input type="checkbox" checked={state.changeLog.enabled} onChange={e => void api.setChangeLog(e.target.checked)} />{t("Guardar o registro de atividade neste PC")}</label>
-      <label className="inline-field"><input type="checkbox" checked={state.captureActivity ?? true} onChange={e => void api.setCaptureActivity(e.target.checked)} />{t("Fotografar a janela do jogo nos marcos da jornada")}</label>
       {state.slotMode === 'manual' && <p className="notice">{t("Slot fixado. Selecione o save mais recente para voltar ao modo ao vivo.")}</p>}
-      <button className="action" onClick={() => void api.toggleOverlay()}>{state.overlay.visible ? t('Ocultar painel no jogo') : t('Mostrar painel no jogo')}</button>
+      <button className="action" onClick={() => void api.toggleOverlay()}>
+        {t(state.overlay.visible ? 'Ocultar painel no jogo' : 'Mostrar painel no jogo')}
+        {state.hotkeys.toggleOverlay && ` (${state.hotkeys.toggleOverlay})`}
+      </button>
     </section>}
     <section className="focus-panel setting-panel credits-panel"><h2>{t("Créditos")}</h2>
       <p>{t("Mapas de Hyrule e das masmorras, posições dos colecionáveis, fotos dos locais e a posição de Link no mapa: Ocarina Atlas, de antonioalvromero (licença MIT), que credita o atlas e as imagens de jogo ao Nintendúo.")}{' '}

@@ -70,13 +70,14 @@ export function createWebApi(): TrackerApi & { onConnection: (fn: Listener<Conne
     refreshProgress: () => rpc<void>('refreshProgress'),
     scanFolders: () => rpc<AppState>('scanFolders'),
     browseFolder: () => rpc<AppState>('getState'), // picking a folder happens on the PC
+    findSaveFolders: async () => [],
+    selectSaveFolder: async () => false,
     answerIdentify: (reqId: string, itemIds: string[]) => rpc('answerIdentify', reqId, itemIds),
     skipIdentify: (reqId: string) => rpc('skipIdentify', reqId),
     forgetIdentification: (itemId: string) => rpc('forgetIdentification', itemId),
     exportLearned: () => Promise.resolve(''),
     // Desktop only: windows, files and hotkeys of the PC.
     setDevPanel: nothing,
-    setCaptureActivity: nothing,
     setChangeLog: nothing,
     openLogFolder: nothing,
     takeSnapshot: nothing,

@@ -1,9 +1,11 @@
-import { mkdirSync, mkdtempSync, renameSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { murmur3 } from '../src/gamedata/murmur3.js';
+import { MAGIC, parseGameData, TYPE_NAMES } from '../src/gamedata/parser.js';
+import * as saves from '../src/gamedata/saves.js';
 import { Controller } from '../src/main/controller.js';
 import { LiveSource } from '../src/main/live.js';
 import { SettingsStore } from '../src/main/settings.js';
@@ -90,6 +92,107 @@ describe('a temporarily missing pinned slot', () => {
     expect(controller.state.slotMode).toBe('manual');
     expect(controller.state.player).toBeUndefined();
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('records live progress and keeps thumbnails from game saves', async () => {
+    const file = join(dir, 'settings.json');
+    writeFileSync(file, JSON.stringify({ saveDir: dir, captureActivity: true, captureActivityOptIn: true }));
+    const oldPhoto = 'data:image/jpeg;base64,b2xk';
+    const activityFile = join(dir, 'activity.json');
+    writeFileSync(activityFile, JSON.stringify([{ ms: 1, source: 'live', entries: [], screenshot: oldPhoto }]));
+    settings = new SettingsStore(file);
+    expect(settings.data).not.toHaveProperty('captureActivity');
+    expect(settings.data).not.toHaveProperty('captureActivityOptIn');
+    controller = new Controller({ ...controller.paths, noLive: false }, settings);
+
+    vi.spyOn(LiveSource.prototype, 'start').mockResolvedValue();
+    const progress = join(dir, 'slot_01', 'progress.sav');
+    const atMs = Date.now();
+    const snapshot = (hearts: number) => {
+      const data = parseGameData(readFileSync(progress));
+      data.entries.get(murmur3('PlayerStatus.MaxLife'))!.value = hearts * 4;
+      return { data, atMs: atMs + hearts, resettable: new Set<bigint>() };
+    };
+    const current = vi.spyOn(LiveSource.prototype, 'current').mockReturnValue(snapshot(7));
+    await controller.start();
+    controller.stop();
+
+    current.mockReturnValue(snapshot(8));
+    await controller.refresh(true);
+    expect(controller.state.activity?.[0]).toMatchObject({ source: 'live', hearts: 1, screenshot: undefined });
+    expect(controller.state.activity?.[1]?.screenshot).toBe(oldPhoto);
+
+    const jpeg = Buffer.from('ffd8ffe0ffd9', 'hex');
+    const caption = Buffer.alloc(0x3c + jpeg.length);
+    caption.writeUInt32LE(MAGIC, 0);
+    caption.writeUInt32LE(0x002d80eb, 4);
+    caption.writeUInt32LE(0x38, 8);
+    caption.writeUInt32LE(TYPE_NAMES.indexOf('Binary'), 0x2c);
+    caption.writeUInt32LE(0x63696a32, 0x30);
+    caption.writeUInt32LE(0x38, 0x34);
+    caption.writeUInt32LE(jpeg.length, 0x38);
+    jpeg.copy(caption, 0x3c);
+    writeFileSync(join(dir, 'slot_01', 'caption.sav'), caption);
+    const save = readFileSync(progress);
+    save.writeUInt32LE(9 * 4, 0x34);
+    writeFileSync(progress, save);
+    const nextSaveTime = new Date(atMs + 1000);
+    utimesSync(progress, nextSaveTime, nextSaveTime);
+    current.mockReturnValue(undefined);
+    await controller.refresh(true);
+
+    const savePhoto = 'data:image/jpeg;base64,' + jpeg.toString('base64');
+    expect(controller.state.saveImage).toBe(savePhoto);
+    expect(JSON.parse(readFileSync(activityFile, 'utf8'))).toMatchObject([
+      { source: 'save', hearts: 1, screenshot: savePhoto },
+      { source: 'live', hearts: 1 },
+      { source: 'live', screenshot: oldPhoto },
+    ]);
+  });
+
+  it('lists each program once and opens its latest profile on selection', async () => {
+    const progress = readFileSync(join(dir, 'slot_01', 'progress.sav'));
+    const programs = ['Hookshot', 'Triforce', 'Longshot-v1', 'Fritchii-v1', 'Lichii'];
+    const profiles = programs.map(program => {
+      const profile = join(dir, program, 'save');
+      mkdirSync(join(profile, 'slot_00'), { recursive: true });
+      writeFileSync(join(profile, 'slot_00', 'progress.sav'), progress);
+      return profile;
+    });
+    const [hookshot, triforce, longshot] = profiles;
+    const latestTriforce = join(triforce, 'a'.repeat(32));
+    const latest = new Date(Math.floor(Date.now() / 1000) * 1000 + 60_000);
+    for (const slot of ['slot_02', 'slot_03']) {
+      const folder = join(latestTriforce, slot);
+      mkdirSync(folder, { recursive: true });
+      const file = join(folder, 'progress.sav');
+      writeFileSync(file, progress);
+      if (slot === 'slot_02') utimesSync(file, latest, latest);
+    }
+    writeFileSync(join(dir, 'Longshot-v1', 'hookshot.exe'), '');
+    writeFileSync(join(dir, 'Fritchii-v1', 'lichii.exe'), '');
+    settings.data.saveDir = hookshot;
+    vi.spyOn(saves, 'candidateGameFoldersAsync').mockResolvedValue([...programs.map(program => join(dir, program)), triforce]);
+    await controller.start();
+
+    expect(await controller.selectSaveFolder(triforce)).toBe(false);
+    const choices = await controller.findSaveFolders();
+    expect(choices).toHaveLength(5);
+    expect(choices.map(choice => choice.program).sort()).toEqual(['Fritchii', 'Hookshot', 'Lichii', 'Longshot', 'Triforce']);
+    expect(choices[0]).toEqual({ dir: latestTriforce, program: 'Triforce', lastSavedMs: latest.getTime() });
+    expect(controller.state.saveDir).toBe(hookshot);
+    expect(await controller.selectSaveFolder(triforce)).toBe(false);
+    expect(await controller.selectSaveFolder(latestTriforce)).toBe(true);
+    expect(controller.state).toMatchObject({ saveDir: latestTriforce, sourceLabel: 'Triforce', activeSlot: 'slot_02' });
+    expect(settings.data.manualSaveDir).toBe(true);
+    await controller.pinSlot('slot_03');
+    expect(controller.state.activeSlot).toBe('slot_03');
+    await controller.scanFolders();
+    expect(controller.state.saveDir).toBe(latestTriforce);
+
+    rmSync(join(longshot, 'slot_00', 'progress.sav'));
+    expect(await controller.selectSaveFolder(longshot)).toBe(false);
+    expect(controller.state.saveDir).toBe(latestTriforce);
   });
 
   it('keeps the same discoveries with no save, the recent save and a pinned save', async () => {

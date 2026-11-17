@@ -15,4 +15,4 @@ The tracker is an Ocarina of Time field journal. Players consult it beside the g
 - Desktop uses a sidebar, with a compact rail in narrow and short windows. Phone portrait keeps the overview, available objectives, map and checklist in the bottom navigation.
 - Give checklist filters their own panel. Leave space before the suggested objectives so the link reads as an action below the filters.
 - Keep the active page and save status easy to find. Allow long translations to wrap and preserve focus when dismissing menus and dialogs.
-- Use short transitions for sheets and direct input feedback. Preserve live map updates with reduced motion enabled, and remove movement that only decorates the interface.
+- Bring in the new page content with a short fade and an 8 px rise while the header and navigation stay fixed in place. Navigation icons press in slightly on touch. Skeletons follow each page's layout and settle after two gentle pulses. Preserve live map updates with reduced motion enabled, and remove movement that only decorates the interface.
