@@ -14,7 +14,7 @@
 
 A Windows desktop app that **reads your local save** and updates the checklist, map and counters as you play. 🌍 Available in Portuguese, English and Spanish.
 
-Created by **Joao Victor Prado**, based on [Boomerang Tracker](https://github.com/LucieTheFool/boomerang-tracker).
+👤 Created by **João Victor Prado**, based on [Boomerang Tracker](https://github.com/LucieTheFool/boomerang-tracker).
 
 [🚀 First use](#-first-use) · [✨ Features](#-features) · [🎮 Compatibility](#-compatibility) · [🔒 Local data](#-local-data) · [🛠️ Development](#️-development)
 
@@ -46,7 +46,7 @@ Created by **Joao Victor Prado**, based on [Boomerang Tracker](https://github.co
 | ⚔️ | **Hall of Enemies** | 84 statues, 25 rematches and three trials, with best times from your save and reference images. |
 | 📅 | **Daily log and My data** | Progress seen while the tracker is open, local captures and medals calculated from your game. |
 | 📸 | **Rumor quests** | The tracker's photo hunt: follow clues, visit the region and capture the game window in **Live** mode. |
-| 🖼️ | **Photo studio and Daily quiz** | Use captures in the studio and test your knowledge of the game. |
+| 🧩 | **Daily quiz** | Test your knowledge of the game with rotating questions. |
 
 The overall percentage uses the **100% Checklist** objectives. Minigame prizes that belong to it (heart pieces, equipment upgrades) already count. Wins and records are counted separately on the **Minigames** page.
 
@@ -145,7 +145,7 @@ docs/            References and technical documentation
 
 ## 🙏 Credits and license
 
-- 👤 **Joao Victor Prado** created Hyrule Tracker. [Boomerang Tracker](https://github.com/LucieTheFool/boomerang-tracker) is the basis of the project.
+- 👤 **João Victor Prado** created Hyrule Tracker. [Boomerang Tracker](https://github.com/LucieTheFool/boomerang-tracker) is the basis of the project.
 - 🗺️ Maps and location photos come from Ocarina Atlas and Nintendúo. Enemy, region and item images are credited in the docs. See [third-party credits](THIRD_PARTY_NOTICES.md).
 - 📄 Code is under the [MIT license](LICENSE). Game images and trademarks belong to their owners and have their own terms of use.
 

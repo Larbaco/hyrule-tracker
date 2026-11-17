@@ -428,7 +428,7 @@ Ações||Actions|Acciones
 Remover||Remove|Eliminar
 Este arquivo não é um resumo válido do Hyrule Tracker.||This file is not a valid Hyrule Tracker summary.|Este archivo no es un resumen válido de Hyrule Tracker.
 Preparando o diário…||Opening the journal…|Abriendo el diario…
-Criado por Joao Victor Prado||Created by Joao Victor Prado|Creado por Joao Victor Prado
+Criado por João Victor Prado||Created by João Victor Prado|Creado por João Victor Prado
 Veja o progresso da sua partida e retome a jornada.||See your save progress and pick up where you left off.|Consulta el progreso de tu partida y retoma la aventura.
 Explore as regiões de Hyrule e localize os colecionáveis.||Explore Hyrule's regions and find collectibles.|Explora las regiones de Hyrule y localiza los coleccionables.
 Acompanhe os objetivos que faltam para completar 100% do jogo.||Track the objectives you still need for 100% completion.|Consulta los objetivos que te faltan para completar el 100 % del juego.

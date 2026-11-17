@@ -155,7 +155,7 @@ export function App() {
 }
 
 function AuthorCredit() {
-  return <small className="author-credit">{t('Criado por Joao Victor Prado')}</small>;
+  return <small className="author-credit">{t('Criado por João Victor Prado')}</small>;
 }
 
 function Toolbar({ state, cards, prefs, onPrefs, query, onQuery }: { state: AppState; cards: Card[]; prefs: UiPrefs; onPrefs: (p: UiPrefs) => void; query: string; onQuery: (s: string) => void }) {

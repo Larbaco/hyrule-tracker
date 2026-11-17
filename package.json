@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "Ocarina of Time remake companion for Windows.",
+  "author": "João Victor Prado",
   "type": "module",
   "license": "MIT",
   "scripts": {
