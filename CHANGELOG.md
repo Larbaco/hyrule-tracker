@@ -4,6 +4,12 @@ Player-facing changes in each Hyrule Tracker version. Every published version ne
 `scripts/ensure-release.mjs` uses it as the GitHub release text, and the in-app updater shows it before the player decides to update.
 Format: `New`, `Improved`, `Fixed`, `Removed`, `Known` (open issue).
 
+## [1.4.2] - 2026-11-17
+
+### Improved
+- **Second Screen on Windows.** The installer offers to allow Hyrule Tracker through Windows Firewall on private networks, so phones and tablets can connect. Windows asks for permission once; updates never ask.
+- **Second Screen on Windows.** If Windows has set your network to Public, the Second Screen page warns you and opens the network settings so you can switch it to Private. On a Public network the firewall blocks other devices, even after you allowed the app. Thanks to h1ghland3r for reporting this (#6).
+
 ## [1.4.1] - 2026-11-17
 
 ### Improved
