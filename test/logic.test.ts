@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { describe, it, expect } from 'vitest';
-import { lintLogic, evaluateLogic, parseExpr, missingLabel, Logic, LogicFile } from '../src/core/logic.js';
+import { lintLogic, evaluateLogic, parseExpr, missingLabel, requirementLabels, Logic, LogicFile } from '../src/core/logic.js';
 import { parseGameData, GameDataFile, Entry } from '../src/gamedata/parser.js';
 import { murmur3 } from '../src/gamedata/murmur3.js';
 import { evaluate } from '../src/gamedata/detect.js';
@@ -132,5 +132,14 @@ describe.skipIf(!fs.existsSync(save))('logic on a real save', () => {
     const byKey = (k: string) => st.get(rows.find((r: { key: string }) => r.key === k)!.id)!;
     expect(byKey('heart_containers#1').ages).toEqual(['child']); // Gohma: child with slingshot
     expect(byKey('items#9').ages).toEqual([]); // Hammer needs adult
+  });
+});
+
+describe('requirementLabels', () => {
+  it('names the items a requirement uses, leaving out ages, story flags and repeats', () => {
+    expect(requirementLabels(logic, '(child and DinsFireItem and BlastOrSmash) or (adult and Hookshot)')).toEqual(["Din's Fire", 'Bombs or the Megaton Hammer', 'Hookshot']);
+    expect(requirementLabels(logic, 'Tokens>=50')).toEqual(['50 Gold Skulltula tokens']);
+    expect(requirementLabels(logic, 'child or Hookshot or Hookshot')).toEqual(['Hookshot']);
+    expect(requirementLabels(logic, undefined)).toEqual([]);
   });
 });

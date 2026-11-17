@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { UiPrefs, IdentifyRequest, OverlayMode } from '../shared/types.js';
 import type { LearnedGroup } from '../core/pools.js';
+import type { MainLocale } from './validate.js';
 
 export interface OverlaySettings {
   bounds?: { x: number; y: number; width: number; height: number };
@@ -16,7 +17,7 @@ export interface Settings {
   /** The save folder was picked by hand: don't replace it with an automatic scan. */
   manualSaveDir?: boolean;
   /** Language last chosen in the app (for the few texts main shows itself, like dialogs). */
-  locale?: 'pt-BR' | 'en-US' | 'es-ES';
+  locale?: MainLocale;
   /** null = follow the most recently saved slot */
   pinnedSlot: string | null;
   /** manual ticks: "<userDir>|<slot>" -> item id -> true */

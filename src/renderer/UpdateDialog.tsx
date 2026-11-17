@@ -3,6 +3,9 @@ import type { UpdateState } from '../shared/types';
 import { api } from './api';
 import { percent, t } from './i18n';
 
+/** Colour of a changelog section, from its heading (New / Improved / Fixed / Known). */
+const sectionKind = (title = '') => /^new/i.test(title) ? 'new' : /^improv/i.test(title) ? 'improved' : /^fix/i.test(title) ? 'fixed' : /^known/i.test(title) ? 'known' : '';
+
 // Asks before downloading and shows the changelog of the new version. Never installs on its own.
 export function UpdateDialog() {
   const [u, setU] = useState<UpdateState>({ status: 'idle' });
@@ -23,10 +26,19 @@ export function UpdateDialog() {
           </div>
         </div>
 
-        {u.status === 'available' && u.notes && (
+        {u.status === 'available' && !!u.notes?.length && (
           <div className="update-notes">
             <h3>{t('Novidades')}</h3>
-            <div className="update-notes-text">{u.notes}</div>
+            <div className="update-notes-body">
+              {u.notes.map((section, i) => (
+                <section key={i} className={`update-section ${sectionKind(section.title)}`}>
+                  {section.title && <h4>{t(section.title)}</h4>}
+                  <ul>{section.items.map((item, j) => (
+                    <li key={j}>{item.title && <b>{item.title}</b>}{item.text && <span>{item.text}</span>}</li>
+                  ))}</ul>
+                </section>
+              ))}
+            </div>
           </div>
         )}
         {u.status === 'downloading' && (

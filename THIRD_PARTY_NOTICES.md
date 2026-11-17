@@ -8,10 +8,10 @@
 
 ## Application and images
 
-The [Ocarina Atlas](https://github.com/antonioalvromero/Ocarina-Atlas) supplies Hyrule and dungeon maps,
+The [Ocarina Atlas](https://github.com/antonioalvromero/Ocarina-Atlas), by antonioalvromero, supplies Hyrule and dungeon maps,
 collectible coordinates, save-key mappings, location screenshots, and the map calibration, dungeon floor
 heights and player-position memory chain used to draw Link on the map (`src/core/position.ts`, `src/gamedata/player.ts`). Its MIT license is included in
-`docs/atlas-license.txt`. Ocarina Atlas credits the base atlas and gameplay imagery to Nintendúo.
+`docs/atlas-license.txt`. Ocarina Atlas credits the base atlas and gameplay imagery to [Nintendúo](https://www.nintenduo.com/).
 Enemy renders and region images were obtained from the
 [Mt. Wildwood Zelda Wiki](https://zelda.mtwildwood.net/en-gb/), with individual references in
 `src/renderer/reference-images.json`. Game imagery belongs to its respective rights holders.

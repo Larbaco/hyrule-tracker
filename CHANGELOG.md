@@ -4,6 +4,29 @@ Player-facing changes in each Hyrule Tracker version. Every published version ne
 `scripts/ensure-release.mjs` uses it as the GitHub release text, and the in-app updater shows it before the player decides to update.
 Format: `New`, `Improved`, `Fixed`, `Known` (open issue).
 
+## [1.3.0] - 2026-11-17
+
+### New
+- **Linux (experimental).** Hyrule Tracker now has a Linux build: an **AppImage** (x86_64) next to the Windows installer. It finds saves of games run natively or through **Wine/Proton** (Steam, Lutris, Bottles, Heroic), follows the game live and updates itself like on Windows. It hasn't been tested on enough systems yet, so **please tell us how it works for you**: your distro, desktop (X11 or Wayland), how you run the game, and what worked or didn't. Open an issue on GitHub or write on the Triforce Discord.
+- **9 new languages.** French, German, Italian, Dutch, Russian, Japanese, Korean, Simplified Chinese and Traditional Chinese, for 12 in total. They were translated with AI help, so corrections from native speakers are very welcome. On first start the app picks your system's language.
+- **Language menu.** The language button now opens a list of every language, instead of cycling through them one by one.
+- **What to do?** A new page lists what you can get right now, region by region, where you are first. Each one shows its spot on the map, photos of the place, how to get it and the items you can use.
+- **View in checklist.** Map markers have a **View in checklist** button, and **View on map** opens the marker itself. Every map marker now belongs to a checklist row, with the same status.
+
+### Improved
+- **Icons everywhere.** Minigames, events, Gossip Stones and the other new rows have their own icon or game art.
+- **Update window.** The changes in a new version are grouped and easier to read.
+- **Completion by region.** The map shows what counts toward 100% and the map extras, overall and per region.
+
+### Fixed
+- **Portuguese names in English.** Minigame and event names now show in the language you picked.
+- **Missing fairy thoughts.** The four without a photo marker now show on the map.
+
+### Known
+- **Linux: reading the game live may be blocked.** Many distros (Ubuntu, Arch and others) only let a program read another one's memory if it started it. The tracker then says so and still follows your saves; running  allows it until the next restart.
+- **Linux: Wayland.** The tracker runs through XWayland so the overlay, hotkeys and game screenshot work. The overlay can't stay above a game in exclusive fullscreen or in Gamescope (Steam Deck Game Mode).
+- **Linux: AppImage doesn't start on Ubuntu 24.04+.** If it closes right away with a sandbox error, start it with .
+
 ## [1.2.0] - 2026-11-17
 
 ### New

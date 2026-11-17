@@ -4,7 +4,8 @@
 // in the same playthrough.
 import type { GameDataFile } from '../gamedata/parser.js';
 import { locate, readTables, buildLive, fingerprint, matchesReference, sweepRanges, LiveTables, Agreement } from '../gamedata/live.js';
-import { ProcessMemory, findProcesses, initMemoryAccess } from './procmem.js';
+import { MemoryAccessDenied, findProcesses, initMemoryAccess, openProcess, type GameProcess } from './procmem.js';
+import { ptraceScope } from './procmem-linux.js';
 import { NATIVE_EXES, EMULATOR_EXES } from '../gamedata/saves.js';
 import type { LiveInfo } from '../shared/types.js';
 import { PlayerReader, type LivePlayer } from '../gamedata/player.js';
@@ -34,8 +35,8 @@ export interface LiveOptions {
   /** Table addresses found before (hex), newest first. */
   hints: string[];
   onHint(hex: string): void;
-  /** A game was attached to: the full path of its exe, if Windows gave it. */
-  onGame?(exe: string | undefined): Promise<void>;
+  /** A game was attached to: the full path of its exe if the system gave it, and its %APPDATA% when it runs in a Wine/Proton prefix. */
+  onGame?(exe: string | undefined, appData?: string): Promise<void>;
   onChange(): void;
   onStatus(): void;
   /** Link moved (or changed scene). Read it with player(). */
@@ -44,7 +45,7 @@ export interface LiveOptions {
 
 export class LiveSource {
   info: LiveInfo = { status: 'off' };
-  private mem?: ProcessMemory;
+  private mem?: GameProcess;
   private tables?: LiveTables;
   private ref?: GameDataFile;
   private timer?: NodeJS.Timeout;
@@ -136,11 +137,19 @@ export class LiveSource {
       const game = await findGame();
       if (!this.timer) return;
       if (!game) return this.set({ status: 'no-game' });
-      this.mem = new ProcessMemory(game.pid);
+      try {
+        this.mem = openProcess(game.pid);
+      } catch (e) {
+        if (!(e instanceof MemoryAccessDenied)) throw e;
+        // Linux: the game is running but the kernel won't let another program read it (Yama ptrace_scope).
+        return this.set(ptraceScope() === 1
+          ? { status: 'unavailable', detail: 'Linux blocked reading the game\'s memory. To allow it until the next restart, run {command} in a terminal.', detailValues: { command: 'sudo sysctl kernel.yama.ptrace_scope=0' } }
+          : { status: 'unavailable', detail: 'Linux blocked reading the game\'s memory (ptrace_scope {scope}). Only the save files can be followed.', detailValues: { scope: ptraceScope() ?? '?' } });
+      }
       this.emulator = !!game.emulator;
       // Link's position: only where guest memory sits at the fixed base (not in emulators).
       if (!this.emulator) { const mem = this.mem; this.playerReader = new PlayerReader(mem, () => mem.regions()); }
-      await this.opts.onGame?.(this.mem.imagePath());
+      await this.opts.onGame?.(this.mem.imagePath(), this.mem.appData?.());
     }
     if (!this.mem) return;
     this.readPlayer();

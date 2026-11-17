@@ -2,7 +2,7 @@
 // No Electron imports, so it can be tested directly.
 import type { OverlayMode, UiPrefs } from '../shared/types.js';
 
-export const LOCALES = ['pt-BR', 'en-US', 'es-ES'] as const;
+export const LOCALES = ['pt-BR', 'en-US', 'es-ES', 'fr-FR', 'de-DE', 'it-IT', 'nl-NL', 'ru-RU', 'ja-JP', 'ko-KR', 'zh-CN', 'zh-TW'] as const;
 export type MainLocale = (typeof LOCALES)[number];
 export const isLocale = (x: unknown): x is MainLocale => typeof x === 'string' && (LOCALES as readonly string[]).includes(x);
 

@@ -49,6 +49,10 @@ export interface AvailableEntry {
   night?: boolean;
   unsure?: boolean;
   here: boolean; // in the area you last saved in
+  /** What the logic has you use to get it, as players read it ("Hookshot", "Magic Beans"). */
+  uses?: string[];
+  /** A note from the logic data about this spot. */
+  note?: string;
 }
 
 export interface TrackedCategory {
@@ -238,5 +242,9 @@ export interface UpdateState {
   status: 'idle' | 'available' | 'downloading' | 'ready' | 'error';
   version?: string;
   percent?: number;
-  notes?: string;
+  /** The new version's changelog, as data (never HTML). */
+  notes?: NoteSection[];
 }
+
+/** One part of a changelog ("New", "Fixed"…) and its entries; an entry's title is its leading bold words. */
+export interface NoteSection { title?: string; items: { title?: string; text: string }[] }

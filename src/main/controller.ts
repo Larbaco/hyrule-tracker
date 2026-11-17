@@ -7,7 +7,7 @@ import { autoDetectUserFolderAsync, detectInFolders, installationLabel, latestUs
 import { loadNames } from '../gamedata/names.js';
 import { Tracker, ChecklistFile, MappingFile, DescriptionsFile, applyDescriptions } from '../core/tracker.js';
 import { regionsForArea } from '../core/areas.js';
-import { evaluateLogic, Logic, LogicFile } from '../core/logic.js';
+import { evaluateLogic, Logic, LogicFile, requirementLabels } from '../core/logic.js';
 import type { AvailableEntry } from '../shared/types.js';
 import { SaveWatcher } from './watcher.js';
 import { LiveSource } from './live.js';
@@ -17,7 +17,7 @@ import { keyOf } from '../gamedata/detect.js';
 import { SettingsStore } from './settings.js';
 import type { Activity, AppState, ChangeRow, Summary, Toast, SlotSummary } from '../shared/types.js';
 import { canonicalStage, companionProgress, extendChecklist, RUPEES, type CompanionData, type WorldMarker } from '../core/companion.js';
-import { evaluateAtlasWithManual, linkAtlas, type AtlasRule } from '../core/atlas.js';
+import { evaluateAtlasWithManual, joinMarkerFlags, linkAtlas, type AtlasRule } from '../core/atlas.js';
 import { locatePlayer, type AtlasPlace, type PlayerPosition } from '../core/position.js';
 import type { PlayerState } from '../shared/types.js';
 
@@ -78,8 +78,11 @@ export class Controller {
     this.atlasItems = atlas.items;
     this.atlasPlaces = atlas.places;
     const mapping = read('save-mapping.json') as MappingFile;
+    const baseIds = new Set(checklist.categories.flatMap(c => c.items.map(i => i.id)));
     extendChecklist(checklist, mapping, this.companionData);
-    this.atlasLinks = linkAtlas(this.atlasItems, mapping.entries);
+    // Paired markers first: their flags join the row's rule, and their link wins over any automatic one.
+    const paired = joinMarkerFlags(this.atlasItems, mapping.entries);
+    this.atlasLinks = { ...linkAtlas(this.atlasItems, mapping.entries, id => !baseIds.has(id)), ...paired };
     this.tracker = new Tracker(checklist, mapping, settings.data.learned);
     try { this.logic = read('logic.json') as LogicFile; } catch { this.logic = undefined; }
     this.logicRows = this.tracker.checklist.categories.flatMap(c => c.items.map(i => ({ id: i.id, key: `${c.id}#${i.number}`, chapter: i.chapter })));
@@ -127,7 +130,7 @@ export class Controller {
       if (!s) continue;
       it.logic = s;
       if (c.part === 'A' && !it.done && s.ages.length) {
-        available.push({ id: it.id, categoryId: c.id, categoryLabel: c.label, number: it.number, name: it.name, region: s.region, ages: s.ages, night: s.night, unsure: s.unsure, here: here.has(s.region) });
+        available.push({ id: it.id, categoryId: c.id, categoryLabel: c.label, number: it.number, name: it.name, region: s.region, ages: s.ages, night: s.night, unsure: s.unsure, here: here.has(s.region), uses: requirementLabels(this.logic, s.needs), note: s.note });
       }
     }
     available.sort((a, b) => Number(b.here) - Number(a.here) || a.region.localeCompare(b.region));
@@ -254,7 +257,7 @@ export class Controller {
         s.live.hints = [...new Set([h, ...prev])].slice(0, 4);
         s.live.hint = h;
       }),
-      onGame: exe => this.followGame(exe),
+      onGame: (exe, appData) => this.followGame(exe, appData),
       onChange: () => void this.refresh(true),
       onPlayer: () => this.emitPlayer(),
       onStatus: () => {
@@ -329,12 +332,12 @@ export class Controller {
    * When a game starts, follow its saves: Hookshot, Longshot, NX2navi, ReLink and Fritchii each keep their
    * own. Not while a slot is pinned (that's a choice of save), and only if it has saves.
    */
-  private async followGame(exe: string | undefined) {
+  private async followGame(exe: string | undefined, appData?: string) {
     // A folder picked by hand is a choice too (like a pinned slot).
     if (!exe || this.settings.data.pinnedSlot || (this.settings.data.manualSaveDir && this.userDir)) return;
-    const dir = userFolderForExe(exe);
+    const dir = userFolderForExe(exe, appData);
     if (!dir || path.resolve(dir).toLowerCase() === path.resolve(this.userDir ?? '').toLowerCase()) return;
-    const game = path.dirname(exe).replace(/\\bin$/i, '');
+    const game = path.dirname(exe).replace(/[\\/]bin$/i, '');
     this.log.write({ kind: 'source', status: 'switched', detail: `Following the running game: ${game}` });
     this.toast("Switched to the saves of the game that's running ({game}).", 8000, { game });
     await this.useFolder(dir);

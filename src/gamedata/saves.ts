@@ -5,6 +5,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { parseGameData, GameDataFile, MAGIC } from './parser.js';
+import { isWindowsPath, prefixUsers, steamLibraries, toUnixPath, userAppData, winePrefixes } from './wine.js';
+
+const isLinux = process.platform === 'linux';
 
 export interface SlotInfo {
   name: string; // "slot_03"
@@ -71,14 +74,18 @@ function emulatorUserFolders(start: string): string[] {
 /** Emulator exes, and the data folders (under %APPDATA%) they keep saves in. Fritchii runs as lichii.exe. */
 export const EMULATOR_EXES = ['fritchii.exe', 'lichii.exe'];
 const EMULATOR_DIRS = ['fritchii', 'lichii', 'eden', 'orchid', 'eglantine', 'pokedinner'];
-function emulatorDataDirs(appData = process.env.APPDATA ?? path.join(os.homedir(), 'AppData', 'Roaming')): string[] {
+function emulatorDataDirs(appData = baseDirs().roaming): string[] {
   return EMULATOR_DIRS.map(n => path.join(appData, n));
 }
 
 export const NATIVE_EXES = ['Triforce.exe', 'hookshot.exe', 'Longshot.exe', 'nx2navi.exe', 'relink-game.exe',
   'ocarina-reborn-game.exe', 'ocarina-reborn.exe', 'OcarinaReborn.exe'];
 const GAME_NAMES = /zelda|ocarina|hookshot|longshot|triforce|nx2navi|relink|fritchii|lichii|eden|orchid|eglantine|pokedinner/i;
-const GAME_FILES = new Set([...NATIVE_EXES, ...EMULATOR_EXES, 'ReLink.exe'].map(n => n.toLowerCase()));
+/** A program's name without ".exe" (or a Linux build's ".AppImage" / ".x86_64"), lowercase. */
+export const programName = (file: string) => file.toLowerCase().replace(/\.(exe|appimage|x86_64)$/, '');
+const GAME_FILES = new Set([...NATIVE_EXES, ...EMULATOR_EXES, 'ReLink.exe'].map(programName));
+/** A file that runs the game: the Windows exe, or a Linux build of the same name. */
+export const isGameFile = (file: string) => GAME_FILES.has(programName(file));
 const installations: Record<string, string> = {
   fritchii: 'Fritchii', lichii: 'Lichii', eden: 'Eden', orchid: 'Orchid', eglantine: 'Eglantine',
   pokedinner: 'PokeDinner', triforce: 'Triforce', longshot: 'Longshot', hookshot: 'Hookshot',
@@ -92,50 +99,105 @@ export function installationLabel(saveDir: string): string | undefined {
     const name = installations[path.basename(dir).toLowerCase()];
     if (name) return name;
     if (/^(save|user|nand|[0-9a-f]{16,32})$/i.test(path.basename(dir))) continue;
-    const game = readdir(dir).find(name => GAME_FILES.has(name.toLowerCase()));
-    if (game) return installations[path.basename(game, '.exe').toLowerCase().replace(/\.exe$/, '')];
+    const game = readdir(dir).find(isGameFile);
+    if (game) return installations[programName(game)];
   }
 }
 const SEARCH_GROUPS = /^(apps?|programs?|games?|jogos|emulators?|emuladores|downloads|desktop|documents|gamesbuilds?|builds?|ports?|steamapps|common|quiverlauncher)$/i;
 
-function configPaths(base: string, file: string, keys: string[]): string[] {
+/**
+ * Absolute folders a launcher's JSON config points to. `prefix`: the config lives in a Wine prefix,
+ * so its Windows paths (C:\...) are turned into real ones.
+ */
+function configPaths(base: string, file: string, keys: string[], prefix?: string): string[] {
   try {
     const config = JSON.parse(fs.readFileSync(path.join(base, file), 'utf8').replace(/^\uFEFF/, ''));
     const values = [config, ...(Array.isArray(config.builds) ? config.builds : [])];
     return values.flatMap(value => keys.map(key => value?.[key]))
+      .map(value => (prefix && typeof value === 'string' && isWindowsPath(value) ? toUnixPath(value, prefix) : value))
       .filter((value): value is string => typeof value === 'string' && path.isAbsolute(value));
   } catch { return []; }
 }
 
+interface Bases { roaming: string; local: string; storage: string[]; prefix?: string }
+
+/**
+ * Where programs keep their data. Windows: %APPDATA% and %LOCALAPPDATA%. Linux: the XDG data and
+ * config folders (~/.local/share, ~/.config) stand in for them.
+ */
 function baseDirs() {
   const home = os.homedir();
+  if (isLinux) {
+    const roaming = process.env.XDG_DATA_HOME || path.join(home, '.local', 'share');
+    const local = process.env.XDG_CONFIG_HOME || path.join(home, '.config');
+    const storage = [roaming, local, path.join(home, 'Games'), path.join(home, 'Applications'), path.join(home, 'opt'), '/opt'];
+    return { home, roaming, local, storage };
+  }
   const roaming = process.env.APPDATA ?? path.join(home, 'AppData', 'Roaming');
   const local = process.env.LOCALAPPDATA ?? path.join(home, 'AppData', 'Local');
   const storage = [roaming, local, path.join(local, 'Programs'), path.join(home, 'Games')];
   return { home, roaming, local, storage };
 }
 
-/** Install folders the ports and emulators use by default, or that launcher config points to. Cheap: no directory walk. */
-export function knownGameFolders(): string[] {
-  const { roaming, local, storage } = baseDirs();
+/**
+ * Linux only: the other places a game may keep its data. Each Wine/Proton prefix's users (the Windows
+ * build run through Wine) and each Flatpak app's data and config folders.
+ */
+function otherBases(home: string): Bases[] {
+  if (!isLinux) return [];
+  const out: Bases[] = [];
+  for (const prefix of winePrefixes(home)) {
+    for (const user of prefixUsers(prefix)) {
+      const { roaming, local } = userAppData(user);
+      out.push({ roaming, local, prefix, storage: [roaming, local, path.join(local, 'Programs'), path.join(prefix, 'drive_c', 'Games')] });
+    }
+  }
+  for (const app of readdir(path.join(home, '.var', 'app'))) {
+    const dir = path.join(home, '.var', 'app', app);
+    out.push({ roaming: path.join(dir, 'data'), local: path.join(dir, 'config'), storage: [] });
+  }
+  return out;
+}
+
+function foldersIn({ roaming, local, storage, prefix }: Bases): string[] {
   const native = ['Hookshot', 'Longshot', 'Triforce', 'NX2navi', 'Ocarina Reborn', 'OcarinaReborn', 'ReLink'];
   return [...emulatorDataDirs(roaming), ...emulatorDataDirs(local),
     ...storage.flatMap(base => native.map(name => path.join(base, name))),
-    ...configPaths(local, 'Ocarina Reborn/Config/settings.json', ['game_dir']),
-    ...configPaths(local, 'Ocarina Reborn/Config/build-state.json', ['dest']),
-    ...configPaths(local, 'LongshotLauncher/builds.json', ['folder']),
-    ...configPaths(local, 'LongshotLauncher/settings.json', ['buildsFolder']),
-    ...configPaths(local, 'ReLink/install.json', ['Out'])];
+    ...configPaths(local, 'Ocarina Reborn/Config/settings.json', ['game_dir'], prefix),
+    ...configPaths(local, 'Ocarina Reborn/Config/build-state.json', ['dest'], prefix),
+    ...configPaths(local, 'LongshotLauncher/builds.json', ['folder'], prefix),
+    ...configPaths(local, 'LongshotLauncher/settings.json', ['buildsFolder'], prefix),
+    ...configPaths(local, 'ReLink/install.json', ['Out'], prefix)];
+}
+
+/** Install folders the ports and emulators use by default, or that launcher config points to. Cheap: no directory walk. */
+export function knownGameFolders(): string[] {
+  const base = baseDirs();
+  return [...new Set([base, ...otherBases(base.home)].flatMap(foldersIn))];
 }
 
 interface DirEntry { name: string; isFile(): boolean; isDirectory(): boolean }
 const DRIVE_LETTERS = Array.from('CDEFGHIJKLMNOPQRSTUVWXYZ', letter => letter + ':\\');
 const SCAN_LIMIT = 2500;
+/**
+ * Other disks. Windows: drive letters (C: is searched like the others). Linux: what's mounted under
+ * /media/<user>, /run/media/<user> and /mnt.
+ */
+function volumeRoots(): string[] {
+  if (process.platform === 'win32') return DRIVE_LETTERS.filter(root => fs.existsSync(root));
+  if (!isLinux) return [];
+  const user = os.userInfo().username;
+  return ['/mnt', path.join('/media', user), path.join('/run/media', user)].flatMap(dir => readdir(dir).map(n => path.join(dir, n)));
+}
+/** Linux: Steam libraries' game folders and Wine prefixes' C: drives, where Windows builds get installed. */
+const linuxRoots = (home: string) => isLinux
+  ? [...steamLibraries(home).map(lib => path.join(lib, 'steamapps', 'common')), ...winePrefixes(home).map(p => path.join(p, 'drive_c'))]
+  : [];
 const scanRoots = (home: string, storage: string[], volumes: string[]) =>
-  [...volumes, home, ...storage, path.join(home, 'Downloads'), path.join(home, 'Desktop'), path.join(home, 'Documents')];
+  [...volumes, home, ...storage, path.join(home, 'Downloads'), path.join(home, 'Desktop'), path.join(home, 'Documents'), ...linuxRoots(home)];
 /** Holds a game exe, a portable "user" folder, or a save/nand folder under a game-like name. */
 const looksLikeGame = (dir: string, entries: DirEntry[]) =>
-  entries.some(e => e.isFile() && GAME_FILES.has(e.name.toLowerCase())) ||
+  entries.some(e => e.isFile() && isGameFile(e.name)) ||
   entries.some(e => e.isDirectory() && e.name.toLowerCase() === 'user') ||
   (GAME_NAMES.test(path.basename(dir)) && entries.some(e => e.isDirectory() && /^(save|nand)$/i.test(e.name)));
 /** Sub-folders worth descending into (game-like names, library groupings). */
@@ -150,7 +212,7 @@ const topLevel = (names: string[]) => names.filter(n => !n.startsWith('.') && !n
 /** Look in launcher config, standard data directories and shallow game-library layouts (synchronous; CLI). */
 export function candidateGameFolders(): string[] {
   const { home, storage } = baseDirs();
-  const volumes = process.platform === 'win32' ? DRIVE_LETTERS.filter(root => fs.existsSync(root)) : [];
+  const volumes = volumeRoots();
   const found = new Set(knownGameFolders());
   const inspected = new Set<string>();
   function scan(dir: string, depth: number, library: boolean) {
@@ -178,7 +240,7 @@ export async function candidateGameFoldersAsync(): Promise<string[]> {
   const exists = (p: string) => fs.promises.access(p).then(() => true, () => false);
   const volumes = process.platform === 'win32'
     ? (await Promise.all(DRIVE_LETTERS.map(async root => (await exists(root)) ? root : null))).filter((r): r is string => !!r)
-    : [];
+    : volumeRoots();
   const found = new Set(knownGameFolders());
   const inspected = new Set<string>();
   async function scan(dir: string, depth: number, library: boolean): Promise<void> {
@@ -240,17 +302,17 @@ export function resolvePickedFolder(dir: string, maxDepth = 2): string[] {
 export function userFolderForExe(exe: string, appData?: string): string | null {
   let dir = path.dirname(exe);
   if (path.basename(dir).toLowerCase() === 'bin') dir = path.dirname(dir);
-  const image = path.basename(exe).toLowerCase();
+  const image = programName(path.basename(exe));
   const priority = /fritchii/i.test(exe) ? 'fritchii' : /lichii/i.test(exe) ? 'lichii' : undefined;
   const emulatorRoots = emulatorDataDirs(appData);
   const portable = latestUserFolder(resolveUserFolders(dir));
   if (portable) return portable;
-  if (EMULATOR_EXES.includes(image)) {
+  if (EMULATOR_EXES.map(programName).includes(image)) {
     const preferred = emulatorRoots.find(root => path.basename(root) === priority);
     return (preferred && latestUserFolder(resolveUserFolders(preferred))) ||
       latestUserFolder(emulatorRoots.flatMap(resolveUserFolders));
   }
-  const roaming = appData ?? process.env.APPDATA ?? path.join(os.homedir(), 'AppData', 'Roaming');
+  const roaming = appData ?? baseDirs().roaming;
   const brand = /longshot/i.test(exe) ? 'Longshot' : /ocarina[ -]?reborn/i.test(exe) ? 'Ocarina Reborn' :
     /hookshot/i.test(dir) ? 'Hookshot' : undefined;
   return brand ? latestUserFolder(resolveUserFolders(path.join(roaming, brand))) : null;

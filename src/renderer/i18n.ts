@@ -2,14 +2,41 @@
 import entries from './strings.txt?raw';
 import catalogEntries from './catalog-strings.json';
 
-export const languages = { 'en-US': 'English', 'pt-BR': 'Português', 'es-ES': 'Español' } as const;
+/** Every language, by its own name (the order of the language menu). */
+export const languages = {
+  'en-US': 'English', 'pt-BR': 'Português (Brasil)', 'es-ES': 'Español', 'fr-FR': 'Français', 'de-DE': 'Deutsch',
+  'it-IT': 'Italiano', 'nl-NL': 'Nederlands', 'ru-RU': 'Русский', 'ja-JP': '日本語', 'ko-KR': '한국어',
+  'zh-CN': '简体中文', 'zh-TW': '繁體中文',
+} as const;
 export type Locale = keyof typeof languages;
+/** The languages kept in strings.txt and catalog-strings.json; the others have a file in locales/. */
+type BaseLocale = 'pt-BR' | 'en-US' | 'es-ES';
+const isBase = (l: Locale): l is BaseLocale => l === 'pt-BR' || l === 'en-US' || l === 'es-ES';
+/** locales/<code>.json: source text -> translation. Missing entries fall back to English. */
+const dictionaries: Partial<Record<Locale, Record<string, string>>> = {};
+for (const [file, dict] of Object.entries(import.meta.glob<Record<string, string>>('./locales/*.json', { eager: true, import: 'default' }))) {
+  const code = /([\w-]+)\.json$/.exec(file)?.[1];
+  if (code && Object.hasOwn(languages, code)) dictionaries[code as Locale] = dict;
+}
 const storage = 'hyrule-tracker.locale';
 function initial(): Locale {
   try {
     const saved = localStorage.getItem(storage);
     if (saved && Object.hasOwn(languages, saved)) return saved as Locale;
   } catch { /* browser storage unavailable */ }
+  return fromSystem(typeof navigator === 'undefined' ? [] : navigator.languages ?? [navigator.language]);
+}
+/** First run: the system's language if the app has it (zh-Hant/HK/MO/TW -> traditional Chinese), else English. */
+export function fromSystem(tags: readonly string[]): Locale {
+  const codes = Object.keys(languages) as Locale[];
+  for (const tag of tags) {
+    const lower = tag.toLowerCase();
+    if (/^zh-(hant|tw|hk|mo)/.test(lower)) return 'zh-TW';
+    const exact = codes.find(c => c.toLowerCase() === lower);
+    if (exact) return exact;
+    const same = codes.find(c => c.split('-')[0] === lower.split('-')[0]);
+    if (same) return same;
+  }
   return 'en-US';
 }
 let locale = initial();
@@ -20,11 +47,17 @@ const translations = new Map(entries.trim().split('\n').map(row => {
 const catalog: Record<string, string[]> = catalogEntries;
 /** A translation found in the dictionaries or by one of the structured patterns, or undefined. */
 function lookup(source: string): string | undefined {
-  const direct = translations.get(source)?.[locale];
+  if (!isBase(locale)) {
+    const own = dictionaries[locale];
+    const found = own && Object.hasOwn(own, source) ? own[source] : undefined;
+    if (found) return found;
+  }
+  // A language with its own file falls back to the English text (the keys are partly Portuguese).
+  const direct = translations.get(source)?.[isBase(locale) ? locale : 'en-US'];
   if (direct) return direct;
   if (locale !== 'en-US') {
     const labels = Object.hasOwn(catalog, source) ? catalog[source] : undefined;
-    const translated = labels?.[locale === 'pt-BR' ? 0 : 1];
+    const translated = locale === 'pt-BR' ? labels?.[0] : locale === 'es-ES' ? labels?.[1] : undefined;
     if (translated) return translated;
     const age = /^(.+) \((child|adult)\)$/.exec(source);
     if (age) return `${t(age[1])} (${t(age[2])})`;

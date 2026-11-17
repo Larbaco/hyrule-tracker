@@ -1,14 +1,14 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
-import type { AppState, TrackedCategory, TrackedItem, UiPrefs, ChangeRow, OverlayMode, AvailableEntry } from '../shared/types';
+import type { AppState, TrackedCategory, TrackedItem, UiPrefs, ChangeRow, OverlayMode } from '../shared/types';
 import { api, timeAgo } from './api';
 import { symbolIcons, categoryColor } from './icons';
 import { Symbol } from './symbols';
 import { buildCards, tileItems, Card, TileModel } from './view';
 import { Masonry } from './Masonry';
 import { CompanionPage, Icon, Sidebar, PageHeader, MAP_CATEGORIES, type Page } from './CompanionPages';
+import { WhatToDo } from './WhatToDo';
 import { LanguageSwitch } from './LanguageFlags';
 import { currentLocale, day, message, setLocale, t, tail, tv, type Locale } from './i18n';
-import { useStored } from './Recreation';
 import { ObjectiveName } from './ObjectiveName';
 import { UpdateDialog } from './UpdateDialog';
 import { enemyPhoto } from './referenceImages';
@@ -28,7 +28,6 @@ export function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState(false);
   const [query, setQuery] = useState('');
-  const [showAvailable, setShowAvailable] = useStored('checklist.available', false);
   const [locale, setLanguage] = useState(currentLocale);
   const changeLanguage = (next: Locale) => {
     setLocale(next);
@@ -47,6 +46,27 @@ export function App() {
   }, []);
 
   const updatePrefs = (p: UiPrefs) => { setPrefs(p); void api.setPrefs(p); };
+  // Arriving from the map: make the entry's card visible (its part shown, the card open), then scroll to its tile.
+  const [reveal, setReveal] = useState<string>();
+  const showInChecklist = (id: string) => { setQuery(''); setSelected(id); setReveal(id); setPage('checklist'); };
+  useEffect(() => {
+    if (!reveal || page !== 'checklist' || !state || !prefs) return;
+    const cat = state.categories.find(c => c.items.some(i => i.id === reveal));
+    if (cat && (!prefs.showParts[cat.part as 'B' | 'C'] && cat.part !== 'A' || prefs.hiddenCategories.includes(cat.id) || prefs.collapsed?.includes(cat.id))) {
+      updatePrefs({
+        ...prefs,
+        showParts: cat.part === 'A' ? prefs.showParts : { ...prefs.showParts, [cat.part]: true },
+        hiddenCategories: prefs.hiddenCategories.filter(x => x !== cat.id),
+        collapsed: (prefs.collapsed ?? []).filter(x => x !== cat.id),
+      });
+      return;
+    }
+    const frame = requestAnimationFrame(() => {
+      document.querySelector(`[data-item="${CSS.escape(reveal)}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      setReveal(undefined);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [reveal, page, state, prefs]);
   const [scanError, setScanError] = useState(false);
   const scan = async () => {
     setScanning(true);
@@ -123,7 +143,8 @@ export function App() {
       <UpdateDialog />
       <Sidebar page={page} onPage={p => { setMapFocus(undefined); setPage(p); }} state={state} />
       {page !== 'checklist' ? (
-        <CompanionPage key={locale} mapFocus={mapFocus} page={page} state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} />
+        <CompanionPage key={locale} mapFocus={mapFocus} onShowInChecklist={showInChecklist} page={page}
+          todoView={page === 'todo' ? <WhatToDo state={state} onShowInChecklist={showInChecklist} onShowOnMap={showOnMap} /> : undefined} state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} />
       ) : state.status !== 'ok' ? (
         <CompanionPage key={locale} page="checklist" state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} />
       ) : (
@@ -131,8 +152,11 @@ export function App() {
       <PageHeader page="checklist" state={state} headerActions={headerActions} />
       <Toolbar state={state} cards={cards} prefs={prefs} onPrefs={updatePrefs} query={query} onQuery={setQuery} />
       {state.message && <div className="banner">{tv(state.message, state.messageValues)}</div>}
-      {!query.trim() && <AvailablePanel state={state} open={showAvailable} selected={selected} onSelect={setSelected}
-        onToggle={() => setShowAvailable(v => !v)} />}
+      {!query.trim() && state.available.length > 0 && <button type="button" className="todo-link" onClick={() => setPage('todo')}>
+        <b>{t('O que fazer?')}</b>
+        <span className="muted">{message('{n} objetivos ao seu alcance agora', { n: state.available.length })}</span>
+        <span aria-hidden="true">→</span>
+      </button>}
       <div className="body">
         <main className="grid-wrap">
           {query.trim() && !cards.length && <p className="quiet">{t('No matching entries')}</p>}
@@ -223,44 +247,6 @@ function Toolbar({ state, cards, prefs, onPrefs, query, onQuery }: { state: AppS
       </button>
       <SettingsButton state={state} />
     </div>
-  );
-}
-
-/** "Can get now": Part A entries the logic says are obtainable, current area first. */
-function AvailablePanel({ state, open, selected, onSelect, onToggle }: { state: AppState; open: boolean; selected: string | null; onSelect: (id: string) => void; onToggle: () => void }) {
-  const groups = new Map<string, AvailableEntry[]>();
-  for (const a of state.available) {
-    const list = groups.get(a.region);
-    if (list) list.push(a);
-    else groups.set(a.region, [a]);
-  }
-  return (
-    <section className="available">
-      <button type="button" className="avail-head" aria-expanded={open} aria-controls="available-entries" onClick={onToggle}>
-        <span className="chev" aria-hidden="true">{open ? '▾' : '▸'}</span>
-        <b>{t("Can get now")}</b>
-        <span className="muted">{state.available.length} {t("entries in")} {groups.size} {t("areas")}</span>
-      </button>
-        <div className="avail-groups" id="available-entries" hidden={!open}>
-          {state.available.length === 0 && <span className="muted small">{t("Nothing left to get with what you have right now.")}</span>}
-          {[...groups].map(([region, list]) => (
-            <div key={region} className={`avail-group ${list[0].here ? 'here' : ''}`}>
-              <div className="avail-region">{list[0].here && <span className="here-tag">{t("you are here")}</span>}{t(region)} <span className="muted">({list.length})</span></div>
-              <div className="avail-chips">
-                {list.map(a => (
-                  <button key={a.id} className={`chip ${selected === a.id ? 'selected' : ''}`} onClick={() => onSelect(a.id)}
-                    title={`${t(a.categoryLabel)} #${a.number}`}>
-                    <span className="dot" style={{ background: categoryColor(a.categoryId) }} />
-                    {a.categoryId === 'gold_skulltulas' ? `#${a.number} · ` : ''}{tail(a.name)}
-                    {state.canBeAdult && a.ages.length === 1 && <span className={`age ${a.ages[0]}`}>{t(a.ages[0] === 'adult' ? 'Adulto' : 'Criança')}</span>}
-                    {a.night && <span className="age night">{t("night")}</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-    </section>
   );
 }
 
@@ -391,7 +377,7 @@ function Tile({ catId, item, selected, onSelect, major, numbered }: { catId: str
     major ? 'major' : '',
   ].join(' ');
   return (
-    <button className={cls} style={{ ['--c' as string]: icon.color }} onClick={() => onSelect(item.id)}
+    <button className={cls} data-item={item.id} style={{ ['--c' as string]: icon.color }} onClick={() => onSelect(item.id)}
       onDoubleClick={() => item.state !== 'yes' && void api.toggleManual(item.id)}
       title={`${numbered ? `#${item.number} ` : ''}${t(item.name)}${item.where ? `\n${t(item.where)}` : ''}`}>
       {numbered && <GameItemIcon id={asset} size={15} />}

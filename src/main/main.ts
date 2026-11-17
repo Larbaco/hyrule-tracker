@@ -8,9 +8,15 @@ import type { OverlayMode, UpdateState } from '../shared/types.js';
 import { createUpdater } from './updater.js';
 import { SettingsStore } from './settings.js';
 import { boundsVisible, cleanBounds, isLocale, isString, isStringArray, parseHotkeys, parseOverlayPatch, sanitizeUiPrefs, type MainLocale, type Rect } from './validate.js';
+import { x11WindowOwner } from './x11.js';
 
 const isDev = !app.isPackaged;
 const appDir = app.getAppPath();
+
+// Linux: run as an X11 client (XWayland under Wayland). Wayland doesn't let an app keep a window on top,
+// set global shortcuts or pick another app's window to capture; under X11 the overlay, hotkeys and game
+// screenshot work as on Windows. HYRULE_TRACKER_WAYLAND=1 keeps native Wayland.
+if (process.platform === 'linux' && !process.env.HYRULE_TRACKER_WAYLAND) app.commandLine.appendSwitch('ozone-platform', 'x11');
 
 // Development/testing only: run against a scratch settings folder and save folder.
 if (isDev && process.env.OOT_USER_DATA) app.setPath('userData', process.env.OOT_USER_DATA);
@@ -46,6 +52,42 @@ const DIALOG_TEXT: Record<MainLocale, { dataBroken: string; pickFolder: string }
   'es-ES': {
     dataBroken: 'Faltan o están dañados los archivos de datos del tracker (data/checklist.json, data/save-mapping.json).',
     pickFolder: 'Selecciona la carpeta de partidas del juego',
+  },
+  'fr-FR': {
+    dataBroken: 'Les fichiers de données du tracker (data/checklist.json, data/save-mapping.json) sont absents ou endommagés.',
+    pickFolder: 'Sélectionnez le dossier de sauvegardes du jeu',
+  },
+  'de-DE': {
+    dataBroken: 'Die Datendateien des Trackers (data/checklist.json, data/save-mapping.json) fehlen oder sind beschädigt.',
+    pickFolder: 'Wähle den Spielstand-Ordner des Spiels',
+  },
+  'it-IT': {
+    dataBroken: 'I file di dati del tracker (data/checklist.json, data/save-mapping.json) mancano o sono danneggiati.',
+    pickFolder: 'Seleziona la cartella dei salvataggi del gioco',
+  },
+  'nl-NL': {
+    dataBroken: 'De gegevensbestanden van de tracker (data/checklist.json, data/save-mapping.json) ontbreken of zijn beschadigd.',
+    pickFolder: 'Kies de map met opgeslagen spellen',
+  },
+  'ru-RU': {
+    dataBroken: 'Файлы данных трекера (data/checklist.json, data/save-mapping.json) отсутствуют или повреждены.',
+    pickFolder: 'Выбери папку с сохранениями игры',
+  },
+  'ja-JP': {
+    dataBroken: 'トラッカーのデータファイル（data/checklist.json、data/save-mapping.json）が見つからないか、壊れています。',
+    pickFolder: 'ゲームのセーブフォルダを選択してください',
+  },
+  'ko-KR': {
+    dataBroken: '트래커 데이터 파일(data/checklist.json, data/save-mapping.json)이 없거나 손상되었어요.',
+    pickFolder: '게임 세이브 폴더를 선택하세요',
+  },
+  'zh-CN': {
+    dataBroken: '追踪器的数据文件（data/checklist.json、data/save-mapping.json）缺失或已损坏。',
+    pickFolder: '选择游戏的存档文件夹',
+  },
+  'zh-TW': {
+    dataBroken: '追蹤器的資料檔（data/checklist.json、data/save-mapping.json）遺失或已損壞。',
+    pickFolder: '選擇遊戲的存檔資料夾',
   },
 };
 const dialogText = () => DIALOG_TEXT[isLocale(settings?.data.locale) ? settings.data.locale! : 'en-US'];
@@ -89,7 +131,7 @@ function createMain() {
   main.webContents.setWindowOpenHandler(({ url }) => {
     let target: URL;
     try { target = new URL(url); } catch { return { action: 'deny' }; }
-    if (target.protocol === 'https:' && ['nintendoeverything.com', 'www.nintendo.com', 'zelda.mtwildwood.net'].includes(target.hostname)) void shell.openExternal(target.href);
+    if (target.protocol === 'https:' && ['nintendoeverything.com', 'www.nintendo.com', 'zelda.mtwildwood.net', 'github.com', 'www.nintenduo.com'].includes(target.hostname)) void shell.openExternal(target.href);
     return { action: 'deny' };
   });
   lockNavigation(main);
@@ -189,17 +231,29 @@ function getWindowOwner() {
   return windowOwner;
 }
 
-async function captureGame(pid: number, width = 960): Promise<string | undefined> {
-  if (!pid || process.platform !== 'win32') return;
-  try {
+/** The process that owns a window (Windows: its HWND; Linux X11: its XID), or undefined. */
+async function windowPidLookup(): Promise<((id: string) => number | undefined) | null> {
+  if (process.platform === 'win32') {
     const owner = await getWindowOwner();
+    return id => { const result = [0]; owner(BigInt(id), result); return result[0]; };
+  }
+  if (process.platform === 'linux') {
+    const owner = await x11WindowOwner();
+    return owner && (id => owner(Number(id)));
+  }
+  return null;
+}
+
+async function captureGame(pid: number, width = 960): Promise<string | undefined> {
+  if (!pid) return;
+  try {
+    const ownerOf = await windowPidLookup();
+    if (!ownerOf) return;
     const sources = await desktopCapturer.getSources({ types: ['window'], thumbnailSize: { width, height: Math.round(width * 9 / 16) }, fetchWindowIcons: false });
     for (const source of sources) {
-      const hwnd = /^window:(\d+):/.exec(source.id)?.[1];
-      if (!hwnd || source.thumbnail.isEmpty()) continue;
-      const result = [0];
-      owner(BigInt(hwnd), result);
-      if (result[0] === pid) return 'data:image/jpeg;base64,' + source.thumbnail.toJPEG(75).toString('base64');
+      const id = /^window:(\d+):/.exec(source.id)?.[1];
+      if (!id || source.thumbnail.isEmpty()) continue;
+      if (ownerOf(id) === pid) return 'data:image/jpeg;base64,' + source.thumbnail.toJPEG(75).toString('base64');
     }
   } catch (err) { console.error('game capture', err); }
 }
@@ -223,6 +277,8 @@ function migrateOldUserData() {
 // ---------------- Auto-update (GitHub Releases) ----------------
 function startUpdater() {
   if (isDev) return; // nothing to update when running from source
+  // Linux: only the AppImage can replace itself (an unpacked or distro-packaged copy can't).
+  if (process.platform === 'linux' && !process.env.APPIMAGE) return;
   // electron-updater is CommonJS and defines `autoUpdater` as a lazy getter, which Node's import() does not
   // expose as a named export: it only exists on `default`. Destructuring it directly yields undefined.
   void import('electron-updater').then(mod => {

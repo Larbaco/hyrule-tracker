@@ -5,19 +5,20 @@
 ### Track your journey through the Ocarina of Time remake for Nintendo Switch 2
 
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-0078D6?logo=windows&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-AppImage%20(experimental)-FCC624?logo=linux&logoColor=black)
 ![Electron](https://img.shields.io/badge/Electron-47848F?logo=electron&logoColor=white)
 ![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Languages](https://img.shields.io/badge/lang-PT%20%7C%20EN%20%7C%20ES-orange)
+![Languages](https://img.shields.io/badge/languages-12-orange)
 ![Open Source](https://img.shields.io/badge/open%20source-contributions%20welcome-brightgreen)
 
-A Windows desktop app that **reads your local save** and updates the checklist, map and counters as you play. 🌍 Available in Portuguese, English and Spanish.
+A desktop app for Windows and Linux that **reads your local save** and updates the checklist, map and counters as you play. 🌍 Available in English, Portuguese, Spanish, French, German, Italian, Dutch, Russian, Japanese, Korean and Chinese (simplified and traditional).
 
 👤 Created by **João Victor Prado**.
 
-[🚀 First use](#-first-use) · [✨ Features](#-features) · [🎮 Compatibility](#-compatibility) · [🔒 Local data](#-local-data) · [🛠️ Development](#️-development) · [🤝 Contributing](#-contributing)
+[🚀 First use](#-first-use) · [🐧 Linux](#-linux-experimental) · [✨ Features](#-features) · [🎮 Compatibility](#-compatibility) · [🔒 Local data](#-local-data) · [🛠️ Development](#️-development) · [🤝 Contributing](#-contributing)
 
 </div>
 
@@ -26,15 +27,29 @@ A Windows desktop app that **reads your local save** and updates the checklist, 
 ## 🚀 First use
 
 1. 🎮 Open the game in a compatible environment and load a game with at least one save.
-2. 📦 Download `Hyrule-Tracker-Setup-1.2.0.exe` from the [Releases](https://github.com/jv-prado/hyrule-tracker/releases) tab, run it and open **Hyrule Tracker**. The tracker looks for saves automatically in known installations.
+2. 📦 Download `Hyrule-Tracker-Setup-1.3.0.exe` (Windows) or `Hyrule-Tracker-1.3.0-x86_64.AppImage` ([Linux](#-linux-experimental)) from the [Releases](https://github.com/jv-prado/hyrule-tracker/releases) tab, run it and open **Hyrule Tracker**. The tracker looks for saves automatically in known installations.
    > 🛡️ The installer is not code-signed yet, so Windows SmartScreen may show "Windows protected your PC". Click **More info → Run anyway**.
 3. 🟢 Check the status next to the installation name:
    - **Save connected** → the tracker read the save from disk.
    - **Live** → the tracker is reading the running game.
 4. 📂 Save not found? Click **Choose folder** (on the start screen or in **Settings**) and select the folder that contains the `slot_*` directories (game folder or emulator data folder, as long as it has a recognized layout). Picking a `slot_*` folder or a folder just above the profile also works.
-5. 🌐 English is the default on first launch. Use **EN**, **PT** or **ES** next to **Refresh now** to change the language. The tracker remembers your choice.
+5. 🌐 On first launch the tracker uses your system language when it has it (English otherwise). Click the flag next to **Refresh now** to pick another one from the list. The tracker remembers your choice.
 
 > 💡 **Automatic updates:** the app checks GitHub for new versions, shows what changed and only downloads after you confirm. **Refresh now** re-reads your save progress.
+
+## 🐧 Linux (experimental)
+
+The Linux build is new and hasn't been tested on many systems yet. **Please tell us how it works for you** (distro, X11 or Wayland, how you run the game) in an [issue](https://github.com/jv-prado/hyrule-tracker/issues).
+
+1. Download `Hyrule-Tracker-<version>-x86_64.AppImage`, make it executable (`chmod +x`) and run it. It updates itself like the Windows app.
+2. Saves are found for games run natively or through **Wine/Proton** (Steam, Lutris, Bottles, Heroic, `~/.wine`), and on disks mounted under `/media`, `/run/media` or `/mnt`. Otherwise use **Choose folder**.
+3. **Live** reading needs permission to read the game's memory. Most distros only allow it for programs that started the game (Yama `ptrace_scope` 1). The tracker tells you when that happens; to allow it until the next restart run:
+   ```sh
+   sudo sysctl kernel.yama.ptrace_scope=0
+   ```
+   This lets programs of your user read each other's memory, as on Windows. Without it the tracker still follows your saves.
+4. The app runs as an X11 client (XWayland on Wayland) so the overlay, hotkeys and game screenshot work. Set `HYRULE_TRACKER_WAYLAND=1` to run on native Wayland instead. The overlay can't stay above a game in exclusive fullscreen or in Gamescope.
+5. If the AppImage closes right away on Ubuntu 24.04+ with a sandbox error, start it with `--no-sandbox`. Older distros may need `libfuse2`.
 
 ## ✨ Features
 
@@ -76,7 +91,7 @@ Turn on **Show in-game overlay** in Settings. It can show counters, remaining ob
 
 ## 🎮 Compatibility
 
-- 🖥️ Desktop app for **Windows x64**, using the save format of the **Nintendo Switch 2 remake**.
+- 🖥️ Desktop app for **Windows x64** and **Linux x86_64** (experimental), using the save format of the **Nintendo Switch 2 remake**.
 - 🔎 Search recognizes installations and saves from **Triforce / NX2navi**, **Hookshot**, **Longshot**, **ReLink**, **Ocarina Reborn**, **Fritchii** and **Lichii**.
 - ⚡ Live reading depends on the game version and the memory layout of the port or emulator. See the [live mode documentation](docs/live-memory.md).
 - 🗂️ Saves from other environments can be selected manually if they expose the same format.
@@ -94,7 +109,7 @@ Turn on **Show in-game overlay** in Settings. It can show counters, remaining ob
 
 ## 🔒 Local data
 
-- 📴 Works **offline**. Preferences, manual marks and activity are stored in `%APPDATA%\Hyrule Tracker`.
+- 📴 Works **offline**. Preferences, manual marks and activity are stored in `%APPDATA%\Hyrule Tracker` (Windows) or `~/.config/Hyrule Tracker` (Linux).
 - 🗺️ Maps, photos and WebP icons are bundled with the app. The only network access is the update check on GitHub.
 - 👀 Save and memory reading is **read-only**. Window captures for the history can be turned off in **Settings**.
 - 🏠 Everything is local: no Nintendo account, remote database or VPS.
@@ -114,12 +129,14 @@ npm run dev
 | `npm run typecheck` | 🔍 Checks TypeScript types. |
 | `npm test` | 🧪 Runs the test suite (tests needing private fixtures are skipped in public clones). |
 | `npm run dist` | 📦 Builds the Windows x64 installer (`Hyrule-Tracker-Setup-<version>.exe`) in `release/`. |
+| `npm run dist:linux` | 🐧 Builds the Linux AppImage in Docker (works from Windows with Docker Desktop). |
 | `npm run dist:publish` | 🚀 Creates the draft GitHub release from `CHANGELOG.md` and uploads the installer (needs `GH_TOKEN`). |
 
 ### 🚀 Releasing a version
 
 1. Bump `version` in `package.json` and add a `## [x.y.z]` section to [CHANGELOG.md](CHANGELOG.md). That section is the release text **and** the "What's new" the app shows to players.
 2. Run `GH_TOKEN=<token> npm run dist:publish`. It creates a **draft** release and uploads the installer, `latest.yml` and the blockmap.
+   Then `GH_TOKEN=<token> npm run dist:linux:publish` adds the AppImage and `latest-linux.yml` to the same draft.
 3. Review the draft on GitHub and publish it. Installed apps only see published releases.
 
 ### 🖼️ Images
@@ -161,7 +178,8 @@ Not a coder? Open an [issue](https://github.com/jv-prado/hyrule-tracker/issues) 
 ## 🙏 Credits and license
 
 - 👤 **João Victor Prado** created Hyrule Tracker.
-- 🗺️ Maps and location photos come from Ocarina Atlas and Nintendúo. Enemy, region and item images are credited in the docs. See [third-party credits](THIRD_PARTY_NOTICES.md).
+- 🗺️ Maps, location photos and the live Link position come from [Ocarina Atlas](https://github.com/antonioalvromero/Ocarina-Atlas) by antonioalvromero, which credits its imagery to [Nintendúo](https://www.nintenduo.com/). Enemy, region and item images are credited in the docs.
+- 🧩 Save mapping and game logic build on [Clawshot](https://github.com/hiKareeem/Clawshot), [OOT-SW2SE](https://github.com/Traiver/OOT-SW2SE), [dlr-developer's save editor](https://github.com/dlr-developer/the-legend-of-zelda-ocarina-of-time-switch-2-save-editor) and [OoT Randomizer](https://github.com/OoTRandomizer/OoT-Randomizer). See [third-party credits](THIRD_PARTY_NOTICES.md) for everything else.
 - 📄 Code is under the [MIT license](LICENSE). Game images and trademarks belong to their owners and have their own terms of use.
 
 > ⚠️ Hyrule Tracker is an independent fan project, not affiliated with Nintendo.

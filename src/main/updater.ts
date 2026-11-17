@@ -1,29 +1,40 @@
 // Updates through GitHub Releases (electron-updater). The app only NOTIFIES: downloading and
 // installing are the player's decision. No Electron import here: `autoUpdater` is injected so tests can fake it.
-import type { UpdateState } from '../shared/types.js';
+import type { NoteSection, UpdateState } from '../shared/types.js';
 
 const CHECK_EVERY = 4 * 60 * 60 * 1000; // re-check while the app stays open
-const MAX_NOTES = 1800; // characters of changelog the dialog shows
+const MAX_ITEMS = 40; // changelog entries the dialog shows
 
 const ENTITIES: Record<string, string> = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'", '&apos;': "'", '&nbsp;': ' ' };
+const plain = (html: string) => html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, '')
+  .replace(/&(?:amp|lt|gt|quot|apos|nbsp|#39);/g, e => ENTITIES[e]).replace(/\s+/g, ' ').trim();
 
-/** GitHub serves release notes as HTML (or a list of {version, note}). The dialog shows plain TEXT only. */
-export function notesToText(releaseNotes: unknown): string {
+/**
+ * GitHub serves release notes as HTML (or a list of {version, note}). The dialog gets them as data, never as HTML:
+ * one section per heading ("New", "Fixed"…), one item per list entry, its leading bold words as the item's title.
+ */
+export function notesToSections(releaseNotes: unknown): NoteSection[] {
   let html: unknown = releaseNotes;
   if (Array.isArray(releaseNotes)) html = releaseNotes.map(r => (r && typeof r === 'object' && 'note' in r ? String((r as { note: unknown }).note ?? '') : '')).join('\n');
-  if (typeof html !== 'string' || !html.trim()) return '';
-  const text = html
-    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
-    .replace(/\s*\n\s*/g, ' ')
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<li[^>]*>/gi, '\n• ')
-    .replace(/<\/(h[1-6]|p|ul|ol|div|li)>/gi, '\n')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&(?:amp|lt|gt|quot|apos|nbsp|#39);/g, e => ENTITIES[e])
-    .split('\n').map(line => line.replace(/[ \t]+/g, ' ').trim()).join('\n')
-    .replace(/\n{2,}/g, '\n')
-    .trim();
-  return text.length > MAX_NOTES ? `${text.slice(0, MAX_NOTES).replace(/\s+\S*$/, '')}…` : text;
+  if (typeof html !== 'string' || !html.trim()) return [];
+  const clean = html.replace(/<(script|style)[\s\S]*?<\/\1>/gi, '');
+  const sections: NoteSection[] = [];
+  const current = () => sections.at(-1) ?? (sections.push({ items: [] }), sections[0]);
+  let count = 0;
+  for (const m of clean.matchAll(/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>|<li[^>]*>([\s\S]*?)<\/li>|<p[^>]*>([\s\S]*?)<\/p>/gi)) {
+    if (m[1] !== undefined) { const title = plain(m[1]); if (title) sections.push({ title, items: [] }); continue; }
+    if (count >= MAX_ITEMS) continue;
+    const body = m[2] ?? m[3] ?? '';
+    const lead = /^\s*(?:<p[^>]*>\s*)?<strong>([\s\S]*?)<\/strong>/i.exec(body);
+    const title = lead ? plain(lead[1]).replace(/[.:]\s*$/, '') : undefined;
+    const text = plain(lead ? body.slice(lead.index + lead[0].length) : body);
+    if (!title && !text) continue;
+    current().items.push(title ? { title, text } : { text });
+    count++;
+  }
+  // Plain text with no tags at all: one paragraph per line.
+  if (!sections.length) sections.push({ items: clean.split(/\n+/).map(plain).filter(Boolean).slice(0, MAX_ITEMS).map(text => ({ text })) });
+  return sections.filter(s => s.items.length);
 }
 
 /** The slice of electron-updater's `autoUpdater` this module uses. */
@@ -64,8 +75,8 @@ export function createUpdater({ autoUpdater, notify = () => {}, log = () => {}, 
     if (busy()) return;
     if (info.version === dismissed) return log('[update] declined by the player, no prompt:', info.version);
     log('[update] available:', info.version);
-    const notes = notesToText(info.releaseNotes);
-    set({ status: 'available', version: info.version, ...(notes ? { notes } : {}) });
+    const notes = notesToSections(info.releaseNotes);
+    set({ status: 'available', version: info.version, ...(notes.length ? { notes } : {}) });
   });
   autoUpdater.on('update-not-available', () => log('[update] already on the latest version'));
   autoUpdater.on('download-progress', (p: { percent?: number }) =>

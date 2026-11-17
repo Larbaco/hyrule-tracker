@@ -15,13 +15,14 @@ import { Quiz, Gossip, useStored } from './Recreation';
 import './companion.css';
 
 const pages = {
-  overview: 'Visão geral', map: 'Mapa de Hyrule', checklist: 'Checklist 100%', threads: 'Fios do Tempo+',
+  overview: 'Visão geral', todo: 'O que fazer?', map: 'Mapa de Hyrule', checklist: 'Checklist 100%', threads: 'Fios do Tempo+',
   hall: 'Salão dos Inimigos', minigames: 'Minijogos', timeline: 'Registro do dia', medals: 'Meus dados',
   gossip: 'Missões de rumores', quiz: 'Quiz diário', settings: 'Configurações',
 };
 export type Page = keyof typeof pages;
 const pageDescriptions: Record<Page, string> = {
   overview: 'Veja o progresso da sua partida e retome a jornada.',
+  todo: 'O que você já consegue fazer agora com os itens que tem.',
   map: 'Explore as regiões de Hyrule e localize os colecionáveis.',
   checklist: 'Acompanhe os objetivos que faltam para completar 100% do jogo.',
   threads: 'Acompanhe os capítulos da história e as missões secundárias.',
@@ -34,12 +35,13 @@ const pageDescriptions: Record<Page, string> = {
   settings: 'Configure o idioma, a origem da partida e a janela flutuante.',
 };
 const navGroups: Page[][] = [
-  ['overview', 'map', 'checklist', 'threads', 'minigames', 'hall'],
+  ['overview', 'todo', 'map', 'checklist', 'threads', 'minigames', 'hall'],
   ['timeline', 'medals', 'gossip', 'quiz'],
   ['settings'],
 ];
 const iconPaths: Record<string, string> = {
   overview: 'm3 11 9-8 9 8M5 10v10h5v-6h4v6h5V10',
+  todo: 'M9 18h6m-5 3h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z',
   map: 'm3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15m6-12v15',
   checklist: 'M9 5h12M9 12h12M9 19h12M3 5l1 1 2-2m-3 8 1 1 2-2m-3 8 1 1 2-2',
   threads: 'M4 4h16v16H4zM8 8h8m-8 4h8m-8 4h5',
@@ -157,11 +159,13 @@ function SaveActions({ onScan, scanning, loading = false, notFound = false }: { 
   </>;
 }
 
-export function CompanionPage({ page, state, onPage, onScan, scanning, onLanguage, headerActions, mapFocus }: { mapFocus?: string; page: Page; state: AppState; onPage: (page: Page) => void; onScan: () => void; scanning: boolean; onLanguage: (locale: Locale) => void; headerActions: ReactNode }) {
+export function CompanionPage({ page, state, onPage, onScan, scanning, onLanguage, headerActions, mapFocus, onShowInChecklist, todoView }: { mapFocus?: string; onShowInChecklist?: (id: string) => void; todoView?: ReactNode; page: Page; state: AppState; onPage: (page: Page) => void; onScan: () => void; scanning: boolean; onLanguage: (locale: Locale) => void; headerActions: ReactNode }) {
   const view = {
     overview: <Overview state={state} onPage={onPage} onScan={onScan} scanning={scanning} />,
     checklist: <Overview state={state} onPage={onPage} onScan={onScan} scanning={scanning} />,
-    map: <HyruleMap state={state} focus={mapFocus} />,
+    // Built by App (the page uses this module's map helpers, so it can't be imported here).
+    todo: todoView,
+    map: <HyruleMap state={state} focus={mapFocus} onShowInChecklist={onShowInChecklist} />,
     threads: <Threads state={state} />,
     hall: <Hall state={state} />,
     minigames: <Minigames state={state} />,
@@ -240,14 +244,18 @@ function Settings({ state, onScan, scanning, onLanguage }: { state: AppState; on
       <button className="action" onClick={() => void api.toggleOverlay()}>{state.overlay.visible ? t('Ocultar painel no jogo') : t('Mostrar painel no jogo')}</button>
     </section>
     <section className="focus-panel setting-panel credits-panel"><h2>{t("Créditos")}</h2>
-      <p>{t("Mapas de Hyrule e das masmorras, posições dos colecionáveis e fotos dos locais: Ocarina Atlas (licença MIT), que credita o atlas e as imagens de jogo ao Nintendúo.")}</p>
+      <p>{t("Mapas de Hyrule e das masmorras, posições dos colecionáveis, fotos dos locais e a posição de Link no mapa: Ocarina Atlas, de antonioalvromero (licença MIT), que credita o atlas e as imagens de jogo ao Nintendúo.")}{' '}
+        <a href="https://github.com/antonioalvromero/Ocarina-Atlas" target="_blank" rel="noreferrer">Ocarina Atlas</a>{' · '}
+        <a href="https://www.nintenduo.com/" target="_blank" rel="noreferrer">Nintendúo</a></p>
       <p>{t("Imagens de itens, colecionáveis e HUD: Zelda Wiki e Mt. Wildwood Zelda Wiki. Imagens de inimigos e regiões: Mt. Wildwood Zelda Wiki.")}</p>
-      <p>{t("As imagens do jogo pertencem aos seus respectivos detentores de direitos. Veja todos os créditos em THIRD_PARTY_NOTICES.md, incluído com o aplicativo.")}</p>
+      <p>{t("Mapeamento do save e lógica do jogo: Clawshot, OOT-SW2SE, editor de save de dlr-developer e OoT Randomizer.")}</p>
+      <p>{t("As imagens do jogo pertencem aos seus respectivos detentores de direitos.")}{' '}
+        <a href="https://github.com/jv-prado/hyrule-tracker/blob/master/THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">{t("Ver todos os créditos")}</a></p>
     </section>
   </>;
 }
 
-const atlasStages: Record<string, string> = {
+export const atlasStages: Record<string, string> = {
   kokiri: 'KokiriForest', perdido: 'LostWood', prado: 'SacredForestMeadow', llanura: 'HyruleField',
   lonlon: 'LonLonRanch', ciudadela: 'Market', castillo: 'HyruleCastle', kakariko: 'KakarikoVillage', cementerio: 'Graveyard',
   sendero: 'DeathMountainTrail', goron: 'GoronCity', crater: 'DeathMountainCrater', rio: 'ZoraRiver',
@@ -262,7 +270,7 @@ const atlasCategories: Record<string, string> = {
   bottle: 'bottles', thought: 'fairy_thoughts',
 };
 /** What a marker is, in words (translated). */
-const atlasKinds: Record<string, string> = {
+export const atlasKinds: Record<string, string> = {
   gs: 'Skulltula dourada', heart: 'Pedaço de coração', container: 'Recipiente de coração', bean: 'Feijão mágico',
   fairy: 'Grande Fada', bottle: 'Garrafa', thought: 'Pensamento de fada',
 };
@@ -300,14 +308,14 @@ interface MapRow { item: TrackedItem; cat: TrackedCategory; area: string; placed
 interface TrackedPin { item: TrackedItem; cat: TrackedCategory; at: { map: string; x: number; y: number } }
 const atlasPlaces = atlas.places as unknown as PositionPlace[];
 /** The projection clamps what falls outside a map to its border: those spots are not where they look, so they are not drawn. */
-const atEdge = (at: { x: number; y: number }) => at.x <= 0.021 || at.x >= 0.979 || at.y <= 0.021 || at.y >= 0.979;
-interface Spot { stage?: string; era?: 'child' | 'adult'; x?: number; y?: number; z?: number }
+export const atEdge = (at: { x: number; y: number }) => at.x <= 0.021 || at.x >= 0.979 || at.y <= 0.021 || at.y >= 0.979;
+export interface Spot { stage?: string; era?: 'child' | 'adult'; x?: number; y?: number; z?: number }
 /** Where a placed collectible falls on the atlas (one fix per map it shows on). */
-const locateSpot = (spot: Spot): PlayerFix[] => spot.stage && spot.x != null && spot.y != null && spot.z != null
+export const locateSpot = (spot: Spot): PlayerFix[] => spot.stage && spot.x != null && spot.y != null && spot.z != null
   ? locatePlacement(spot.stage, spot.era, { x: spot.x, y: spot.y, z: spot.z }, atlasPlaces) : [];
 export const MAP_CATEGORIES = new Set(['heart_pieces', 'heart_containers', 'gold_skulltulas', 'chests', 'great_fairies', 'bottles', 'fairy_thoughts', 'scarecrow_spots', 'grottos', 'minigames', 'side_events', 'bean_spots', 'big_poe_spots', 'gossip_stones', 'silver_rupees', 'cow_rewards']);
 /** Game icon of each category in the area panel. */
-const categoryIcons: Record<string, string> = {
+export const categoryIcons: Record<string, string> = {
   heart_pieces: 'heart_piece', heart_containers: 'heart_container', gold_skulltulas: 'gold_skulltula', chests: 'chest',
   great_fairies: 'double_magic', bottles: 'bottle', fairy_thoughts: 'fairy_ocarina', scarecrow_spots: 'scarecrows_song',
   grottos: 'bomb', minigames: 'gold_rupee', side_events: 'zeldas_letter', bean_spots: 'magic_bean', big_poe_spots: 'big_poe',
@@ -315,7 +323,7 @@ const categoryIcons: Record<string, string> = {
 };
 const eras: [Era, string][] = [['all', 'Todas'], ['child', 'Criança'], ['adult', 'Adulto']];
 const normalizeName = (s: string) => s.normalize('NFD').toLowerCase().replace(/ \(.+\)$/, '').replace(/[^a-z0-9]/g, '');
-const findRegion = (name: string) => Object.keys(LOCAL_NAMES).find(k =>
+export const findRegion = (name: string) => Object.keys(LOCAL_NAMES).find(k =>
   normalizeName(k) === normalizeName(name) || normalizeName(LOCAL_NAMES[k]) === normalizeName(name) || englishAliases[k]?.some(a => normalizeName(a) === normalizeName(name)),
 );
 /** Game order for the region list: the atlas's order first, then any other region with items. */
@@ -352,7 +360,7 @@ const areaShots: Record<string, string> = {
   pozo: '4a3a528aecdf510f.webp',
   hielo: '0fc9f3e25475a5ad.webp'
 };
-const areaShot = (key: string) => {
+export const areaShot = (key: string) => {
   const place = Object.keys(atlasStages).find(id => atlasStages[id] === key);
   return place && areaShots[place] ? 'images/atlas/' + areaShots[place] : regionPhoto(key)?.file;
 };
@@ -366,7 +374,41 @@ const inEra = (r: MapRow, era: Era) => {
   return !ages.length || ages.includes(era);
 };
 
-export function HyruleMap({ state, focus }: { state: AppState; focus?: string }) {
+/**
+ * The map's two scores: entries that count toward 100% (the same ones the Overview counts, those with a place)
+ * and the extras the map also tracks (chests, grottos, Gossip Stones…), which don't.
+ */
+function SplitScore({ rows, overall }: { rows: MapRow[]; overall?: { done: number; total: number } }) {
+  const tally = (list: MapRow[]) => ({ done: list.filter(r => r.item.done).length, total: list.length });
+  const parts = [
+    // On the Hyrule map the 100% line is the whole checklist (the Overview's number), not just what has a place.
+    { key: 'main', label: 'Conta para o 100%', note: undefined, ...(overall ?? tally(rows.filter(r => r.cat.countsToward100))) },
+    { key: 'extra', label: 'Extras do mapa', note: 'Não contam para o 100%', ...tally(rows.filter(r => !r.cat.countsToward100)) },
+  ].filter(p => p.total);
+  return <div className="split-score">{parts.map(p => (
+    <div key={p.key} className={`split-row ${p.key}`}>
+      <span className="split-label">{t(p.label)}</span>
+      {/* One decimal, rounded down, like the Overview's progress. */}
+      <b>{number(p.total ? Math.floor(p.done / p.total * 1000) / 10 : 0)}%</b>
+      <small className="split-meta">{p.done}/{p.total}{p.note && <> · {t(p.note)}</>}</small>
+      <span className="rate-track"><i style={{ width: `${percent(p.done, p.total)}%` }} /></span>
+    </div>
+  ))}</div>;
+}
+
+/** A checklist row's status as the map shows it (a hand tick counts as done). */
+export const rowStatus = (item: TrackedItem): 'done' | 'todo' | 'unknown' =>
+  item.done ? 'done' : item.state === 'unknown' || item.state === 'unmapped' ? 'unknown' : 'todo';
+
+/** Checklist row id -> the atlas marker that stands for it on the map. */
+export function rowMarkers(links: Record<string, string> | undefined) {
+  const byId = new Map(atlas.items.map(m => [m.id, m]));
+  const out = new Map<string, (typeof atlas.items)[number]>();
+  for (const [marker, row] of Object.entries(links ?? {})) { const m = byId.get(marker); if (m && !out.has(row)) out.set(row, m); }
+  return out;
+}
+
+export function HyruleMap({ state, focus, onShowInChecklist }: { state: AppState; focus?: string; onShowInChecklist?: (id: string) => void }) {
   const player = usePlayer(state);
   // The region opened by hand ('' = the world map).
   const [picked, setPicked] = useState('');
@@ -385,13 +427,17 @@ export function HyruleMap({ state, focus }: { state: AppState; focus?: string })
   const places = useMemo(() => new Map(Object.entries(state.placements ?? {}).flatMap(([id, rows]) =>
     rows.map(c => [id + '.0x' + c.hash.toString(16), c] as const))), [state.placements]);
   const spots = state.worldMarkers;
+  const markerOf = useMemo(() => rowMarkers(state.atlasLinks), [state.atlasLinks]);
   const rows = useMemo<MapRow[]>(() => state.categories.filter(c => MAP_CATEGORIES.has(c.id)).flatMap(cat => cat.items.map(item => {
     const spot: Spot | undefined = places.get(item.id) ?? spots?.[item.id];
     const fixes = spot ? locateSpot(spot) : [];
-    // Placed items belong to the region their map is in (the ranch and the lake are part of the Hyrule Field scene).
-    const area = spot ? atlasStages[fixes[0]?.placeId] ?? (spot.stage || 'unknown') : findRegion(item.chapter ?? item.logic?.region ?? '') ?? '';
+    const marker = markerOf.get(item.id);
+    // Placed items belong to the region their map is in (the ranch and the lake are part of the Hyrule Field scene);
+    // rows with an atlas marker to the marker's region; the rest to the region the checklist names.
+    const area = spot ? atlasStages[fixes[0]?.placeId] ?? (spot.stage || 'unknown')
+      : (marker && atlasStages[marker.place]) || (findRegion(item.chapter ?? item.logic?.region ?? '') ?? '');
     return { item, cat, placed: !!spot, era: spot?.era, fixes, area };
-  })), [state.categories, places, spots]);
+  })), [state.categories, places, spots, markerOf]);
   // Completion of every region (all eras), for the world map's list.
   const progress = useMemo(() => {
     const byKey = new Map<string, { done: number; total: number }>();
@@ -413,12 +459,11 @@ export function HyruleMap({ state, focus }: { state: AppState; focus?: string })
     if (r.item.done) entry.done++;
     return map.set(r.cat.id, entry);
   }, new Map<string, { cat: TrackedCategory; icon: string; done: number; total: number }>()).values()];
-  const localDone = local.filter(r => r.item.done).length;
   const showLocation = !hideUnknown || seen.has(selected);
   const photo = inRegion && showLocation ? regionPhoto(selected) : undefined;
   const place = atlas.places.find(p => atlasStages[p.id] === selected);
-  // Fairy thoughts already have their own markers in the atlas.
-  const tracked: TrackedPin[] = place ? local.filter(r => r.cat.id !== 'fairy_thoughts').flatMap(r => r.fixes
+  // Rows with an atlas marker are drawn by that marker (with its photos), not a second time.
+  const tracked: TrackedPin[] = place ? local.filter(r => !markerOf.has(r.item.id)).flatMap(r => r.fixes
     .filter(f => f.placeId === place.id && f.mapId && f.at && !atEdge(f.at)).map(f => ({ item: r.item, cat: r.cat, at: { map: f.mapId!, x: f.at!.x, y: f.at!.y } }))) : [];
   const regionName = selected === 'unknown' ? t('Baús sem posição mapeada') : t(LOCAL_NAMES[selected] ?? selected);
 
@@ -469,7 +514,8 @@ export function HyruleMap({ state, focus }: { state: AppState; focus?: string })
             <button type="button" className="map-back" aria-label={t('Voltar ao mapa de Hyrule')} title={t('Voltar ao mapa de Hyrule')} onClick={back}>←</button>
             <h2>{regionName}</h2>
           </div>
-          {showLocation && place ? <RegionAtlas key={selected} place={place} state={state} era={era} filter={filter} hideDone={hideDone} player={player} follow={follow} overlay={showPanel} tracked={tracked} />
+          {showLocation && place ? <RegionAtlas key={selected} place={place} state={state} era={era} filter={filter} hideDone={hideDone} player={player} follow={follow} overlay={showPanel} tracked={tracked}
+            focusItem={activeItem?.id} onPickItem={item => setActive(item)} onShowInChecklist={onShowInChecklist} />
             : <p className="quiet">{showLocation ? t('Esta região não tem mapa próprio.') : t('Visite a região para ver os itens.')}</p>}
         </>}
         <p className="map-caption">{player?.source === 'live' ? t('Link ao vivo') : state.live.using ? t('região atual ao vivo') : player ? t('Link no último save') : t('região no último save')}</p>
@@ -480,8 +526,9 @@ export function HyruleMap({ state, focus }: { state: AppState; focus?: string })
           <b>{inRegion ? t('Conclusão da área') : t('Progresso de conclusão')}</b>
         </div>
         {!inRegion ? <div className="map-side-body">
-          <div className="side-score"><span className="side-region">{t('Hyrule')}</span><strong>{percent(progress.done, progress.total)}%</strong></div>
-          <p className="side-sub">{progress.done}/{progress.total} · {t('Taxa de conclusão por região')}</p>
+          <div className="side-score"><span className="side-region">{t('Hyrule')}</span></div>
+          <SplitScore rows={rows.filter(r => LOCAL_NAMES[r.area])} overall={state.summary ? { done: state.summary.doneA, total: state.summary.totalA } : undefined} />
+          <p className="side-sub">{t('Taxa de conclusão por região')}</p>
           <div className="region-rates">
             {listed.map(r => <button key={r.key} type="button" className="region-rate" style={areaShot(r.key) ? { backgroundImage: `linear-gradient(90deg, #14121100 0%, #141211a0 52%, #141211 88%), url("${areaShot(r.key)}")` } : undefined} onClick={() => open(r.key)}>
               <span className="rate-name">{t(LOCAL_NAMES[r.key])}</span><b>{rate(r.key)}%</b>
@@ -494,7 +541,8 @@ export function HyruleMap({ state, focus }: { state: AppState; focus?: string })
           </div>
         </div> : <div className="map-side-body">
           {photo && <img className="region-photo" src={photo.file} alt={regionName} />}
-          <div className="side-score"><span className="side-region">{regionName}</span>{showLocation && <strong>{percent(localDone, local.length)}%</strong>}</div>
+          <div className="side-score"><span className="side-region">{regionName}</span></div>
+          {showLocation && <SplitScore rows={local} />}
           <div className="era-tabs" role="radiogroup" aria-label={t('Era')}>{eras.map(([id, label]) =>
             <button key={id} type="button" role="radio" aria-checked={era === id} onClick={() => { setEra(id); setActive(undefined); }}>{t(label)}</button>)}</div>
           {!showLocation ? <p className="quiet">{t("Visite a região para ver os itens.")}</p> : <>
@@ -506,7 +554,10 @@ export function HyruleMap({ state, focus }: { state: AppState; focus?: string })
               <label><input type="checkbox" checked={hideDone} onChange={e => setHideDone(e.target.checked)} />{t("Só pendentes")}</label></div>
             {visible.length ? <div className="result-list">{visible.map(({ item, cat }) => <Fragment key={item.id}><button aria-expanded={item.id === active?.id} aria-pressed={item.id === active?.id} onClick={() => selectItem(item)}><span className={item.done ? 'story-dot done' : 'story-dot'} /><span><ObjectiveName done={item.done}>{t(item.name)}</ObjectiveName><small>{t(cat.label)} · {item.done ? t('Coletado') : item.state === 'unknown' || item.state === 'unmapped' ? t('Situação não mapeada') : t('Pendente')}</small></span></button>
               {item.id === activeItem?.id && <div className="result-detail"><p>{activeItem.where ? t(activeItem.where) : t(cat.label)}</p>
-                {activeItem.state !== 'yes' && <button className="action" onClick={() => void api.toggleManual(activeItem.id)}>{activeItem.done ? t('Desmarcar') : t('Concluí')}</button>}</div>}</Fragment>)}</div> : <p className="quiet">{t("Nenhum item para este filtro.")}</p>}
+                <div className="result-actions">
+                  {activeItem.state !== 'yes' && <button className="action" onClick={() => void api.toggleManual(activeItem.id)}>{activeItem.done ? t('Desmarcar') : t('Concluí')}</button>}
+                  {onShowInChecklist && <button className="small-btn" onClick={() => onShowInChecklist(activeItem.id)}>{t('Ver na checklist')}</button>}
+                </div></div>}</Fragment>)}</div> : <p className="quiet">{t("Nenhum item para este filtro.")}</p>}
           </>}
         </div>}
       </aside>}
@@ -518,7 +569,11 @@ type AtlasPlace = (typeof atlas.places)[number];
 /** One marker on a floor map: an atlas location or a tracked collectible. */
 interface Pin { id: string; filter?: string; icon?: string; kind: string; name: string; at?: { map: string; x: number; y: number }; status: 'done' | 'todo' | 'unknown'; images: string[]; item?: TrackedItem; tick?: { id: string; on: boolean } }
 
-function RegionAtlas({ place, state, era, filter, hideDone, player, follow, overlay, tracked }: { place: AtlasPlace; state: AppState; era: string; filter: string; hideDone: boolean; player?: PlayerState; follow: boolean; overlay?: ReactNode; tracked: TrackedPin[] }) {
+function RegionAtlas({ place, state, era, filter, hideDone, player, follow, overlay, tracked, focusItem, onPickItem, onShowInChecklist }: {
+  place: AtlasPlace; state: AppState; era: string; filter: string; hideDone: boolean; player?: PlayerState; follow: boolean; overlay?: ReactNode; tracked: TrackedPin[];
+  /** Checklist row picked outside the map (side list, "View on map"): its marker gets selected. */
+  focusItem?: string; onPickItem?: (item: TrackedItem) => void; onShowInChecklist?: (id: string) => void;
+}) {
   const here = player && player.placeId === place.id ? player : undefined;
   const [floor, setFloor] = useState(here?.mapId ?? place.startMap ?? '');
   // Following Link: keep his floor / era on screen as he moves between them.
@@ -536,23 +591,39 @@ function RegionAtlas({ place, state, era, filter, hideDone, player, follow, over
   const status = state.atlasStatus ?? {};
   const currentFloor = place.maps.find(map => map.id === floor) ?? place.maps[0];
   const kindOf = (cat: string) => t(atlasKinds[cat] ?? cat);
-  const atlasPins: Pin[] = atlas.items.filter(item => item.place === place.id && (era === 'all' || !item.age || item.age === 'both' || item.age === era)).map(m => ({
-    id: m.id, filter: atlasCategories[m.cat], icon: categoryIcons[atlasCategories[m.cat]] ?? atlasIcons[m.cat], kind: kindOf(m.cat), name: m.name,
-    at: m.at ?? undefined, status: status[m.id] ?? 'unknown', images: m.images,
+  const rowsById = useMemo(() => new Map(state.categories.flatMap(c => c.items.map(i => [i.id, i] as const))), [state.categories]);
+  const atlasPins: Pin[] = atlas.items.filter(item => item.place === place.id && (era === 'all' || !item.age || item.age === 'both' || item.age === era)).map(m => {
+    const base = { id: m.id, filter: atlasCategories[m.cat], icon: categoryIcons[atlasCategories[m.cat]] ?? atlasIcons[m.cat], kind: kindOf(m.cat), name: m.name, at: m.at ?? undefined, images: m.images };
+    const row = rowsById.get(state.atlasLinks?.[m.id] ?? '');
+    // A marker with a checklist row shows that row: same status, same hand tick, same description.
+    if (row) return { ...base, item: row, status: rowStatus(row) === 'unknown' ? status[m.id] ?? 'unknown' : rowStatus(row), tick: row.state !== 'yes' ? { id: row.id, on: row.done } : undefined };
     // Detected in the save: nothing to tick. Otherwise tick (or untick a hand tick).
-    tick: status[m.id] !== 'done' || state.atlasManual?.[m.id] ? { id: state.atlasLinks?.[m.id] ?? m.id, on: !!state.atlasManual?.[m.id] } : undefined,
-  }));
+    return { ...base, status: status[m.id] ?? 'unknown', tick: status[m.id] !== 'done' || state.atlasManual?.[m.id] ? { id: m.id, on: !!state.atlasManual?.[m.id] } : undefined };
+  });
   const trackedPins: Pin[] = tracked.map(p => ({
     id: p.item.id + '@' + p.at.map, filter: p.cat.id, icon: categoryIcons[p.cat.id], kind: t(p.cat.label), name: p.item.name, at: p.at, images: [], item: p.item,
     tick: p.item.state !== 'yes' ? { id: p.item.id, on: p.item.done } : undefined,
-    status: p.item.done ? 'done' : p.item.state === 'unknown' || p.item.state === 'unmapped' ? 'unknown' : 'todo',
+    status: rowStatus(p.item),
   }));
   const pool = [...atlasPins, ...trackedPins].filter(p => filter === 'all' || p.filter === filter);
   const doneCount = pool.filter(m => m.status === 'done').length;
   const markers = pool.filter(m => (!hideDone || m.status !== 'done') &&
     (show === 'all' || (show === 'done' ? m.status === 'done' : m.status !== 'done')));
   const selected = markers.find(item => item.id === active);
-  const select = (id: string) => { setActive(id); setShot(0); };
+  const select = (id: string) => {
+    setActive(id);
+    setShot(0);
+    const item = pool.find(p => p.id === id)?.item;
+    if (item && item.id !== focusItem) onPickItem?.(item);
+  };
+  // A row picked outside the map: open its floor and its marker.
+  useEffect(() => {
+    const pin = focusItem ? pool.find(p => p.item?.id === focusItem && p.at) : undefined;
+    if (!pin || pin.id === active) return;
+    setFloor(pin.at!.map);
+    setActive(pin.id);
+    setShot(0);
+  }, [focusItem]);
   const statusLabel = (s: Pin['status']) => t(s === 'done' ? 'Coletado' : s === 'todo' ? 'Pendente' : 'Situação não mapeada');
   return <div className="region-atlas">
     <div className="atlas-controls">
@@ -593,7 +664,10 @@ function RegionAtlas({ place, state, era, filter, hideDone, player, follow, over
           <h3><ObjectiveName done={selected.status === 'done'}>{t(selected.name)}</ObjectiveName></h3>
           <small className={`marker-status ${selected.status}`}>{statusLabel(selected.status)}</small>
           {selected.item?.where && <p className="marker-where">{t(selected.item.where)}</p>}
-          {selected.tick && <button className="action" onClick={() => void api.toggleManual(selected.tick!.id)}>{selected.tick.on ? t('Desmarcar') : t('Concluí')}</button>}
+          <div className="result-actions">
+            {selected.tick && <button className="action" onClick={() => void api.toggleManual(selected.tick!.id)}>{selected.tick.on ? t('Desmarcar') : t('Concluí')}</button>}
+            {selected.item && onShowInChecklist && <button className="small-btn" onClick={() => onShowInChecklist(selected.item!.id)}>{t('Ver na checklist')}</button>}
+          </div>
           {!!selected.images.length && <div className="marker-photo">
             <img src={selected.images[shot]} alt={t("Local no jogo")} />
             {selected.images.length > 1 && <>

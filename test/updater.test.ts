@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EventEmitter } from 'node:events';
-import { createUpdater, notesToText, type AutoUpdaterLike } from '../src/main/updater.js';
+import { createUpdater, notesToSections, type AutoUpdaterLike } from '../src/main/updater.js';
 import type { UpdateState } from '../src/shared/types.js';
 
 function fake() {
@@ -16,14 +16,18 @@ function fake() {
   return { ee, au, calls };
 }
 
-describe('notesToText', () => {
-  it('turns GitHub release HTML into plain text bullets', () => {
-    const html = '<h3>New</h3><ul><li><strong>Fast</strong> start</li><li>Fix &amp; polish</li></ul><script>x()</script>';
-    expect(notesToText(html)).toBe('New\n• Fast start\n• Fix & polish');
+describe('notesToSections', () => {
+  it('turns GitHub release HTML into sections and entries, the leading bold words as the title', () => {
+    const html = '<h3>New</h3>\n<ul>\n<li><strong>Play time.</strong> The <strong>Overview</strong> shows it.</li>\n<li>Fix &amp; polish</li>\n</ul>\n<h3>Fixed</h3><ul><li><p><strong>Crash:</strong> gone</p></li></ul><script>x()</script>';
+    expect(notesToSections(html)).toEqual([
+      { title: 'New', items: [{ title: 'Play time', text: 'The Overview shows it.' }, { text: 'Fix & polish' }] },
+      { title: 'Fixed', items: [{ title: 'Crash', text: 'gone' }] },
+    ]);
   });
-  it('accepts a list of notes and empty input', () => {
-    expect(notesToText([{ version: '1', note: '<p>Hi</p>' }])).toBe('Hi');
-    expect(notesToText(undefined)).toBe('');
+  it('accepts a list of notes, plain text and empty input', () => {
+    expect(notesToSections([{ version: '1', note: '<p>Hi</p>' }])).toEqual([{ items: [{ text: 'Hi' }] }]);
+    expect(notesToSections('one\ntwo')).toEqual([{ items: [{ text: 'one' }, { text: 'two' }] }]);
+    expect(notesToSections(undefined)).toEqual([]);
   });
 });
 
@@ -36,13 +40,13 @@ describe('createUpdater', () => {
     expect(au.autoInstallOnAppQuit).toBe(false);
 
     ee.emit('update-available', { version: '1.1.0', releaseNotes: '<ul><li>Cool</li></ul>' });
-    expect(u.getState()).toMatchObject({ status: 'available', version: '1.1.0', notes: '• Cool' });
+    expect(u.getState()).toMatchObject({ status: 'available', version: '1.1.0', notes: [{ items: [{ text: 'Cool' }] }] });
     expect(calls).toEqual([]);
 
     await u.download();
     expect(calls).toEqual(['download']);
     ee.emit('download-progress', { percent: 41.6 });
-    expect(u.getState()).toMatchObject({ status: 'downloading', percent: 42, notes: '• Cool' });
+    expect(u.getState()).toMatchObject({ status: 'downloading', percent: 42, notes: [{ items: [{ text: 'Cool' }] }] });
     ee.emit('update-downloaded', { version: '1.1.0' });
     expect(u.getState().status).toBe('ready');
     u.install();

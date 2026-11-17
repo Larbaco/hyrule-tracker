@@ -255,14 +255,23 @@ button.card-head .card-count { margin-left: auto; }
 
 /* ---- Update dialog ---- */
 .update-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; background: rgba(0, 0, 0, .6); backdrop-filter: blur(3px); }
-.update-card { width: min(480px, calc(100vw - 32px)); max-height: calc(100vh - 48px); display: flex; flex-direction: column; gap: 14px; padding: 22px; border-radius: 14px; background: #17171a; border: 1px solid #2c2c33; box-shadow: 0 20px 60px rgba(0, 0, 0, .5); color: #ececf0; }
+.update-card { width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); display: flex; flex-direction: column; gap: 14px; padding: 22px; border-radius: 14px; background: #17171a; border: 1px solid #2c2c33; box-shadow: 0 20px 60px rgba(0, 0, 0, .5); color: #ececf0; }
 .update-head { display: flex; align-items: center; gap: 14px; }
 .update-head h2 { margin: 0; font-size: 18px; }
 .update-version { margin: 2px 0 0; font-size: 13px; opacity: .65; }
 .update-badge { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #2f9e5b; color: #fff; font-size: 20px; }
 .update-notes { min-height: 0; display: flex; flex-direction: column; gap: 6px; }
 .update-notes h3 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; opacity: .7; }
-.update-notes-text { overflow-y: auto; max-height: 260px; padding: 10px 12px; border-radius: 8px; background: #101012; white-space: pre-line; font-size: 14px; line-height: 1.5; }
+.update-notes-body { overflow-y: auto; max-height: min(420px, calc(100vh - 260px)); display: grid; gap: 18px; padding: 14px 16px; border-radius: 10px; background: #101012; scrollbar-width: thin; }
+.update-section h4 { display: inline-block; margin: 0 0 10px; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: #2c2c33; color: #c9c9d1; }
+.update-section.new h4 { background: #1f3d2c; color: #8be0a8; }
+.update-section.improved h4 { background: #1d2f45; color: #8cc3ff; }
+.update-section.fixed h4 { background: #43361b; color: #ffd27a; }
+.update-section.known h4 { background: #452020; color: #ff9b9b; }
+.update-section ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.update-section li { display: grid; gap: 3px; padding-left: 12px; border-left: 2px solid #2c2c33; }
+.update-section li b { font-size: 14px; font-weight: 650; color: #f2f2f6; }
+.update-section li span { font-size: 13px; line-height: 1.5; color: #a9a9b3; }
 .update-bar { height: 8px; border-radius: 4px; background: #2c2c33; overflow: hidden; }
 .update-bar > div { height: 100%; background: #2f9e5b; transition: width .2s; }
 .update-error { color: #ff7b7b; }

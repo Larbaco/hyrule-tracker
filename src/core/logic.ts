@@ -42,6 +42,20 @@ export function missingLabel(data: LogicFile, m: string): string {
   if (num && labels[num[1]]?.includes('{n}')) return labels[num[1]].replace('{n}', num[2]);
   return m;
 }
+/**
+ * The items and abilities a requirement mentions, as players read them ("Hookshot", "Magic Beans"):
+ * named items and labelled macros only, so story flags and regions stay out. Order kept, no repeats.
+ */
+export function requirementLabels(data: LogicFile | undefined, needs: string | undefined): string[] {
+  if (!data || !needs) return [];
+  const out: string[] = [];
+  for (const [, name, n] of needs.matchAll(/([A-Za-z_]\w*)(?:\s*>=\s*(\d+))?/g)) {
+    if (['and', 'or', 'not', 'child', 'adult', 'true', 'false'].includes(name)) continue;
+    const label = n ? missingLabel(data, `${name} ${n}`) : data.labels?.[name] ?? (data.items[name] ? name.replace(/([a-z])([A-Z])/g, '$1 $2') : undefined);
+    if (label && label !== `${name} ${n}` && !out.includes(label)) out.push(label);
+  }
+  return out;
+}
 const labelled = (data: LogicFile, missing: Set<string>) => [...new Set([...missing].map(m => missingLabel(data, m)))];
 
 export interface ProgressiveFamily {

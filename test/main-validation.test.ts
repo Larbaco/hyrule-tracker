@@ -85,7 +85,8 @@ describe('IPC validation', () => {
   });
   it('knows the app languages', () => {
     expect(isLocale('pt-BR')).toBe(true);
-    expect(isLocale('fr-FR')).toBe(false);
+    expect(isLocale('fr-FR')).toBe(true);
+    expect(isLocale('sv-SE')).toBe(false);
     expect(isLocale(1)).toBe(false);
   });
 });

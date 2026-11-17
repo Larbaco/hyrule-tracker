@@ -843,9 +843,11 @@ Your save has {n} pieces in total; {matched} matched to a location so far.|Seu s
 Your save has {n} token; {matched} matched to a location so far.|Seu save tem {n} ficha; {matched} associada(s) a um local até agora.|Your save has {n} token; {matched} matched to a location so far.|Tu partida tiene {n} ficha; {matched} asociada(s) a un lugar por ahora.
 Your save has {n} tokens; {matched} matched to a location so far.|Seu save tem {n} fichas; {matched} associada(s) a um local até agora.|Your save has {n} tokens; {matched} matched to a location so far.|Tu partida tiene {n} fichas; {matched} asociada(s) a un lugar por ahora.
 Créditos||Credits|Créditos
-Mapas de Hyrule e das masmorras, posições dos colecionáveis e fotos dos locais: Ocarina Atlas (licença MIT), que credita o atlas e as imagens de jogo ao Nintendúo.||Hyrule and dungeon maps, collectible positions and location screenshots: Ocarina Atlas (MIT License), which credits the base atlas and gameplay imagery to Nintendúo.|Mapas de Hyrule y de las mazmorras, posiciones de los coleccionables y capturas de los lugares: Ocarina Atlas (licencia MIT), que atribuye el atlas y las imágenes del juego a Nintendúo.
+Mapas de Hyrule e das masmorras, posições dos colecionáveis, fotos dos locais e a posição de Link no mapa: Ocarina Atlas, de antonioalvromero (licença MIT), que credita o atlas e as imagens de jogo ao Nintendúo.||Hyrule and dungeon maps, collectible positions, location screenshots and Link's position on the map: Ocarina Atlas, by antonioalvromero (MIT License), which credits the base atlas and gameplay imagery to Nintendúo.|Mapas de Hyrule y de las mazmorras, posiciones de los coleccionables, capturas de los lugares y la posición de Link en el mapa: Ocarina Atlas, de antonioalvromero (licencia MIT), que atribuye el atlas y las imágenes del juego a Nintendúo.
 Imagens de itens, colecionáveis e HUD: Zelda Wiki e Mt. Wildwood Zelda Wiki. Imagens de inimigos e regiões: Mt. Wildwood Zelda Wiki.||Item, collectible and HUD images: Zelda Wiki and Mt. Wildwood Zelda Wiki. Enemy and region images: Mt. Wildwood Zelda Wiki.|Imágenes de objetos, coleccionables y HUD: Zelda Wiki y Mt. Wildwood Zelda Wiki. Imágenes de enemigos y regiones: Mt. Wildwood Zelda Wiki.
-As imagens do jogo pertencem aos seus respectivos detentores de direitos. Veja todos os créditos em THIRD_PARTY_NOTICES.md, incluído com o aplicativo.||Game imagery belongs to its respective rights holders. See THIRD_PARTY_NOTICES.md, bundled with the app, for the full credits.|Las imágenes del juego pertenecen a sus respectivos titulares de derechos. Consulta todos los créditos en THIRD_PARTY_NOTICES.md, incluido con la aplicación.
+Mapeamento do save e lógica do jogo: Clawshot, OOT-SW2SE, editor de save de dlr-developer e OoT Randomizer.||Save mapping and game logic: Clawshot, OOT-SW2SE, dlr-developer's save editor and OoT Randomizer.|Mapeo del guardado y lógica del juego: Clawshot, OOT-SW2SE, editor de guardado de dlr-developer y OoT Randomizer.
+As imagens do jogo pertencem aos seus respectivos detentores de direitos.||Game imagery belongs to its respective rights holders.|Las imágenes del juego pertenecen a sus respectivos titulares de derechos.
+Ver todos os créditos||See all credits|Ver todos los créditos
 Não foi possível buscar os saves. Tente novamente.||Couldn't search for saves. Try again.|No se pudieron buscar las partidas guardadas. Inténtalo de nuevo.
 Não foi possível abrir a pasta escolhida. Tente novamente.||Couldn't open the chosen folder. Try again.|No se pudo abrir la carpeta elegida. Inténtalo de nuevo.
 Não encontrou? Selecione manualmente a pasta do perfil que contém as pastas slot_*.||Not found? Choose the profile folder that contains the slot_* folders yourself.|¿No la encuentras? Selecciona manualmente la carpeta del perfil que contiene las carpetas slot_*.
@@ -903,3 +905,32 @@ Toque a Canção de Epona ao lado da vaca na casa de Link, na Floresta Kokiri, e
 Toque a Canção de Epona ao lado de qualquer vaca para ganhar leite.||Play Epona's Song next to any cow to get milk.|Toca la Canción de Epona junto a cualquier vaca para conseguir leche.
 Abra o baú indicado no mapa da região.||Open the chest marked on the region map.|Abre el cofre marcado en el mapa de la región.
 Entre na gruta indicada no mapa da região e marque como concluída aqui.||Enter the grotto marked on the region map and mark it as done here.|Entra en la gruta marcada en el mapa de la región y márcala como completada aquí.
+Ver na checklist||View in checklist|Ver en la lista
+Conta para o 100%||Counts toward 100%|Cuenta para el 100 %
+Extras do mapa||Map extras|Extras del mapa
+Não contam para o 100%||Don't count toward 100%|No cuentan para el 100 %
+New|Novidades|New|Novedades
+Improved|Melhorias|Improved|Mejoras
+Fixed|Correções|Fixed|Correcciones
+Known|Problemas conhecidos|Known issues|Problemas conocidos
+O que fazer?||What to do?|¿Qué hacer?
+O que você já consegue fazer agora com os itens que tem.||What you can do right now with the items you have.|Lo que ya puedes hacer ahora con los objetos que tienes.
+{n} objetivos ao seu alcance com o que você já tem, em {areas} regiões.||{n} objectives within reach with what you have, in {areas} regions.|{n} objetivos a tu alcance con lo que tienes, en {areas} regiones.
+{n} objetivos ao seu alcance agora||{n} objectives within reach now|{n} objetivos a tu alcance ahora
+Encontre um save para ver o que dá para fazer agora.||Find a save to see what you can do now.|Busca una partida para ver qué puedes hacer ahora.
+você está aqui||you are here|estás aquí
+Sem descrição para este objetivo ainda.||No description for this objective yet.|Aún no hay descripción para este objetivo.
+Ver no mapa||View on map|Ver en el mapa
+Você está aqui||You are here|Estás aquí
+Comece por aqui||Start here|Empieza aquí
+{n} objetivo ao seu alcance nesta região||{n} objective within reach in this region|{n} objetivo a tu alcance en esta región
+{n} objetivos ao seu alcance nesta região||{n} objectives within reach in this region|{n} objetivos a tu alcance en esta región
+{n} objetivo||{n} objective|{n} objetivo
+{n} objetivos||{n} objectives|{n} objetivos
+Nada ao seu alcance agora||Nothing within reach right now|Nada a tu alcance ahora
+Avance na história ou pegue novos itens para liberar mais objetivos.||Move the story forward or get new items to unlock more objectives.|Avanza en la historia o consigue objetos nuevos para desbloquear más objetivos.
+Como conseguir||How to get it|Cómo conseguirlo
+Você pode usar||You can use|Puedes usar
+A lógica deste objetivo ainda não foi confirmada.||The logic for this objective isn't confirmed yet.|La lógica de este objetivo aún no está confirmada.
+Linux blocked reading the game's memory. To allow it until the next restart, run {command} in a terminal.|O Linux bloqueou a leitura da memória do jogo. Para permitir até o próximo reinício, rode {command} num terminal.|Linux blocked reading the game's memory. To allow it until the next restart, run {command} in a terminal.|Linux bloqueó la lectura de la memoria del juego. Para permitirla hasta el próximo reinicio, ejecuta {command} en una terminal.
+Linux blocked reading the game's memory (ptrace_scope {scope}). Only the save files can be followed.|O Linux bloqueou a leitura da memória do jogo (ptrace_scope {scope}). Só dá para acompanhar pelos arquivos de save.|Linux blocked reading the game's memory (ptrace_scope {scope}). Only the save files can be followed.|Linux bloqueó la lectura de la memoria del juego (ptrace_scope {scope}). Solo se pueden seguir los archivos de guardado.

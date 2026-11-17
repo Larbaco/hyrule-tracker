@@ -1,8 +1,8 @@
 {
   "name": "hyrule-tracker",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
-  "description": "Ocarina of Time remake companion for Windows.",
+  "description": "Ocarina of Time remake companion for Windows and Linux.",
   "author": "João Victor Prado",
   "type": "module",
   "license": "MIT",
@@ -15,7 +15,9 @@
     "build": "vite build && node scripts/build-electron.mjs",
     "start": "npm run build && node scripts/start.mjs",
     "dist": "npm run build && electron-builder --win nsis",
-    "dist:publish": "node scripts/ensure-release.mjs && npm run build && electron-builder --win nsis --publish always"
+    "dist:publish": "node scripts/ensure-release.mjs && npm run build && electron-builder --win nsis --publish always",
+    "dist:linux": "node scripts/dist-linux.mjs",
+    "dist:linux:publish": "node scripts/dist-linux.mjs --publish"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",
@@ -38,6 +40,7 @@
   },
   "main": "dist-electron/main.cjs",
   "productName": "Hyrule Tracker",
+  "desktopName": "hyrule-tracker.desktop",
   "build": {
     "appId": "com.hyruletracker.desktop",
     "productName": "Hyrule Tracker",
@@ -67,6 +70,22 @@
         }
       ],
       "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "Game",
+      "executableName": "hyrule-tracker",
+      "artifactName": "Hyrule-Tracker-${version}-x86_64.${ext}",
+      "synopsis": "Ocarina of Time remake companion",
+      "syncDesktopName": true
     },
     "asar": true,
     "asarUnpack": [
