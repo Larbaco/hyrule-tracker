@@ -4,6 +4,11 @@ Player-facing changes in each Hyrule Tracker version. Every published version ne
 `scripts/ensure-release.mjs` uses it as the GitHub release text, and the in-app updater shows it before the player decides to update.
 Format: `New`, `Improved`, `Fixed`, `Known` (open issue).
 
+## [1.1.1] - 2026-11-17
+
+### Fixed
+- **Pinned save briefly missing.** While a pinned save was being rewritten by the game, the tracker switched to the most recent save but kept acting as if the pin were still on: Link's live position stopped, **Refresh** didn't read the game, and manual marks were saved to the wrong place and seemed to vanish. It now behaves fully as "Most recent" until the pinned save is back, then returns to it. Fix and tests by **Guih** ([Guihakka2](https://github.com/Guihakka2)). Thank you!
+
 ## [1.1.0] - 2026-11-17
 
 ### New
