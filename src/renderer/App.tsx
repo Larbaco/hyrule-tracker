@@ -1,11 +1,11 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import type { AppState, TrackedCategory, TrackedItem, UiPrefs, ChangeRow, OverlayMode } from '../shared/types';
-import { api, timeAgo } from './api';
+import { api, isRemote, timeAgo } from './api';
 import { symbolIcons, categoryColor } from './icons';
 import { Symbol } from './symbols';
 import { buildCards, tileItems, Card, TileModel } from './view';
 import { Masonry } from './Masonry';
-import { CompanionPage, Icon, Sidebar, PageHeader, MAP_CATEGORIES, type Page } from './CompanionPages';
+import { CompanionPage, Icon, MobileNav, Sidebar, PageHeader, MAP_CATEGORIES, type Page } from './CompanionPages';
 import { WhatToDo } from './WhatToDo';
 import { LanguageSwitch } from './LanguageFlags';
 import { currentLocale, day, message, setLocale, t, tail, tv, type Locale } from './i18n';
@@ -129,8 +129,8 @@ export function App() {
   ];
   const headerActions = <>
     <div className="refresh-action">
-      <button type="button" className="action" onClick={() => void refreshProgress()} disabled={refreshing || scanning || state.status === 'loading'}>
-        <Icon name="refresh" size={16} />{t(refreshing ? 'Atualizando…' : 'Atualizar agora')}
+      <button type="button" className="action" title={t(refreshing ? 'Atualizando…' : 'Atualizar agora')} aria-label={t(refreshing ? 'Atualizando…' : 'Atualizar agora')} onClick={() => void refreshProgress()} disabled={refreshing || scanning || state.status === 'loading'}>
+        <Icon name="refresh" size={16} /><span className="action-label">{t(refreshing ? 'Atualizando…' : 'Atualizar agora')}</span>
       </button>
       {refreshError && <small role="alert">{t('Falha na atualização. Tente novamente.')}</small>}
       {scanError && <small role="alert">{t('Não foi possível buscar os saves. Tente novamente.')}</small>}
@@ -142,6 +142,7 @@ export function App() {
     <div className="tracker-shell" lang={locale}>
       <UpdateDialog />
       <Sidebar page={page} onPage={p => { setMapFocus(undefined); setPage(p); }} state={state} />
+      <MobileNav page={page} onPage={p => { setMapFocus(undefined); setPage(p); }} state={state} />
       {page !== 'checklist' ? (
         <CompanionPage key={locale} mapFocus={mapFocus} onShowInChecklist={showInChecklist} page={page}
           todoView={page === 'todo' ? <WhatToDo state={state} onShowInChecklist={showInChecklist} onShowOnMap={showOnMap} /> : undefined} state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} />
@@ -181,7 +182,7 @@ export function App() {
             );
           })}
         </main>
-        <aside className="side">
+        <aside className={selectedItem ? "side has-detail" : "side"}>
           {state.identify.length > 0 && <IdentifyCard q={state.identify[0]} more={state.identify.length - 1} onShow={setSelected} />}
           {selectedItem && 'stack' in selectedItem
             ? <StackDetails stack={selectedItem.stack} onShow={setSelected} onClose={() => setSelected(null)} />
@@ -243,9 +244,9 @@ function Toolbar({ state, cards, prefs, onPrefs, query, onQuery }: { state: AppS
         )}
       </div>
       <span className="spacer" />
-      <button className={state.overlay.visible ? 'on' : ''} onClick={() => void api.toggleOverlay()} title={`${t('Show/hide overlay')} (${state.hotkeys.toggleOverlay})`}>{t("Overlay")}{' '}{t(state.overlay.visible ? 'on' : 'off')}
+      {!isRemote && <><button className={state.overlay.visible ? 'on' : ''} onClick={() => void api.toggleOverlay()} title={`${t('Show/hide overlay')} (${state.hotkeys.toggleOverlay})`}>{t("Overlay")}{' '}{t(state.overlay.visible ? 'on' : 'off')}
       </button>
-      <SettingsButton state={state} />
+      <SettingsButton state={state} /></>}
     </div>
   );
 }

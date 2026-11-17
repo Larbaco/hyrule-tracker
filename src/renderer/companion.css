@@ -295,7 +295,8 @@
 .activity-list time { color: var(--hyrule-gold); font-variant-numeric: tabular-nums; }
 .activity-list img { width: min(170px, 20vw); border: 1px solid #324d3d; border-radius: 8px; }
 .timeline-stats { display: flex; flex-wrap: wrap; gap: 14px; margin: 13px 0; color: var(--hyrule-muted); }
-.timeline-stats b { color: var(--hyrule-text); }
+.timeline-stats b { color: var(--hyrule-text); display: inline-flex; align-items: center; gap: 5px; }
+.timeline-stats > span { display: inline-flex; align-items: center; gap: 6px; }
 .medal-row { display: grid; grid-template-columns: minmax(120px, 1.1fr) repeat(4, minmax(38px, .75fr)); gap: 8px; align-items: center; padding: 9px 0; border-top: 1px solid #303033; }
 .medal { color: var(--hyrule-muted); padding: 8px 4px; display: flex; align-items: center; justify-content: center; gap: 3px; border: 1px solid #333236; border-radius: 8px; }
 .medal.earned { color: var(--hyrule-gold); background: #1b3727; border-color: #35714e; }
@@ -450,3 +451,9 @@
 .todo-link { display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 12px; padding: 10px 14px; border: 1px solid var(--line, #2c2824); border-radius: 10px; background: #151822; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .todo-link:hover { filter: brightness(1.2); }
 .todo-link > span:last-child { margin-left: auto; }
+
+/* Second screen (phone/tablet on the local network) */
+.second-screen .second-toggle { margin: 6px 0 4px; font-weight: 600; }
+.second-urls { display: grid; gap: 8px; justify-items: start; margin-top: 12px; }
+.second-url { display: inline-block; padding: 10px 16px; border: 1px solid var(--hyrule-accent, #8bddac); border-radius: 10px; background: rgba(139,221,172,.08); color: #e1f5e9; font-size: clamp(18px, 3vw, 26px); font-weight: 600; letter-spacing: .02em; overflow-wrap: anywhere; user-select: all; }
+.second-steps { margin: 0; padding-left: 22px; display: grid; gap: 8px; line-height: 1.5; }

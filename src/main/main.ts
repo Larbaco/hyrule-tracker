@@ -4,11 +4,12 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { Controller } from './controller.js';
-import type { OverlayMode, UpdateState } from '../shared/types.js';
+import type { AppState, OverlayMode, UpdateState } from '../shared/types.js';
 import { createUpdater } from './updater.js';
 import { SettingsStore } from './settings.js';
 import { boundsVisible, cleanBounds, isLocale, isString, isStringArray, parseHotkeys, parseOverlayPatch, sanitizeUiPrefs, type MainLocale, type Rect } from './validate.js';
 import { x11WindowOwner } from './x11.js';
+import { lanUrls, startLanServer, type LanServer } from './lan.js';
 
 const isDev = !app.isPackaged;
 const appDir = app.getAppPath();
@@ -274,6 +275,47 @@ function migrateOldUserData() {
   } catch (e) { logError('migrate old settings', e); }
 }
 
+// ---------------- Local network (phone/tablet) ----------------
+let lanServer: LanServer | null = null;
+let lanBusy: Promise<void> = Promise.resolve();
+
+/** What a page opened on another device may do: follow and tick progress, never touch this PC's files or windows. */
+function remoteApi() {
+  return {
+    getState: () => controller.state,
+    getPrefs: () => settings.data.ui,
+    pinSlot: (name: unknown) => (name === null || isString(name, 100)) ? controller.pinSlot(name) : undefined,
+    toggleManual: (id: unknown) => isString(id) ? controller.toggleManual(id) : undefined,
+    answerIdentify: (reqId: unknown, itemIds: unknown) => isString(reqId) && isStringArray(itemIds) ? controller.answerIdentify(reqId, itemIds) : undefined,
+    skipIdentify: (reqId: unknown) => isString(reqId) ? controller.skipIdentify(reqId) : undefined,
+    forgetIdentification: (itemId: unknown) => isString(itemId) ? controller.forgetIdentification(itemId) : undefined,
+    refreshProgress: () => controller.refreshNow(),
+    scanFolders: () => controller.scanFolders(),
+    captureGame: () => controller.captureGame(),
+  };
+}
+
+const lanPort = () => {
+  const p = settings.data.lan.port;
+  return Number.isInteger(p) && p >= 1024 && p <= 65535 ? p : 5184;
+};
+
+/** Starts or stops the local network server to match the settings, and reports it in the state. */
+function applyLan(): Promise<AppState['lan']> {
+  lanBusy = lanBusy.then(async () => {
+    const want = settings.data.lan.enabled;
+    const port = lanPort();
+    if (lanServer && (!want || lanServer.port !== port)) { await lanServer.close(); lanServer = null; }
+    let error = false;
+    if (want && !lanServer) {
+      try { lanServer = await startLanServer({ root: path.join(appDir, 'dist'), port, rpc: remoteApi() }); }
+      catch (e) { error = true; logError('lan server', e); }
+    }
+    controller.patch({ lan: { enabled: want, port, urls: lanServer ? lanUrls(lanServer.port) : [], error } });
+  });
+  return lanBusy.then(() => controller.state.lan);
+}
+
 // ---------------- Auto-update (GitHub Releases) ----------------
 function startUpdater() {
   if (isDev) return; // nothing to update when running from source
@@ -322,9 +364,11 @@ if (primaryInstance) app.whenReady().then(async () => {
   }
   controller.onState(s => {
     for (const w of BrowserWindow.getAllWindows()) w.webContents.send('state', s);
+    lanServer?.broadcast('state', s);
   });
   controller.onPlayer(p => {
     for (const w of BrowserWindow.getAllWindows()) w.webContents.send('player', p ?? null);
+    lanServer?.broadcast('player', p ?? null);
   });
 
   ipcMain.handle('state:get', () => controller.state);
@@ -386,6 +430,10 @@ if (primaryInstance) app.whenReady().then(async () => {
     return controller.state;
   });
 
+  ipcMain.handle('lan:set', (_e, on: unknown) => {
+    settings.update(s => (s.lan.enabled = on === true));
+    return applyLan();
+  });
   ipcMain.handle('folder:scan', () => controller.scanFolders());
   ipcMain.handle('progress:refresh', () => controller.refreshNow());
 
@@ -394,6 +442,7 @@ if (primaryInstance) app.whenReady().then(async () => {
   if (isDev && process.env.OOT_SAVE_DIR) settings.data.saveDir = process.env.OOT_SAVE_DIR;
   if (isDev && process.env.OOT_DEV_PANEL) settings.data.devPanel = true;
   registerHotkeys();
+  void applyLan();
   await controller.start();
   if (isDev && process.env.OOT_OVERLAY) {
     if (process.env.OOT_OVERLAY_MODE) settings.data.overlay.mode = process.env.OOT_OVERLAY_MODE as OverlayMode;
@@ -417,5 +466,5 @@ if (primaryInstance) app.whenReady().then(async () => {
   }
 });
 
-app.on('will-quit', () => globalShortcut.unregisterAll());
+app.on('will-quit', () => { globalShortcut.unregisterAll(); void lanServer?.close(); });
 app.on('window-all-closed', () => { controller?.stop(); app.quit(); });

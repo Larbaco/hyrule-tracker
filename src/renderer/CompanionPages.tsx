@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Activity, AppState, PlayerState, TrackedCategory, TrackedItem } from '../shared/types';
 import { LOCAL_NAMES, MASK_SALE_NAMES } from '../core/companion';
-import { api } from './api';
+import { api, isRemote, onConnection } from './api';
 import { enemyPhoto, regionPhoto } from './referenceImages';
 import { LanguageSwitch } from './LanguageFlags';
 import { currentLocale, date, hour, languages, number, plural, t, tv, type Locale } from './i18n';
@@ -17,7 +17,7 @@ import './companion.css';
 const pages = {
   overview: 'Visão geral', todo: 'O que fazer?', map: 'Mapa de Hyrule', checklist: 'Checklist 100%', threads: 'Fios do Tempo+',
   hall: 'Salão dos Inimigos', minigames: 'Minijogos', timeline: 'Registro do dia', medals: 'Meus dados',
-  gossip: 'Missões de rumores', quiz: 'Quiz diário', settings: 'Configurações',
+  gossip: 'Missões de rumores', quiz: 'Quiz diário', second: 'Segunda tela', settings: 'Configurações',
 };
 export type Page = keyof typeof pages;
 const pageDescriptions: Record<Page, string> = {
@@ -32,12 +32,13 @@ const pageDescriptions: Record<Page, string> = {
   medals: 'Veja seus totais e os marcos conquistados na jornada.',
   gossip: 'Siga as pistas e fotografe as regiões indicadas.',
   quiz: 'Teste seus conhecimentos sobre Hyrule no desafio diário.',
+  second: 'Acompanhe a jornada no celular ou tablet enquanto joga na TV.',
   settings: 'Configure o idioma, a origem da partida e a janela flutuante.',
 };
 const navGroups: Page[][] = [
   ['overview', 'todo', 'map', 'checklist', 'threads', 'minigames', 'hall'],
   ['timeline', 'medals', 'gossip', 'quiz'],
-  ['settings'],
+  ['second', 'settings'],
 ];
 const iconPaths: Record<string, string> = {
   overview: 'm3 11 9-8 9 8M5 10v10h5v-6h4v6h5V10',
@@ -51,7 +52,9 @@ const iconPaths: Record<string, string> = {
   medals: 'M8 3h8v6l-4 4-4-4zM12 13a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
   gossip: 'M12 22s7-5 7-12a7 7 0 0 0-14 0c0 7 7 12 7 12Zm0-15v.1m0 3v4',
   quiz: 'M9 8a3 3 0 1 1 4.5 2.6c-1.5.8-1.5 1.5-1.5 3.4m0 4h.01M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z',
+  second: 'M2 4h13v10H2zM6 18h5m-2.5-4v4M17 8h5v13h-5zm2 10h1',
   settings: 'M3 6h7m4 0h7M3 12h12m4 0h2M3 18h2m4 0h12M10 4h4v4h-4zm5 6h4v4h-4zM5 16h4v4H5z',
+  more: 'M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z',
   triangle: 'M12 3 2 21h20L12 3ZM7 12h10l-5 9z',
   refresh: 'M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1',
 };
@@ -108,11 +111,51 @@ export function Sidebar({ page, onPage, state }: { page: Page; onPage: (p: Page)
       <small>{t(connection.label)}</small>
     </button>
     <LiveIndicator state={state} />
-    <nav aria-label={t("Menu principal")}>{navGroups.map((group, index) => <div className="nav-group" key={index}>{group.map(p =>
+    <nav aria-label={t("Menu principal")}>{navGroups.map(group => isRemote ? group.filter(p => p !== 'second') : group).map((group, index) => <div className="nav-group" key={index}>{group.map(p =>
       <button key={p} type="button" title={t(pages[p])} aria-current={p === page ? 'page' : undefined} onClick={() => onPage(p)}><Icon name={p} size={17} /><span>{t(pages[p])}</span></button>,
     )}</div>)}</nav>
     <div className="sidebar-footer">v{state.version}</div>
   </aside>;
+}
+
+/** Phones (portrait): tab bar at the bottom with the main pages; "More" opens a sheet with the rest. Hidden by CSS elsewhere. */
+const tabPages: Page[] = ['overview', 'todo', 'map', 'checklist'];
+/** Short names that fit a tab. */
+const tabNames: Partial<Record<Page, string>> = { overview: 'Início', map: 'Mapa', checklist: 'Checklist' };
+export function MobileNav({ page, onPage, state }: { page: Page; onPage: (p: Page) => void; state: AppState }) {
+  const [open, setOpen] = useState(false);
+  const connection = connectionStatus(state);
+  const others = navGroups.flat().filter(p => !tabPages.includes(p) && !(isRemote && p === 'second'));
+  const go = (p: Page) => { setOpen(false); onPage(p); };
+  useEffect(() => {
+    if (!open) return;
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', key);
+    return () => document.removeEventListener('keydown', key);
+  }, [open]);
+  const moreActive = !tabPages.includes(page);
+  return <>
+    <nav className="mobile-tabs" aria-label={t('Menu principal')}>
+      {tabPages.map(p => <button key={p} type="button" aria-current={p === page && !open ? 'page' : undefined} onClick={() => go(p)}>
+        <span className="tab-icon"><Icon name={p} size={21} /></span><span className="tab-label">{t(tabNames[p] ?? pages[p])}</span>
+      </button>)}
+      <button type="button" aria-expanded={open} aria-current={moreActive && !open ? 'page' : undefined} className={open ? 'open' : undefined} onClick={() => setOpen(o => !o)}>
+        <span className="tab-icon"><Icon name="more" size={21} /></span><span className="tab-label">{moreActive ? t(pages[page]) : t('Mais')}</span>
+      </button>
+    </nav>
+    {open && <div className="mobile-sheet-backdrop" onClick={() => setOpen(false)}>
+      <div className="mobile-sheet" role="dialog" aria-modal="true" aria-label={t('Mais')} onClick={e => e.stopPropagation()}>
+        <span className="sheet-handle" aria-hidden="true" />
+        <div className={connection.connected ? 'sheet-source connected' : 'sheet-source'}>
+          <span className="status-dot" aria-hidden="true" />
+          <div><b>{t(sourceName(state))}</b><small>{connection.detail ?? t(connection.label)}</small></div>
+        </div>
+        <div className="sheet-grid">{others.map(p => <button key={p} type="button" aria-current={p === page ? 'page' : undefined} onClick={() => go(p)}>
+          <Icon name={p} size={22} /><span>{t(pages[p])}</span>
+        </button>)}</div>
+      </div>
+    </div>}
+  </>;
 }
 
 export function PageHeader({ page, state, headerActions }: { page: Page; state: AppState; headerActions: ReactNode }) {
@@ -173,9 +216,62 @@ export function CompanionPage({ page, state, onPage, onScan, scanning, onLanguag
     medals: <Medals state={state} />,
     gossip: <Gossip state={state} />,
     quiz: <Quiz />,
+    second: <SecondScreen state={state} />,
     settings: <Settings state={state} onScan={onScan} scanning={scanning} onLanguage={onLanguage} />,
   };
-  return <main className="companion-page" key={page}><PageHeader page={page} state={state} headerActions={headerActions} />{view[page]}</main>;
+  return <main className="companion-page" key={page}><RemoteNotice /><PageHeader page={page} state={state} headerActions={headerActions} />{view[page]}</main>;
+}
+
+/** On a phone/tablet: says so when the PC stops answering (the page reconnects by itself). */
+function RemoteNotice() {
+  const [lost, setLost] = useState(false);
+  useEffect(() => (isRemote ? onConnection(c => setLost(c === 'lost')) : undefined), []);
+  return lost ? <p className="notice" role="alert">{t('Sem conexão com o PC. Tentando reconectar…')}</p> : null;
+}
+
+/**
+ * "Second screen": serve the tracker on the local network and walk the user through opening it
+ * on a phone or tablet, with this PC's address ready to type.
+ */
+function SecondScreen({ state }: { state: AppState }) {
+  const lan = state.lan;
+  const on = !!lan?.enabled && !lan.error;
+  const [busy, setBusy] = useState(false);
+  async function toggle(next: boolean) {
+    setBusy(true);
+    try { await api.setLan(next); } finally { setBusy(false); }
+  }
+  const steps = [
+    'A segunda tela já vem ativada. Se quiser, desative no quadro acima.',
+    'Conecte o celular ou tablet à mesma rede Wi-Fi deste PC.',
+    'Abra o navegador do aparelho (Chrome, Safari, Edge…) e digite o endereço mostrado.',
+    'Pronto: o progresso atualiza sozinho enquanto você joga. Dica: adicione a página à tela inicial para abrir com um toque.',
+  ];
+  return <div className="second-screen">
+    <section className="focus-panel setting-panel">
+      <h2>{t('Jogue na TV, acompanhe na palma da mão')}</h2>
+      <p>{t('Abra o Hyrule Tracker no celular, tablet ou em outro computador da sua casa. Mapa, checklist e o que fazer agora ficam sempre à mão, sem sair do jogo.')}</p>
+      <label className="inline-field second-toggle"><input type="checkbox" checked={!!lan?.enabled} disabled={busy} onChange={e => void toggle(e.target.checked)} />{t('Ativar a segunda tela na rede local')}</label>
+      {lan?.error && <p className="notice" role="alert">{tv('Não foi possível usar a porta {port}. Feche o programa que a usa e tente de novo.', { port: lan.port })}</p>}
+      {on && (lan!.urls.length
+        ? <div className="second-urls">
+            <span className="quiet">{t('Digite no navegador do aparelho:')}</span>
+            {lan!.urls.map(u => <code className="second-url" key={u}>{u}</code>)}
+            {lan!.urls.length > 1 && <span className="quiet">{t('Mais de um endereço? Use o da rede em que o aparelho está (normalmente começa com 192.168).')}</span>}
+          </div>
+        : <p className="notice">{t('Este PC não está conectado a uma rede local.')}</p>)}
+    </section>
+    <section className="focus-panel setting-panel"><h2>{t('Como conectar')}</h2>
+      <ol className="second-steps">{steps.map(s => <li key={s}>{t(s)}</li>)}</ol>
+    </section>
+    <section className="focus-panel setting-panel"><h2>{t('Se não abrir')}</h2>
+      <ul className="second-steps">
+        <li>{t('Confira se o aparelho está no mesmo Wi-Fi (não na rede de convidados nem nos dados móveis).')}</li>
+        <li>{t('Na primeira vez, o sistema pode perguntar sobre o firewall: permita o Hyrule Tracker em redes privadas.')}</li>
+        <li>{t('Qualquer aparelho na sua rede poderá ver o progresso e marcar itens. Desative quando não estiver usando.')}</li>
+      </ul>
+    </section>
+  </div>;
 }
 
 function Overview({ state, onPage, onScan, scanning }: { state: AppState; onPage: (p: Page) => void; onScan: () => void; scanning: boolean }) {
@@ -231,18 +327,18 @@ function Settings({ state, onScan, scanning, onLanguage }: { state: AppState; on
       <p>{t(sourceName(state))}</p>
       <code className="save-path">{state.saveDir || t('Pasta do save ainda não encontrada.')}</code>
       {state.message && <p className="notice" role="status">{tv(state.message, state.messageValues)}</p>}
-      <SaveActions onScan={onScan} scanning={scanning} loading={state.status === 'loading'} notFound={!state.saveDir && state.status !== 'loading'} />
+      {!isRemote && <SaveActions onScan={onScan} scanning={scanning} loading={state.status === 'loading'} notFound={!state.saveDir && state.status !== 'loading'} />}
       {!!state.slots.length && <label className="inline-field">{t('Slot')}<select value={state.slotMode === 'manual' ? state.activeSlot : ''} onChange={e => void api.pinSlot(e.target.value || null)}>
         <option value="">{t("Seguir o save mais recente")}</option>
         {state.slots.map(slot => <option key={slot.name} value={slot.name}>{slot.name} · {t(slot.area ?? '?')} · {date(slot.mtimeMs)}</option>)}
       </select></label>}
     </section>
-    <section className="focus-panel setting-panel"><h2>{t("Rastreamento")}</h2>
+    {!isRemote && <section className="focus-panel setting-panel"><h2>{t("Rastreamento")}</h2>
       <label className="inline-field"><input type="checkbox" checked={state.changeLog.enabled} onChange={e => void api.setChangeLog(e.target.checked)} />{t("Guardar o registro de atividade neste PC")}</label>
       <label className="inline-field"><input type="checkbox" checked={state.captureActivity ?? true} onChange={e => void api.setCaptureActivity(e.target.checked)} />{t("Fotografar a janela do jogo nos marcos da jornada")}</label>
       {state.slotMode === 'manual' && <p className="notice">{t("Slot fixado. Selecione o save mais recente para voltar ao modo ao vivo.")}</p>}
       <button className="action" onClick={() => void api.toggleOverlay()}>{state.overlay.visible ? t('Ocultar painel no jogo') : t('Mostrar painel no jogo')}</button>
-    </section>
+    </section>}
     <section className="focus-panel setting-panel credits-panel"><h2>{t("Créditos")}</h2>
       <p>{t("Mapas de Hyrule e das masmorras, posições dos colecionáveis, fotos dos locais e a posição de Link no mapa: Ocarina Atlas, de antonioalvromero (licença MIT), que credita o atlas e as imagens de jogo ao Nintendúo.")}{' '}
         <a href="https://github.com/antonioalvromero/Ocarina-Atlas" target="_blank" rel="noreferrer">Ocarina Atlas</a>{' · '}

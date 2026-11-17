@@ -192,6 +192,17 @@ export interface AppState {
   live: LiveInfo & { using: boolean };
   /** Local log of tracked changes */
   changeLog: { enabled: boolean; dir: string };
+  /** Serving the tracker to other devices on the local network (optional; off by default). */
+  lan?: LanState;
+}
+
+export interface LanState {
+  enabled: boolean;
+  port: number;
+  /** Addresses to open on a phone or tablet (one per network this PC is on). */
+  urls: string[];
+  /** The port couldn't be opened (in use, blocked). */
+  error?: boolean;
 }
 
 /**

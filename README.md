@@ -64,6 +64,7 @@ The Linux build is new and hasn't been tested on many systems yet. **Please tell
 | 📅 | **Daily log and My data** | Progress seen while the tracker is open, local captures and medals calculated from your game. |
 | 📸 | **Rumor quests** | The tracker's photo hunt: follow clues, visit the region and capture the game window in **Live** mode. |
 | 🧩 | **Daily quiz** | Test your knowledge of the game with rotating questions. |
+| 📱 | **Second screen** | Open the tracker on a phone, tablet or another computer on the same Wi-Fi while you play on the TV. The page shows the address to type, and the layout adapts to phones and tablets, portrait or landscape. |
 
 The overall percentage uses the **100% Checklist** objectives. Minigame prizes that belong to it (heart pieces, equipment upgrades) already count. Wins and records are counted separately on the **Minigames** page.
 
@@ -110,7 +111,8 @@ Turn on **Show in-game overlay** in Settings. It can show counters, remaining ob
 ## 🔒 Local data
 
 - 📴 Works **offline**. Preferences, manual marks and activity are stored in `%APPDATA%\Hyrule Tracker` (Windows) or `~/.config/Hyrule Tracker` (Linux).
-- 🗺️ Maps, photos and WebP icons are bundled with the app. The only network access is the update check on GitHub.
+- 🗺️ Maps, photos and WebP icons are bundled with the app. The only internet access is the update check on GitHub.
+- 📱 **Second screen** serves the tracker on your local network (port `5184`), so any device on it can see your progress and tick items. It is on by default; turn it off on the **Second screen** page.
 - 👀 Save and memory reading is **read-only**. Window captures for the history can be turned off in **Settings**.
 - 🏠 Everything is local: no Nintendo account, remote database or VPS.
 

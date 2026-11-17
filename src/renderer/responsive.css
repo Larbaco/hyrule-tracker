@@ -1,0 +1,140 @@
+/*
+ * Phones and tablets (the tracker opened on the local network, or a small window).
+ *   phone portrait   ≤ 640px wide           bottom tab bar + "More" sheet, compact header
+ *   phone landscape  ≤ 500px tall           icon rail, compact header, no footer
+ *   tablet portrait  641–890px wide         rail with labels under the icons
+ *   ≤ 900px / short  checklist details open as a bottom sheet
+ * Loaded after styles.css and companion.css.
+ */
+
+/* Hidden on large screens. */
+.mobile-tabs, .mobile-sheet-backdrop { display: none; }
+.tracker-shell .tile, .tracker-shell button, .mobile-tabs button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+/* ---------- Tablet portrait: rail with labels ---------- */
+@media (min-width: 641px) and (max-width: 890px) and (min-height: 501px) {
+  .tracker-shell { grid-template-columns: 84px minmax(0, 1fr); }
+  .tracker-sidebar { padding: 14px 6px 8px; }
+  .nav-group button { flex-direction: column; gap: 4px; min-height: 54px; padding: 7px 2px; }
+  .nav-group button span { position: static; width: auto; height: auto; clip-path: none; overflow: visible; font-size: 10px; line-height: 1.15; text-align: center; font-weight: 600; }
+  .nav-group button[aria-current] { background: #1b2b21; }
+  .companion-page { padding: 22px 22px 30px; }
+}
+
+/* ---------- Phone landscape / short screens ---------- */
+@media (max-height: 500px) and (min-width: 641px) {
+  .tracker-shell { grid-template-columns: 64px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .tracker-sidebar { padding: 8px 7px; }
+  .tracker-brand, .sidebar-live, .sidebar-footer { display: none; }
+  .sidebar-source { grid-template-columns: 1fr; grid-template-areas: "dot"; justify-items: center; min-height: 30px; padding: 6px 0; margin-bottom: 4px; }
+  .sidebar-source :is(b, small), .nav-group button span { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+  .nav-group { padding: 3px 0; }
+  .nav-group button { justify-content: center; min-height: 40px; }
+  .tracker-footer { display: none; }
+  .companion-page { padding: 12px 18px 20px; }
+  .tracker-shell .app { padding: 12px 14px 8px; }
+  .page-header { margin-bottom: 12px; }
+  .page-header h1 { font-size: 22px; }
+  .page-description { display: none; }
+}
+
+/* ---------- Checklist: details as a bottom sheet when the side column doesn't fit ---------- */
+@media (max-width: 900px), (max-height: 500px) {
+  .tracker-shell .app { overflow-y: auto; height: auto; min-height: 0; }
+  .tracker-shell .app .body { display: block; flex: none; }
+  .tracker-shell .app .grid-wrap { overflow: visible; padding: 4px 0 24px; }
+  .tracker-shell .app .side { width: auto; border: 0; padding: 0; overflow: visible; }
+  .tracker-shell .app .side:not(.has-detail) .legend { display: none; }
+  .tracker-shell .app .side.has-detail { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; max-height: min(68vh, 560px); overflow-y: auto; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); background: #18181a; border-top: 1px solid #3a3a3e; border-radius: 18px 18px 0 0; box-shadow: 0 -18px 50px #000b; animation: sheet-up .22s ease-out; }
+  .tracker-shell .app .side.has-detail::before { content: ""; display: block; width: 40px; height: 4px; margin: -6px auto 12px; border-radius: 2px; background: #4a4a4f; }
+  .tracker-shell .app .side.has-detail .legend { display: none; }
+  .tracker-shell .toolbar { padding: 0 0 10px; gap: 8px 12px; border-bottom: 0; }
+  .tracker-shell .toolbar .spacer { display: none; }
+  .tracker-shell .toolbar .checklist-search { flex: 1 1 100%; min-height: 42px; font-size: 16px; }
+  .tracker-shell .todo-link { margin-bottom: 10px; }
+  .tracker-shell .toolbar > label:has(select) { display: flex; align-items: center; gap: 8px; flex: 1 1 100%; min-width: 0; }
+  .tracker-shell .toolbar > label:has(select) select { flex: 1; min-width: 0; }
+}
+@keyframes sheet-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---------- Phone portrait ---------- */
+@media (max-width: 640px) {
+  .tracker-shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .tracker-sidebar, .tracker-footer { display: none; }
+  .companion-page, .tracker-shell .app { grid-column: 1; grid-row: 1; }
+  .companion-page { padding: 14px 14px 24px; }
+  .tracker-shell .app { padding: 14px 14px 0; }
+
+  /* Header: title on the left, compact actions on the right, one row. */
+  .page-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; margin: 0 0 14px; min-height: 0; }
+  .tracker-shell .app .page-header { padding: 0; margin-bottom: 10px; }
+  .page-header h1 { font-size: 23px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .page-description { display: none; }
+  .page-header-actions { flex-wrap: nowrap; gap: 6px; }
+  .page-header-actions .connection { width: 36px; height: 36px; padding: 0; justify-content: center; font-size: 0; gap: 0; }
+  .page-header-actions .connection i { width: 9px; height: 9px; }
+  .refresh-action { position: relative; }
+  .refresh-action .action { width: 36px; min-height: 36px; padding: 0; }
+  .refresh-action .action-label { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+  .refresh-action small { position: absolute; right: 0; top: 42px; width: max-content; max-width: 70vw; z-index: 5; padding: 6px 9px; border-radius: 8px; background: #2a1f1a; border: 1px solid #6b4a3a; }
+  .page-header-actions .language-switch { min-height: 36px; padding: 4px 8px; }
+
+  /* Tab bar */
+  .mobile-tabs { grid-column: 1; grid-row: 2; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); background: #141415f5; border-top: 1px solid #2a2a2d; backdrop-filter: blur(12px); z-index: 30; }
+  .mobile-tabs button { display: grid; justify-items: center; gap: 3px; min-height: 52px; padding: 4px 2px; border: 0; background: none; color: #a9a9b0; font: inherit; }
+  .mobile-tabs .tab-icon { display: grid; place-items: center; width: 52px; height: 30px; border-radius: 99px; transition: background .18s; }
+  .mobile-tabs .tab-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10.5px; font-weight: 600; letter-spacing: -.01em; }
+  .mobile-tabs button[aria-current], .mobile-tabs button.open { color: var(--hyrule-accent); }
+  .mobile-tabs button[aria-current] .tab-icon, .mobile-tabs button.open .tab-icon { background: #1d3a29; }
+
+  /* "More" sheet */
+  .mobile-sheet-backdrop { display: block; position: fixed; inset: 0; z-index: 25; background: #000a; animation: fade-in .18s ease-out; }
+  .mobile-sheet { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 14px calc(84px + env(safe-area-inset-bottom)); background: #18181a; border-top: 1px solid #3a3a3e; border-radius: 20px 20px 0 0; box-shadow: 0 -18px 50px #000b; animation: sheet-up .22s ease-out; max-height: 82vh; overflow-y: auto; }
+  .sheet-handle { display: block; width: 40px; height: 4px; margin: 0 auto 12px; border-radius: 2px; background: #4a4a4f; }
+  .sheet-source { display: flex; align-items: center; gap: 11px; padding: 11px 13px; margin-bottom: 12px; border: 1px solid #373233; border-radius: 12px; background: #202022; }
+  .sheet-source b { display: block; font-size: 14px; }
+  .sheet-source small { display: block; color: var(--hyrule-muted); font-size: 12px; margin-top: 2px; }
+  .sheet-source.connected { border-color: #2f5a40; background: #17241c; }
+  .sheet-source.connected .status-dot { background: var(--hyrule-green); }
+  .sheet-source.connected small { color: var(--hyrule-green); }
+  .sheet-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .sheet-grid button { display: grid; justify-items: center; align-content: center; gap: 7px; min-height: 84px; padding: 10px 6px; border: 1px solid #2c2c30; border-radius: 14px; background: #1f1f22; color: #e2e2e6; font: inherit; font-size: 12px; font-weight: 600; text-align: center; line-height: 1.2; }
+  .sheet-grid button svg { color: #b9e9cc; }
+  .sheet-grid button[aria-current] { border-color: #2e6947; background: #1b2b21; color: var(--hyrule-accent); }
+
+  /* Toasts sit above the tab bar. */
+  .toasts { bottom: calc(80px + env(safe-area-inset-bottom)); width: calc(100% - 28px); }
+  .toast { font-size: 14px; text-align: center; }
+
+  /* Overview */
+  .progress-panel { flex-direction: column; align-items: stretch; min-height: 0; padding: 20px 18px; }
+  .progress-panel::before { background: linear-gradient(180deg, #21150e59 0%, #21150ec4 45%, #21150ef5 85%); }
+  .progress-photo { width: 100%; }
+  .progress-place { max-width: none; align-self: flex-start; }
+  .metric { padding: 13px 14px; }
+  .metric strong { font-size: 25px; }
+  .focus-panel { padding: 16px; border-radius: 13px; margin-bottom: 12px; }
+  .focus-panel h2 { font-size: 17px; }
+
+  /* My data: name on its own line, the four medals underneath. */
+  .medal-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .medal-row > :first-child { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 8px; }
+  .medal-row > :first-child small { margin: 0; }
+
+  /* Second screen page: big address fits the width. */
+  .second-url { font-size: 18px; }
+
+  /* Checklist tiles a little larger for fingers. */
+  .tracker-shell .tiles { gap: 7px; }
+  .masonry-col { gap: 12px; }
+}
+
+/* Very narrow phones */
+@media (max-width: 360px) {
+  .mobile-tabs .tab-label { font-size: 9.5px; }
+  .sheet-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .mobile-sheet, .mobile-sheet-backdrop, .tracker-shell .app .side.has-detail { animation: none; }
+}

@@ -43,6 +43,8 @@ const api = {
   openSnapshotFolder: () => ipcRenderer.invoke('snapshot:open-folder'),
   browseFolder: (): Promise<AppState> => ipcRenderer.invoke('folder:browse'),
   scanFolders: (): Promise<AppState> => ipcRenderer.invoke('folder:scan'),
+  /** Serve the tracker on the local network (phone/tablet). */
+  setLan: (on: boolean): Promise<AppState['lan']> => ipcRenderer.invoke('lan:set', on),
   refreshProgress: (): Promise<void> => ipcRenderer.invoke('progress:refresh'),
   answerIdentify: (reqId: string, itemIds: string[]) => ipcRenderer.invoke('identify:answer', reqId, itemIds),
   skipIdentify: (reqId: string) => ipcRenderer.invoke('identify:skip', reqId),

@@ -934,3 +934,26 @@ Você pode usar||You can use|Puedes usar
 A lógica deste objetivo ainda não foi confirmada.||The logic for this objective isn't confirmed yet.|La lógica de este objetivo aún no está confirmada.
 Linux blocked reading the game's memory. To allow it until the next restart, run {command} in a terminal.|O Linux bloqueou a leitura da memória do jogo. Para permitir até o próximo reinício, rode {command} num terminal.|Linux blocked reading the game's memory. To allow it until the next restart, run {command} in a terminal.|Linux bloqueó la lectura de la memoria del juego. Para permitirla hasta el próximo reinicio, ejecuta {command} en una terminal.
 Linux blocked reading the game's memory (ptrace_scope {scope}). Only the save files can be followed.|O Linux bloqueou a leitura da memória do jogo (ptrace_scope {scope}). Só dá para acompanhar pelos arquivos de save.|Linux blocked reading the game's memory (ptrace_scope {scope}). Only the save files can be followed.|Linux bloqueó la lectura de la memoria del juego (ptrace_scope {scope}). Solo se pueden seguir los archivos de guardado.
+Segunda tela||Second screen|Segunda pantalla
+Acompanhe a jornada no celular ou tablet enquanto joga na TV.||Follow your journey on your phone or tablet while you play on the TV.|Sigue la aventura en el móvil o la tableta mientras juegas en la tele.
+Sem conexão com o PC. Tentando reconectar…||Lost connection to the PC. Reconnecting…|Sin conexión con el PC. Reconectando…
+A segunda tela já vem ativada. Se quiser, desative no quadro acima.||The second screen is already on. You can turn it off in the box above.|La segunda pantalla ya viene activada. Si quieres, desactívala en el recuadro de arriba.
+Conecte o celular ou tablet à mesma rede Wi-Fi deste PC.||Connect your phone or tablet to the same Wi-Fi network as this PC.|Conecta el móvil o la tableta a la misma red Wi-Fi que este PC.
+Abra o navegador do aparelho (Chrome, Safari, Edge…) e digite o endereço mostrado.||Open the browser on the device (Chrome, Safari, Edge…) and type the address shown.|Abre el navegador del dispositivo (Chrome, Safari, Edge…) y escribe la dirección que aparece.
+Pronto: o progresso atualiza sozinho enquanto você joga. Dica: adicione a página à tela inicial para abrir com um toque.||Done: progress updates by itself while you play. Tip: add the page to your home screen to open it with one tap.|Listo: el progreso se actualiza solo mientras juegas. Consejo: añade la página a la pantalla de inicio para abrirla con un toque.
+Jogue na TV, acompanhe na palma da mão||Play on the TV, follow along in your hand|Juega en la tele, síguelo en la palma de tu mano
+Abra o Hyrule Tracker no celular, tablet ou em outro computador da sua casa. Mapa, checklist e o que fazer agora ficam sempre à mão, sem sair do jogo.||Open Hyrule Tracker on your phone, tablet or another computer at home. The map, the checklist and what to do next stay at hand without leaving the game.|Abre Hyrule Tracker en el móvil, la tableta u otro ordenador de casa. El mapa, la lista y qué hacer ahora siempre a mano, sin salir del juego.
+Ativar a segunda tela na rede local||Turn on the second screen on the local network|Activar la segunda pantalla en la red local
+Não foi possível usar a porta {port}. Feche o programa que a usa e tente de novo.||Couldn't use port {port}. Close the program using it and try again.|No se pudo usar el puerto {port}. Cierra el programa que lo usa y vuelve a intentarlo.
+Digite no navegador do aparelho:||Type in the device’s browser:|Escribe en el navegador del dispositivo:
+Mais de um endereço? Use o da rede em que o aparelho está (normalmente começa com 192.168).||More than one address? Use the one for the network the device is on (usually starting with 192.168).|¿Más de una dirección? Usa la de la red en la que está el dispositivo (normalmente empieza por 192.168).
+Este PC não está conectado a uma rede local.||This PC isn't connected to a local network.|Este PC no está conectado a una red local.
+Como conectar||How to connect|Cómo conectarse
+Se não abrir||If it doesn't open|Si no se abre
+Confira se o aparelho está no mesmo Wi-Fi (não na rede de convidados nem nos dados móveis).||Check that the device is on the same Wi-Fi (not a guest network or mobile data).|Comprueba que el dispositivo está en la misma Wi-Fi (no en la red de invitados ni con datos móviles).
+Na primeira vez, o sistema pode perguntar sobre o firewall: permita o Hyrule Tracker em redes privadas.||The first time, your system may ask about the firewall: allow Hyrule Tracker on private networks.|La primera vez, el sistema puede preguntar por el cortafuegos: permite Hyrule Tracker en redes privadas.
+Qualquer aparelho na sua rede poderá ver o progresso e marcar itens. Desative quando não estiver usando.||Any device on your network can see your progress and tick items. Turn it off when you’re not using it.|Cualquier dispositivo de tu red podrá ver el progreso y marcar objetos. Desactívalo cuando no lo uses.
+Mais||More|Más
+Início||Home|Inicio
+Mapa||Map|Mapa
+Checklist||Checklist|Lista

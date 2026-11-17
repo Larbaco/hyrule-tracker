@@ -4,6 +4,15 @@ Player-facing changes in each Hyrule Tracker version. Every published version ne
 `scripts/ensure-release.mjs` uses it as the GitHub release text, and the in-app updater shows it before the player decides to update.
 Format: `New`, `Improved`, `Fixed`, `Known` (open issue).
 
+## [1.4.0] - 2026-11-17
+
+### New
+- **Second screen.** Play on the TV and follow along on your phone, tablet or another computer at home. Connect the device to the same Wi-Fi as the PC and open the address shown on the new **Second screen** page in its browser (for example `http://192.168.0.10:5184/`). Progress updates by itself while you play, and you can tick items, answer "which one was this?" and switch slots from the device. It's on by default; the page has a step-by-step guide and a switch to turn it off. The first time, Windows may ask about the firewall: allow Hyrule Tracker on private networks.
+- **Phone and tablet layout.** On phones, a tab bar at the bottom (Home, What to do?, Map, Checklist, More) and a compact header; checklist details open as a sheet from the bottom. Tablets get a side menu with labels. Portrait and landscape both work.
+
+### Fixed
+- **Daily log.** The day's totals had no space between the number and the text ("0enemies").
+
 ## [1.3.0] - 2026-11-17
 
 ### New

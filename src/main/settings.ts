@@ -40,6 +40,8 @@ export interface Settings {
   changeLog: boolean;
   captureActivity: boolean;
   visited: Record<string, string[]>;
+  /** Serve the tracker on the local network (phone/tablet). On by default; can be turned off. */
+  lan: { enabled: boolean; port: number };
 }
 
 export const DEFAULTS: Settings = {
@@ -55,6 +57,7 @@ export const DEFAULTS: Settings = {
   changeLog: true,
   captureActivity: true,
   visited: {},
+  lan: { enabled: true, port: 5184 },
 };
 
 /**
@@ -82,7 +85,7 @@ export class SettingsStore {
     this.data = structuredClone(DEFAULTS);
     try {
       const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
-      this.data = { ...this.data, ...raw, ui: { ...DEFAULTS.ui, ...raw.ui }, overlay: { ...DEFAULTS.overlay, ...raw.overlay }, hotkeys: { ...DEFAULTS.hotkeys, ...raw.hotkeys }, live: { ...DEFAULTS.live, ...raw.live } };
+      this.data = { ...this.data, ...raw, ui: { ...DEFAULTS.ui, ...raw.ui }, overlay: { ...DEFAULTS.overlay, ...raw.overlay }, hotkeys: { ...DEFAULTS.hotkeys, ...raw.hotkeys }, live: { ...DEFAULTS.live, ...raw.live }, lan: { ...DEFAULTS.lan, ...raw.lan } };
       if (migrateIds(this.data)) this.save();
     } catch { /* first run or unreadable: use defaults */ }
   }
