@@ -4,6 +4,24 @@ Player-facing changes in each Hyrule Tracker version. Every published version ne
 `scripts/ensure-release.mjs` uses it as the GitHub release text, and the in-app updater shows it before the player decides to update.
 Format: `New`, `Improved`, `Fixed`, `Known` (open issue).
 
+## [1.2.0] - 2026-11-17
+
+### New
+- **Play time.** The **Overview** shows how long you've played, read from your save (for example `7h 50m`). In **Live** it shows the time as of your last save. Suggested by **T3CH-M0T1V8R** from the Triforce Discord. Thank you!
+- **View on map.** Chests, Gossip Stones, Big Poes, cows and grottos now have a **View on map** button that opens the map right on the spot, plus a short hint on how to get each one.
+- **Zoom and pan on the maps.** Scroll to zoom, drag to move, with buttons to zoom in, out and reset.
+- **Area completion.** The map page shows your completion rate per region, and a button to go back to the Hyrule map from any regional map.
+- **Linked markers.** A map marker and its checklist row that watch the same save flag now tick together, including when you tick one by hand.
+- **Enemy photos on the checklist.** Statues and rematch rows show the enemy photo, like the Hall of Fallen Foes.
+
+### Improved
+- **Map icons restyled** to match the tracker's look.
+- **Side panel can be hidden** on the map pages to give the map more room.
+- Tile captions are translated before being shortened, so names like fishing records show properly in every language.
+
+### Fixed
+- **Magic Bean Spots Planted removed.** The save doesn't record it, so the card could never fill in.
+
 ## [1.1.1] - 2026-11-17
 
 ### Fixed

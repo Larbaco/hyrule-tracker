@@ -171,9 +171,6 @@ G('amiibo_masks', 2, isGet('Armor_Child_Mask_Amiibo1'), 'IsGet.Armor_Child_Mask_
 out.counters.big_poes = { value: { name: 'GhostShop_CouponNum' }, pointsPer: 100,
   atLeast: [{ when: { name: 'Step_SubEvent_GhostShop', eq: 'Complete' }, value: 5 }], confidence: 'likely',
   evidence: "GhostShop_CouponNum is the Poe buyer's point total: the remake pays 100 points per Big Poe (bottle at 500, Gold Rupee at 1,000). A tester save with all ten sold reads 1000. Values of 100 or more are divided by 100; the quest step raises the count to at least 5 once the bottle is given. HyruleField_Defeat_BigPoe_01–10 stayed false in that save, so they are not used for this count." };
-const soils = ['KokiriForest', 'KokiriForest_LostWood', 'LostWood01', 'LostWood02', 'Graveyard', 'ZoraRiver', 'ZoraRiver02', 'LakeHylia', 'DeathMountainTrail', 'DeathMountainCrater', 'GerudoValley', 'DesertColossus'];
-out.counters.magic_beans_planted = { countOf: soils.map(s => ({ name: `Gimmick_MagicBeanSoil_${s}` })), cap: 10, confidence: 'guess',
-  evidence: 'Count of Gimmick_MagicBeanSoil_* flags (12 exist for 10 beans; some may be Skulltula soil only). All false so far. Needs a diff after planting.' };
 
 out.derived = {
   maxHearts: { name: 'PlayerStatus.MaxLife', scale: 0.25, evidence: 'Quarter hearts; same key as the MIT editor. slot_05 = 28 = 7 hearts' },

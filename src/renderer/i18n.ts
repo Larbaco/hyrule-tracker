@@ -49,6 +49,13 @@ export function t(source: string): string {
   }
   return source;
 }
+/** Name without its "Area: " prefix, translated. Translates the tail alone when it is known, else the whole name and then cuts the prefix. */
+export function tail(source: string): string {
+  const cut = source.replace(/^[^:]+: /, '');
+  const direct = t(cut);
+  if (direct !== cut || cut === source) return direct;
+  return t(source).replace(/^[^:]+: /, '');
+}
 export const currentLocale = () => locale;
 export function setLocale(next: Locale) {
   locale = next;

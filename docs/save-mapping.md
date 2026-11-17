@@ -43,7 +43,6 @@ npm test                                   # includes: every rule reads keys tha
 | Big Poes Sold | A | counter | likely (points ÷ 100; 1000 seen with all ten sold) |
 | House of Skulltula Rewards | B | 6/6 | likely |
 | Child / Adult Trading Sequence | B | 3/3, 11/11 | likely |
-| Magic Bean Spots Planted | B | counter | guess |
 | Maps, Compasses & Boss Keys | C | 26/26 | 2 confirmed, 24 likely |
 | amiibo Retro Masks | C | 2/2 | guess |
 

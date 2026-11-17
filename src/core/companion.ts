@@ -3,6 +3,9 @@ import type { Value, GameDataFile } from '../gamedata/parser.js';
 import type { Rule } from '../gamedata/detect.js';
 import type { ChecklistFile, MappingFile } from './tracker.js';
 
+/** A collectible's spot in the world: scene folder, era if the scene is only one of them, and game coordinates. */
+export interface WorldMarker { stage: string; era?: 'child' | 'adult'; x: number; y: number; z: number }
+
 export interface ChestPlacement {
   hash: number;
   stage?: string;
@@ -134,13 +137,16 @@ const sideEvents: [string, string, Rule | null, string?][] = [
   ['all_bosses', 'Complete os combates do Salão', found('Step_SubEvent_AllBossBattle')],
 ];
 
+const BIG_POE_HINT = 'Como adulto, com uma garrafa vazia, derrote o Big Poe no Campo de Hyrule com o Arco das Fadas e capture-o na garrafa. Venda-o ao Coletor de Poes nas ruínas do Mercado. Veja o ponto exato no mapa.';
+const GOSSIP_STONE_HINT = 'Fique ao lado da pedra falante e toque a ocarina. Veja o ponto exato no mapa.';
+
 export function extendChecklist(checklist: ChecklistFile, mapping: MappingFile, data: CompanionData) {
   type Category = ChecklistFile['categories'][number];
-  const add = (id: string, label: string, entries: [string, string, Rule | null, string?][], part: Category['part'] = 'A', iconId = id) => {
+  const add = (id: string, label: string, entries: [string, string, Rule | null, string?][], part: Category['part'] = 'A', iconId = id, how?: (suffix: string) => string | undefined) => {
     const items = entries.map(([suffix, name, detect, chapter], i) => {
       const itemId = id + '.' + suffix;
       mapping.entries[itemId] = { label: name, detect, confidence: 'confirmed', evidence: detect ? 'Campo do progresso do remake.' : 'Confirmação manual no tracker.' };
-      return { id: itemId, name, iconId, number: i + 1, chapter };
+      return { id: itemId, name, iconId, number: i + 1, chapter, where: how?.(suffix) };
     });
     checklist.categories.push({ id, label, kind: 'list', part, countsToward100: part === 'A', items });
   };
@@ -191,7 +197,7 @@ export function extendChecklist(checklist: ChecklistFile, mapping: MappingFile, 
     // A tester save with all ten sold (GhostShop_CouponNum = 1000) had every HyruleField_Defeat_BigPoe flag false,
     // so those flags don't stick. 1,000 points means all ten field Big Poes were caught.
     return [n, 'Big Poe ' + n, { any: [done('HyruleField_Defeat_BigPoe_' + n), { name: 'GhostShop_CouponNum', gte: 1000 }] }, LOCAL_NAMES.HyruleField];
-  }), 'B', 'boss');
+  }), 'B', 'boss', () => BIG_POE_HINT);
   const stoneGroups = [
     ['GORON_CITY', 'GoronCity', 2], ['HYRULE_FIELD', 'HyruleField', 4],
     ['KAKARIKO_VILLAGE', 'KakarikoVillage', 1], ['HYRULE_CASTLE', 'HyruleCastle', 3],
@@ -206,7 +212,7 @@ export function extendChecklist(checklist: ChecklistFile, mapping: MappingFile, 
     Array.from({ length: count }, (_, i): [string, string, Rule, string] => {
       const id = flag + '_' + String(i + 1).padStart(2, '0');
       return [id, `Pedra falante ${i + 1}`, done('BlewOcarinaByGossipStone.GOSSIP_' + id), LOCAL_NAMES[region]];
-    })), 'B', 'key_items');
+    })), 'B', 'key_items', () => GOSSIP_STONE_HINT);
   const coinRooms = [
     ['IceCavern_Room06_SilverRupeeGet', 'IceCavern', '06'],
     ['BottomOfTheWell_Level_Room_09_A_SilverRupee_GetAll', 'BottomOfTheWell', '09'],
@@ -218,15 +224,18 @@ export function extendChecklist(checklist: ChecklistFile, mapping: MappingFile, 
   add('cow_rewards', 'Vacas e leite', [
     ['house', 'Vaca para a casa de Link', done('HavePlayedEvent.Animal_Cow_LinkHouse_GiveMilk'), LOCAL_NAMES.KokiriForest],
     ['milk', 'Toque para uma vaca e ganhe leite', done('HavePlayedEvent.Animal_Cow_GiveMilk')],
-  ], 'B', 'key_items');
+  ], 'B', 'key_items', suffix => suffix === 'house'
+    ? 'Toque a Canção de Epona ao lado da vaca na casa de Link, na Floresta Kokiri, e pegue o leite.'
+    : 'Toque a Canção de Epona ao lado de qualquer vaca para ganhar leite.');
   add('chests', 'Baús', data.chests.map(c => [hex(c.hash), c.item ? itemText(c.item) : 'Baú do tesouro',
-    { key: hex(c.hash) }, c.stage ? LOCAL_NAMES[c.stage] ?? itemText(c.stage) : undefined]), 'B', 'key_items');
+    { key: hex(c.hash) }, c.stage ? LOCAL_NAMES[c.stage] ?? itemText(c.stage) : undefined]), 'B', 'key_items', () => 'Abra o baú indicado no mapa da região.');
   for (const [id, label, rows, kind, automatic] of [
     ['fairy_thoughts', 'Pensamentos de fada', data.notes, 'Pensamento de fada', true],
     ['scarecrow_spots', 'Chamadas de Pierre', data.scarecrows, 'Chamado de Pierre', true],
     ['grottos', 'Entradas de grutas', data.grottos, 'Entrada de gruta', false],
   ] as const) add(id, label, rows.map((p, i) => [hex(p.hash), `${kind} ${p.item ?? i + 1}`,
-    automatic ? { key: hex(p.hash) } : null, p.stage ? LOCAL_NAMES[p.stage] ?? itemText(p.stage) : undefined]), 'B', 'key_items');
+    automatic ? { key: hex(p.hash) } : null, p.stage ? LOCAL_NAMES[p.stage] ?? itemText(p.stage) : undefined]), 'B', 'key_items',
+    () => automatic ? undefined : 'Entre na gruta indicada no mapa da região e marque como concluída aqui.');
 }
 
 const numeric = (value: Value | undefined) => typeof value === 'number' && Number.isFinite(value) ? value : null;
@@ -253,12 +262,19 @@ function maskSales(get: (name: string) => Value | undefined): number | null {
 }
 
 export const RUPEES = murmur3('PlayerStatus.CurrentRupee');
+/**
+ * Play time in seconds (UInt, name unknown). Found by comparing six saves of one game:
+ * it rose by the same amount as the wall clock between them (+72 in 72 s, +196 in 196 s, +357 in 358 s).
+ * Live mode keeps the save's value: the live tables hold no UInt records.
+ */
+export const PLAY_TIME = 0xe573f564;
 export function companionProgress(data: CompanionData, save: GameDataFile) {
   const get = (name: string) => save.entries.get(murmur3(name))?.value;
   const getKey = (key: number) => numeric(save.entries.get(key)?.value);
   const counters = data.enemyCounters.map(getKey).filter((n): n is number => n !== null);
   return {
     rupees: getKey(RUPEES),
+    playSeconds: getKey(PLAY_TIME),
     enemies: counters.length ? counters.reduce((sum, n) => sum + n, 0) : null,
     visited: Object.keys(LOCAL_NAMES).filter(stage => get('IsVisitLocation.' + stage) === true),
     maskSales: maskSales(get),

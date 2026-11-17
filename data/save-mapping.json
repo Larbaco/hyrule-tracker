@@ -2779,49 +2779,6 @@
       ],
       "confidence": "likely",
       "evidence": "GhostShop_CouponNum is the Poe buyer's point total: the remake pays 100 points per Big Poe (bottle at 500, Gold Rupee at 1,000). A tester save with all ten sold reads 1000. Values of 100 or more are divided by 100; the quest step raises the count to at least 5 once the bottle is given. HyruleField_Defeat_BigPoe_01–10 stayed false in that save, so they are not used for this count."
-    },
-    "magic_beans_planted": {
-      "countOf": [
-        {
-          "name": "Gimmick_MagicBeanSoil_KokiriForest"
-        },
-        {
-          "name": "Gimmick_MagicBeanSoil_KokiriForest_LostWood"
-        },
-        {
-          "name": "Gimmick_MagicBeanSoil_LostWood01"
-        },
-        {
-          "name": "Gimmick_MagicBeanSoil_LostWood02"
-        },
-        {
-          "name": "Gimmick_MagicBeanSoil_Graveyard"
-        },
-        {
-          "name": "Gimmick_MagicBeanSoil_ZoraRiver"
-        },
-        {
-          "name": "Gimmick_MagicBeanSoil_ZoraRiver02"
-        },
-        {
-          "name": "Gimmick_MagicBeanSoil_LakeHylia"
-        },
-        {
-          "name": "Gimmick_MagicBeanSoil_DeathMountainTrail"
-        },
-        {
-          "name": "Gimmick_MagicBeanSoil_DeathMountainCrater"
-        },
-        {
-          "name": "Gimmick_MagicBeanSoil_GerudoValley"
-        },
-        {
-          "name": "Gimmick_MagicBeanSoil_DesertColossus"
-        }
-      ],
-      "cap": 10,
-      "confidence": "guess",
-      "evidence": "Count of Gimmick_MagicBeanSoil_* flags (12 exist for 10 beans; some may be Skulltula soil only). All false so far. Needs a diff after planting."
     }
   },
   "derived": {

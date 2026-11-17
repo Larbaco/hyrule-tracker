@@ -1,4 +1,4 @@
-import { currentLocale, languages, message, percent, setLocale, t, tv, type Locale } from './i18n';
+import { currentLocale, languages, message, percent, setLocale, t, tail, tv, type Locale } from './i18n';
 import { GameItemIcon } from './GameItemIcon';
 import { useEffect, useRef, useState } from 'react';
 import type { AppState, TrackedCategory, OverlayMode } from '../shared/types';
@@ -120,7 +120,7 @@ function Available({ state }: { state: AppState }) {
         return [head, (
           <div key={a.id} className="ov-row">
             <span className="dot" style={{ background: categoryColor(a.categoryId) }} />
-            <span className="ov-label">{a.categoryId === 'gold_skulltulas' && `#${a.number} · `}{t(a.name.replace(/^[^:]+: /, ''))}</span>
+            <span className="ov-label">{a.categoryId === 'gold_skulltulas' && `#${a.number} · `}{tail(a.name)}</span>
             {state.canBeAdult && a.ages.length === 1 && <span className={`age ${a.ages[0]}`}>{t(a.ages[0] === 'adult' ? 'Adulto' : 'Criança')}</span>}
             {a.night && <span className="age night">☾</span>}
           </div>
@@ -160,7 +160,7 @@ function Remaining({ state }: { state: AppState }) {
       {rows.slice(0, 40).map(({ c, i, later }) => (
         <div key={i.id} className={`ov-row ${i.state === 'unmapped' ? 'unmapped' : ''} ${later ? 'later' : ''}`}>
           <span className="dot" style={{ background: categoryColor(c.id) }} />
-          <span className="ov-label">{c.id === 'gold_skulltulas' && `#${i.number} · `}{t(i.name.replace(/^[^:]+: /, ''))}</span>
+          <span className="ov-label">{c.id === 'gold_skulltulas' && `#${i.number} · `}{tail(i.name)}</span>
           {later ? <span className="ov-why" title={t(later)}>{t(later)}</span> : i.logic?.night && <span className="age night">☾</span>}
         </div>
       ))}

@@ -5,12 +5,13 @@ import { symbolIcons, categoryColor } from './icons';
 import { Symbol } from './symbols';
 import { buildCards, tileItems, Card, TileModel } from './view';
 import { Masonry } from './Masonry';
-import { CompanionPage, Icon, Sidebar, PageHeader, type Page } from './CompanionPages';
+import { CompanionPage, Icon, Sidebar, PageHeader, MAP_CATEGORIES, type Page } from './CompanionPages';
 import { LanguageSwitch } from './LanguageFlags';
-import { currentLocale, day, message, setLocale, t, tv, type Locale } from './i18n';
+import { currentLocale, day, message, setLocale, t, tail, tv, type Locale } from './i18n';
 import { useStored } from './Recreation';
 import { ObjectiveName } from './ObjectiveName';
 import { UpdateDialog } from './UpdateDialog';
+import { enemyPhoto } from './referenceImages';
 import { GameItemIcon, itemImage, trackedItemIcon } from './GameItemIcon';
 
 const icons = symbolIcons;
@@ -20,6 +21,9 @@ export function App() {
   const [prefs, setPrefs] = useState<UiPrefs | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [page, setPage] = useState<Page>('overview');
+  // Checklist entry the map should open on ("View on map").
+  const [mapFocus, setMapFocus] = useState<string>();
+  const showOnMap = (id: string) => { setMapFocus(id); setPage('map'); };
   const [scanning, setScanning] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState(false);
@@ -117,9 +121,9 @@ export function App() {
   return (
     <div className="tracker-shell" lang={locale}>
       <UpdateDialog />
-      <Sidebar page={page} onPage={setPage} state={state} />
+      <Sidebar page={page} onPage={p => { setMapFocus(undefined); setPage(p); }} state={state} />
       {page !== 'checklist' ? (
-        <CompanionPage key={locale} page={page} state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} />
+        <CompanionPage key={locale} mapFocus={mapFocus} page={page} state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} />
       ) : state.status !== 'ok' ? (
         <CompanionPage key={locale} page="checklist" state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} />
       ) : (
@@ -157,7 +161,7 @@ export function App() {
           {state.identify.length > 0 && <IdentifyCard q={state.identify[0]} more={state.identify.length - 1} onShow={setSelected} />}
           {selectedItem && 'stack' in selectedItem
             ? <StackDetails stack={selectedItem.stack} onShow={setSelected} onClose={() => setSelected(null)} />
-            : selectedItem ? <Details cat={selectedItem.cat} item={selectedItem.item} dev={state.devPanel} onClose={() => setSelected(null)} /> : <Legend />}
+            : selectedItem ? <Details cat={selectedItem.cat} item={selectedItem.item} dev={state.devPanel} onClose={() => setSelected(null)} onShowOnMap={showOnMap} /> : <Legend />}
           {state.devPanel && <DevPanel state={state} />}
         </aside>
       </div>
@@ -247,7 +251,7 @@ function AvailablePanel({ state, open, selected, onSelect, onToggle }: { state: 
                   <button key={a.id} className={`chip ${selected === a.id ? 'selected' : ''}`} onClick={() => onSelect(a.id)}
                     title={`${t(a.categoryLabel)} #${a.number}`}>
                     <span className="dot" style={{ background: categoryColor(a.categoryId) }} />
-                    {a.categoryId === 'gold_skulltulas' ? `#${a.number} · ` : ''}{t(a.name.replace(/^[^:]+: /, ''))}
+                    {a.categoryId === 'gold_skulltulas' ? `#${a.number} · ` : ''}{tail(a.name)}
                     {state.canBeAdult && a.ages.length === 1 && <span className={`age ${a.ages[0]}`}>{t(a.ages[0] === 'adult' ? 'Adulto' : 'Criança')}</span>}
                     {a.night && <span className="age night">{t("night")}</span>}
                   </button>
@@ -375,6 +379,7 @@ function StackTile({ stack, selected, onSelect }: { stack: Extract<TileModel, { 
 function Tile({ catId, item, selected, onSelect, major, numbered }: { catId: string; item: TrackedItem; selected: boolean; onSelect: (id: string) => void; major?: boolean; numbered?: boolean }) {
   const icon = icons.get(item.iconId, catId, item.name);
   const asset = trackedItemIcon(item);
+  const photo = ENEMY_ROWS.has(catId) ? enemyPhoto(item.id, item.name) : undefined;
   const cls = [
     'tile',
     item.done ? 'done' : 'todo',
@@ -390,9 +395,9 @@ function Tile({ catId, item, selected, onSelect, major, numbered }: { catId: str
       onDoubleClick={() => item.state !== 'yes' && void api.toggleManual(item.id)}
       title={`${numbered ? `#${item.number} ` : ''}${t(item.name)}${item.where ? `\n${t(item.where)}` : ''}`}>
       {numbered && <GameItemIcon id={asset} size={15} />}
-      <span className="glyph">{numbered ? item.number : itemImage(asset) ? <GameItemIcon id={asset} size={30} /> : icon.symbol ? <Symbol name={icon.symbol} size={26} /> : icon.glyph}</span>
+      <span className="glyph">{numbered ? item.number : photo ? <img className="tile-photo" src={photo.file} alt="" draggable={false} /> : itemImage(asset) ? <GameItemIcon id={asset} size={30} /> : icon.symbol ? <Symbol name={icon.symbol} size={26} /> : icon.glyph}</span>
       {item.manual && <span className="badge m">M</span>}
-      {!numbered && <span className="tile-label">{t(shortName(item.name))}</span>}
+      {!numbered && <span className="tile-label">{caption(item.name)}</span>}
     </button>
   );
 }
@@ -403,6 +408,18 @@ function shortName(n: string): string {
   if (inner) return inner[1];
   const afterColon = n.includes(': ') ? n.slice(n.indexOf(': ') + 2) : n;
   return afterColon.replace(/\s*\([^()]*\)$/, '').slice(0, 30);
+}
+
+/** Rows that show the enemy photo, the same one the Hall of Fallen Foes page uses. */
+const ENEMY_ROWS = new Set(['statues', 'rematches']);
+
+/** Tile caption, translated before it is shortened so "Pesca: Escala Dourada" finds its translation. */
+function caption(n: string): string {
+  const short = shortName(n);
+  const direct = t(short);
+  if (direct !== short) return direct;
+  const full = t(n);
+  return full !== n ? shortName(full) : short;
 }
 
 /** Details for a combined tile: each part with its own status and hand-tick button. */
@@ -437,7 +454,7 @@ function StackDetails({ stack, onShow, onClose }: { stack: Extract<TileModel, { 
   );
 }
 
-function Details({ cat, item, dev, onClose }: { cat: TrackedCategory; item: TrackedItem; dev: boolean; onClose: () => void }) {
+function Details({ cat, item, dev, onClose, onShowOnMap }: { cat: TrackedCategory; item: TrackedItem; dev: boolean; onClose: () => void; onShowOnMap: (id: string) => void }) {
   const stateText = item.state === 'yes' ? 'Collected'
     : item.manual ? 'Ticked by hand'
     : item.state === 'unmapped' ? 'The tracker can’t see this one in your save. Tick it by hand once you have it.'
@@ -470,9 +487,12 @@ function Details({ cat, item, dev, onClose }: { cat: TrackedCategory; item: Trac
           {item.logic.note && <><br />{t(item.logic.note)}</>}
         </p>
       )}
-      {item.state !== 'yes' && (
-        <button className="primary" onClick={() => void api.toggleManual(item.id)}>{t(item.manual ? 'Remove hand tick' : 'Tick by hand')}</button>
-      )}
+      <div className="row">
+        {MAP_CATEGORIES.has(cat.id) && <button className="primary" onClick={() => onShowOnMap(item.id)}>{t("View on map")}</button>}
+        {item.state !== 'yes' && (
+          <button className={MAP_CATEGORIES.has(cat.id) ? 'small-btn' : 'primary'} onClick={() => void api.toggleManual(item.id)}>{t(item.manual ? 'Remove hand tick' : 'Tick by hand')}</button>
+        )}
+      </div>
       {identified && (
         <button className="link" onClick={() => void api.forgetIdentification(item.id)}>{t("Wrong spot? Undo this match")}</button>
       )}
@@ -525,7 +545,7 @@ function IdentifyCard({ q, more, onShow }: { q: AppState['identify'][number]; mo
           <button key={c.id} className={picked.includes(c.id) ? 'on' : ''}
             onClick={() => (one ? void api.answerIdentify(q.id, [c.id]) : toggle(c.id))}
             onMouseEnter={() => onShow(c.id)}>
-            <b>#{c.number}</b> {t(c.name.replace(/^[^:]+: /, ''))}
+            <b>#{c.number}</b> {tail(c.name)}
           </button>
         ))}
       </div>

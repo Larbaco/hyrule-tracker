@@ -65,6 +65,8 @@ export const SYMBOLS: Record<string, ReactNode> = {
   eye: <>{P('M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z')}{<circle cx="12" cy="12" r="2.5" />}</>,
   ticket: <>{P('M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z')}{P('M14 7v10')}</>,
   poe: <>{P('M6 20V10a6 6 0 0 1 12 0v10l-2-2-2 2-2-2-2 2-2-2z')}{<circle cx="10" cy="11" r="1" />}{<circle cx="14" cy="11" r="1" />}</>,
+  target: <>{<circle cx="12" cy="12" r="8" />}{<circle cx="12" cy="12" r="4" />}{<circle cx="12" cy="12" r="0.8" />}</>,
+  stone: <>{P('M7 21V9a5 5 0 0 1 10 0v12z')}{P('M10 11h4M10 14h4')}</>,
   sprout: <>{P('M12 21v-9')}{P('M12 12c0-4-3-6-7-6 0 4 3 6 7 6z')}{P('M12 14c0-3 2-5 6-5 0 3-2 5-6 5z')}</>,
 };
 
@@ -92,13 +94,15 @@ const CATEGORY_FALLBACK: Record<string, string> = {
   bottles: 'bottle', great_fairies: 'fairy', capacity: 'bag', stones_medallions: 'medallion',
   dungeons: 'door', bosses: 'skull', mini_bosses: 'crossedSwords', side_quests: 'quest',
   skulltula_rewards: 'token', child_trade: 'quest', adult_trade: 'quest', amiibo_masks: 'mask',
-  key_items: 'card', masks: 'mask', equipment: 'shield', items: 'bag', magic_beans_planted: 'sprout', big_poes: 'poe',
+  statues: 'skull', rematches: 'crossedSwords', trials: 'medallion', minigames: 'target', side_events: 'quest', main_quests: 'quest', silver_rupees: 'gem', cow_rewards: 'bottle',
+  gossip_stones: 'stone', fairy_thoughts: 'fairy', scarecrow_spots: 'note', grottos: 'door', chests: 'card',
+  key_items: 'card', masks: 'mask', equipment: 'shield', items: 'bag', big_poes: 'poe',
 };
 
 export function symbolFor(categoryId: string, iconId: string, name: string): string {
   if (categoryId === 'dungeon_items') return iconId === 'dungeon_map' ? 'map' : iconId === 'compass' ? 'compass' : 'key';
   // Categories whose rows all share one symbol (the name would mislead the keyword match).
-  if (['heart_pieces', 'heart_containers', 'gold_skulltulas', 'songs', 'dungeons', 'bosses', 'mini_bosses', 'side_quests', 'skulltula_rewards'].includes(categoryId)) {
+  if (['heart_pieces', 'heart_containers', 'gold_skulltulas', 'songs', 'dungeons', 'bosses', 'mini_bosses', 'side_quests', 'skulltula_rewards', 'statues', 'rematches', 'trials', 'gossip_stones', 'fairy_thoughts', 'scarecrow_spots', 'grottos', 'silver_rupees', 'cow_rewards', 'minigames', 'side_events', 'main_quests'].includes(categoryId)) {
     return CATEGORY_FALLBACK[categoryId];
   }
   if (categoryId === 'bottles') return 'bottle';

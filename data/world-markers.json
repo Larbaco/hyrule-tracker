@@ -1,0 +1,374 @@
+{
+ "big_poe_spots.01": {
+  "stage": "HyruleField",
+  "era": "adult",
+  "x": -0.5,
+  "y": 156.8,
+  "z": 108.6
+ },
+ "big_poe_spots.02": {
+  "stage": "HyruleField",
+  "era": "adult",
+  "x": -55.3,
+  "y": 157.5,
+  "z": 151
+ },
+ "big_poe_spots.03": {
+  "stage": "HyruleField",
+  "era": "adult",
+  "x": -48.9,
+  "y": 155.3,
+  "z": 59.9
+ },
+ "big_poe_spots.04": {
+  "stage": "HyruleField",
+  "era": "adult",
+  "x": -114.5,
+  "y": 154.2,
+  "z": 175
+ },
+ "big_poe_spots.05": {
+  "stage": "HyruleField",
+  "era": "adult",
+  "x": -214.2,
+  "y": 137.5,
+  "z": 183.2
+ },
+ "big_poe_spots.06": {
+  "stage": "HyruleField",
+  "era": "adult",
+  "x": -184.5,
+  "y": 146.1,
+  "z": 227.5
+ },
+ "big_poe_spots.07": {
+  "stage": "HyruleField",
+  "era": "adult",
+  "x": -117.3,
+  "y": 152.6,
+  "z": 310.7
+ },
+ "big_poe_spots.08": {
+  "stage": "HyruleField",
+  "era": "adult",
+  "x": -12.7,
+  "y": 153.6,
+  "z": 376.8
+ },
+ "big_poe_spots.09": {
+  "stage": "HyruleField",
+  "era": "adult",
+  "x": 100.2,
+  "y": 167.2,
+  "z": 298
+ },
+ "big_poe_spots.10": {
+  "stage": "HyruleField",
+  "era": "adult",
+  "x": 20.5,
+  "y": 164.2,
+  "z": 234.2
+ },
+ "cow_rewards.house": {
+  "stage": "KokiriForest",
+  "era": "adult",
+  "x": -44.5,
+  "y": 118.4,
+  "z": 16.6
+ },
+ "cow_rewards.milk": {
+  "stage": "HyruleField",
+  "era": "adult",
+  "x": -85.3,
+  "y": 150.7,
+  "z": 205
+ },
+ "gossip_stones.DEATH_MOUNTAIN_CRATER_01": {
+  "stage": "DeathMountainCrater",
+  "x": 43.6,
+  "y": 132.3,
+  "z": 37.3
+ },
+ "gossip_stones.DEATH_MOUNTAIN_CRATER_02": {
+  "stage": "DeathMountainCrater",
+  "x": -21.9,
+  "y": 67.2,
+  "z": 62.5
+ },
+ "gossip_stones.DEATH_MOUNTAIN_TRAIL_01": {
+  "stage": "KakarikoVillage",
+  "x": -8,
+  "y": 83.2,
+  "z": 65
+ },
+ "gossip_stones.DEATH_MOUNTAIN_TRAIL_02": {
+  "stage": "DeathMountainTrail",
+  "x": 6.7,
+  "y": 198.5,
+  "z": -122.3
+ },
+ "gossip_stones.DESERT_COLOSSUS_01": {
+  "stage": "DesertColossus",
+  "x": -167.7,
+  "y": 95.7,
+  "z": 61
+ },
+ "gossip_stones.DODONGO_CAVERN_01": {
+  "stage": "DodongoCavern",
+  "x": 24.7,
+  "y": 99.5,
+  "z": -36.5
+ },
+ "gossip_stones.GERUDO_VALLEY_01": {
+  "stage": "GerudoValley",
+  "x": -17.8,
+  "y": 48.7,
+  "z": -59.4
+ },
+ "gossip_stones.GORON_CITY_01": {
+  "stage": "GoronCity",
+  "x": 32,
+  "y": 115.7,
+  "z": 9
+ },
+ "gossip_stones.GORON_CITY_02": {
+  "stage": "GoronCity",
+  "x": -48.7,
+  "y": 113.7,
+  "z": -3.7
+ },
+ "gossip_stones.GRAVEYARD_01": {
+  "stage": "Graveyard",
+  "x": 68.9,
+  "y": 108.5,
+  "z": -2.3
+ },
+ "gossip_stones.HYRULE_CASTLE_01": {
+  "stage": "HyruleCastle",
+  "x": 21.4,
+  "y": 112.2,
+  "z": -35.5
+ },
+ "gossip_stones.HYRULE_CASTLE_02": {
+  "stage": "HyruleCastle",
+  "x": -26.3,
+  "y": 119.6,
+  "z": -97
+ },
+ "gossip_stones.HYRULE_CASTLE_03": {
+  "stage": "DeathMountainTrail",
+  "x": -24.8,
+  "y": 63.9,
+  "z": -17.5
+ },
+ "gossip_stones.HYRULE_FIELD_01": {
+  "stage": "HyruleCastle",
+  "x": 46.3,
+  "y": 96.7,
+  "z": -98.8
+ },
+ "gossip_stones.HYRULE_FIELD_02": {
+  "stage": "HyruleField",
+  "x": 172.7,
+  "y": 137.8,
+  "z": 182.1
+ },
+ "gossip_stones.HYRULE_FIELD_03": {
+  "stage": "HyruleField",
+  "x": 51.7,
+  "y": 126,
+  "z": 339.7
+ },
+ "gossip_stones.HYRULE_FIELD_04": {
+  "stage": "HyruleField",
+  "x": -269.6,
+  "y": 120.2,
+  "z": 143.3
+ },
+ "gossip_stones.HYRULE_MARKET_01": {
+  "stage": "Market",
+  "x": 39.4,
+  "y": 103.1,
+  "z": -11.7
+ },
+ "gossip_stones.HYRULE_MARKET_02": {
+  "stage": "Market",
+  "x": 39.4,
+  "y": 103,
+  "z": -9.6
+ },
+ "gossip_stones.HYRULE_MARKET_03": {
+  "stage": "Market",
+  "x": 39.4,
+  "y": 103.1,
+  "z": -7.3
+ },
+ "gossip_stones.HYRULE_MARKET_04": {
+  "stage": "Market",
+  "x": 39.3,
+  "y": 103.2,
+  "z": -5.3
+ },
+ "gossip_stones.KAKARIKO_VILLAGE_01": {
+  "stage": "KakarikoVillage",
+  "x": -35.9,
+  "y": 79.3,
+  "z": 13.9
+ },
+ "gossip_stones.KOKIRI_FOREST_01": {
+  "stage": "KokiriForest",
+  "x": -49.2,
+  "y": 121.3,
+  "z": -58.9
+ },
+ "gossip_stones.KOKIRI_FOREST_02": {
+  "stage": "SacredForestMeadow",
+  "x": 11,
+  "y": 95.6,
+  "z": -78.9
+ },
+ "gossip_stones.KOKIRI_FOREST_03": {
+  "stage": "KokiriForest",
+  "x": 89.2,
+  "y": 114.6,
+  "z": -41.8
+ },
+ "gossip_stones.KOKIRI_FOREST_04": {
+  "stage": "KokiriForest",
+  "x": 91.1,
+  "y": 115.2,
+  "z": -54.4
+ },
+ "gossip_stones.LAKE_HYLIA_01": {
+  "stage": "HyruleField",
+  "x": -192.2,
+  "y": 131.4,
+  "z": 522.6
+ },
+ "gossip_stones.LAKE_HYLIA_02": {
+  "stage": "HyruleField",
+  "x": -330.6,
+  "y": 131.2,
+  "z": 501.6
+ },
+ "gossip_stones.LAKE_HYLIA_03": {
+  "stage": "HyruleField",
+  "x": -235.2,
+  "y": 131.3,
+  "z": 579.1
+ },
+ "gossip_stones.LOST_WOOD_01": {
+  "stage": "ZoraRiver",
+  "x": -77.8,
+  "y": 82,
+  "z": -32.6
+ },
+ "gossip_stones.LOST_WOOD_02": {
+  "stage": "KokiriForest",
+  "x": -118.4,
+  "y": 114.5,
+  "z": -16.3
+ },
+ "gossip_stones.SACRED_FOREST_MEADOW_01": {
+  "stage": "SacredForestMeadow",
+  "x": -16.3,
+  "y": 104.6,
+  "z": 18.7
+ },
+ "gossip_stones.SACRED_FOREST_MEADOW_02": {
+  "stage": "SacredForestMeadow",
+  "x": 4.1,
+  "y": 104.5,
+  "z": 41
+ },
+ "gossip_stones.SACRED_FOREST_MEADOW_03": {
+  "stage": "SacredForestMeadow",
+  "x": -16.6,
+  "y": 114.4,
+  "z": -85.4
+ },
+ "gossip_stones.ZORA_DOMAIN_01": {
+  "stage": "ZoraDomain",
+  "x": 55.5,
+  "y": 114.5,
+  "z": 3.8
+ },
+ "gossip_stones.ZORA_FOUNTAIN_01": {
+  "stage": "ZoraFountain",
+  "x": 21.5,
+  "y": 101.9,
+  "z": -53.1
+ },
+ "gossip_stones.ZORA_FOUNTAIN_02": {
+  "stage": "ZoraFountain",
+  "x": 64.6,
+  "y": 102.8,
+  "z": 35.4
+ },
+ "gossip_stones.ZORA_RIVER_01": {
+  "stage": "ZoraRiver",
+  "x": 12.4,
+  "y": 115.3,
+  "z": -32.1
+ },
+ "gossip_stones.ZORA_RIVER_02": {
+  "stage": "ZoraRiver",
+  "x": -14.2,
+  "y": 74.5,
+  "z": 23.9
+ },
+ "gossip_stones.ZORA_RIVER_03": {
+  "stage": "ZoraRiver",
+  "x": 117.9,
+  "y": 112.1,
+  "z": -33.7
+ },
+ "silver_rupees.BottomOfTheWell_Level_Room_09_A_SilverRupee_GetAll": {
+  "stage": "BottomOfTheWell",
+  "x": -1.9,
+  "y": 87.5,
+  "z": -3.8
+ },
+ "silver_rupees.GerudoTrainingGround_Dungeon_Room02_SilverRupee": {
+  "stage": "GerudoTrainingGround",
+  "x": -49.4,
+  "y": 102.2,
+  "z": -37.9
+ },
+ "silver_rupees.GerudoTrainingGround_Dungeon_Room06_SilverRupee": {
+  "stage": "GerudoTrainingGround",
+  "x": 44.7,
+  "y": 96.3,
+  "z": -50.2
+ },
+ "silver_rupees.GerudoTrainingGround_Dungeon_Room09_SilverRupee": {
+  "stage": "GerudoTrainingGround",
+  "x": 67.1,
+  "y": 79.7,
+  "z": -43.7
+ },
+ "silver_rupees.InsideGanonCastle_Dungeon_Room03_SilverRupee": {
+  "stage": "InsideGanonCastle",
+  "x": 38.2,
+  "y": 102.9,
+  "z": 46
+ },
+ "silver_rupees.InsideGanonCastle_Dungeon_Room10_SilverRupee": {
+  "stage": "InsideGanonCastle",
+  "x": -28.4,
+  "y": 104,
+  "z": -74.8
+ },
+ "silver_rupees.InsideGanonCastle_Dungeon_Room14_SilverRupee": {
+  "stage": "InsideGanonCastle",
+  "x": -67.3,
+  "y": 100.5,
+  "z": -20.8
+ },
+ "silver_rupees.InsideGanonCastle_Dungeon_Room16_SilverRupee": {
+  "stage": "InsideGanonCastle",
+  "x": -24,
+  "y": 104.9,
+  "z": 19.6
+ }
+}

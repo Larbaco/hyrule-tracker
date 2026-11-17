@@ -151,7 +151,13 @@ export interface AppState {
   sourceLabel?: string;
   companion?: import('../core/companion.js').CompanionProgress;
   placements?: Record<string, import('../core/companion.js').ChestPlacement[]>;
+  /** Where the remaining collectibles sit in the world, by checklist item id (data/world-markers.json). */
+  worldMarkers?: Record<string, import('../core/companion.js').WorldMarker>;
   atlasStatus?: Record<string, import('../core/atlas.js').AtlasStatus>;
+  /** Map markers ticked by hand (a subset of the "done" ones in atlasStatus). */
+  atlasManual?: Record<string, true>;
+  /** Marker id -> checklist row it shares a save flag with; ticking one ticks the other. */
+  atlasLinks?: Record<string, string>;
   activity?: Activity[];
   saveImage?: string;
   captureActivity?: boolean;

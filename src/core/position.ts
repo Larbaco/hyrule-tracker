@@ -757,3 +757,19 @@ export function locatePlayer(rawScene: string | null | undefined, pos: PlayerPos
   const at = projectToPlaceMap(sceneKey, place, mapId, pos.x, pos.z);
   return { placeId: place.id, mapId, at, world: projectToWorldMap(place, at), yaw: ((pos.yaw % 360) + 360) % 360, age };
 }
+
+/**
+ * Where a placed collectible (scene folder + game coordinates) lands on the atlas: one fix per map it
+ * appears on. A spot that exists in both eras with no era recorded shows on the child and the adult map.
+ */
+export function locatePlacement(stage: string, era: 'child' | 'adult' | undefined, pos: { x: number; y: number; z: number }, places: AtlasPlace[]): PlayerFix[] {
+  const seen = new Set<string>();
+  const out: PlayerFix[] = [];
+  for (const age of era ? [era] : (['child', 'adult'] as const)) {
+    const fix = locatePlayer(stage, { ...pos, yaw: 0 }, places, age);
+    if (!fix || seen.has(fix.mapId ?? '')) continue;
+    seen.add(fix.mapId ?? '');
+    out.push(fix);
+  }
+  return out;
+}

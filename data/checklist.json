@@ -2388,15 +2388,6 @@
       ]
     },
     {
-      "id": "magic_beans_planted",
-      "label": "Magic Bean Spots Planted",
-      "part": "B",
-      "countsToward100": false,
-      "kind": "counter",
-      "max": 10,
-      "items": []
-    },
-    {
       "id": "dungeon_items",
       "label": "Maps, Compasses & Boss Keys",
       "part": "C",

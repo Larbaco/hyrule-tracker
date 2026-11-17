@@ -20,6 +20,10 @@ body { background: var(--bg); overflow: hidden; }
 button, select, input { font: inherit; color: inherit; }
 button { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 12px; cursor: pointer; }
 button:hover { border-color: #4a5168; }
+/* Anything interactive gets a pointer; disabled falls back to default. */
+button, select, summary, label, a[href], [role="button"], [role="tab"], [role="radio"], [role="checkbox"], [role="switch"], [role="menuitem"], [role="option"],
+input[type="checkbox"], input[type="radio"], input[type="range"], input[type="file"], input[type="color"] { cursor: pointer; }
+button:disabled, select:disabled, input:disabled, [aria-disabled="true"] { cursor: default; }
 button.primary { background: #2a5ea8; border-color: #3b74c6; }
 button.link { background: none; border: none; color: var(--accent); padding: 2px 0; }
 select, input[type=text], input:not([type]) { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
@@ -265,3 +269,5 @@ button.card-head .card-count { margin-left: auto; }
 .update-actions { display: flex; justify-content: flex-end; gap: 10px; }
 .update-actions button { padding: 8px 16px; border-radius: 8px; border: 1px solid #3a3a44; background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .update-actions button.primary { background: #2f9e5b; border-color: #2f9e5b; color: #fff; font-weight: 600; }
+.tile .glyph .tile-photo { display: block; width: 34px; height: 34px; border-radius: 6px; object-fit: cover; }
+.tile.todo .glyph .tile-photo { opacity: .8; }

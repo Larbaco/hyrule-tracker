@@ -261,6 +261,8 @@ Todas as recompensas alcançadas||All rewards reached|Todas las recompensas alca
 Baús abertos||Opened chests|Cofres abiertos
 Exploração de Hyrule||Hyrule exploration|Exploración de Hyrule
 Saldo atual||Current balance|Saldo actual
+Tempo de jogo||Play time|Tiempo de juego
+Até o último save||As of the last save|Hasta el último guardado
 Ver jornada||View adventure|Ver aventura
 Atividade recente||Recent activity|Actividad reciente
 Abrir registro||Open log|Abrir registro
@@ -554,7 +556,6 @@ Big Poes Sold|Grandes Poes vendidos|Big Poes sold|Grandes Poes vendidos
 House of Skulltula Rewards|Recompensas das Skulltulas|House of Skulltula rewards|Recompensas de las Skulltulas
 Child Trading Sequence|Trocas na infância|Child trading sequence|Intercambios de niño
 Adult Trading Sequence|Trocas na idade adulta|Adult trading sequence|Intercambios de adulto
-Magic Bean Spots Planted|Locais plantados com feijão mágico|Magic bean spots planted|Lugares con judías mágicas
 Maps, Compasses & Boss Keys|Mapas, bússolas e chaves de chefe|Maps, compasses and boss keys|Mapas, brújulas y llaves del jefe
 amiibo Retro Masks|Máscaras retrô de amiibo|amiibo retro masks|Máscaras retro de amiibo
 Save|Save|Save|Partida
@@ -882,3 +883,23 @@ Faltam||Remaining|Faltan
 Coletados||Collected|Recogidos
 Grandes Fadas||Great Fairies|Grandes Hadas
 Defeated in Hyrule Field: {done}/{total}|Derrotados no Campo de Hyrule: {done}/{total}|Defeated in Hyrule Field: {done}/{total}|Derrotados en el Campo de Hyrule: {done}/{total}
+Conclusão da área||Area completion|Progreso del área
+Progresso de conclusão||Completion progress|Progreso de finalización
+Taxa de conclusão por região||Completion rate by region|Tasa de finalización por región
+Voltar ao mapa de Hyrule||Back to the Hyrule map|Volver al mapa de Hyrule
+Mostrar painel||Show panel|Mostrar panel
+Recolher painel||Hide panel|Ocultar panel
+Ampliar||Zoom in|Acercar
+Reduzir||Zoom out|Alejar
+Reiniciar zoom||Reset zoom|Restablecer zoom
+Role para ampliar · Arraste para mover||Scroll to zoom · Drag to pan|Desplaza para acercar · Arrastra para mover
+Esta região não tem mapa próprio.||This region has no map of its own.|Esta región no tiene mapa propio.
+Hyrule||Hyrule|Hyrule
+Filtrar a lista por esta categoria||Filter the list by this category|Filtrar la lista por esta categoría
+Fique ao lado da pedra falante e toque a ocarina. Veja o ponto exato no mapa.||Stand next to the Gossip Stone and play the Ocarina. See the exact spot on the map.|Colócate junto a la piedra chismosa y toca la ocarina. Mira el lugar exacto en el mapa.
+Como adulto, com uma garrafa vazia, derrote o Big Poe no Campo de Hyrule com o Arco das Fadas e capture-o na garrafa. Venda-o ao Coletor de Poes nas ruínas do Mercado. Veja o ponto exato no mapa.||As an adult with an empty bottle, defeat the Big Poe in Hyrule Field with the Fairy Bow and catch it in the bottle. Sell it to the Poe Collector in the Market ruins. See the exact spot on the map.|Como adulto, con una botella vacía, derrota al Gran Poe en el Campo de Hyrule con el Arco de las Hadas y captúralo en la botella. Véndelo al Coleccionista de Poes en las ruinas del Mercado. Mira el lugar exacto en el mapa.
+View on map|Ver no mapa|View on map|Ver en el mapa
+Toque a Canção de Epona ao lado da vaca na casa de Link, na Floresta Kokiri, e pegue o leite.||Play Epona's Song next to the cow in Link's house in Kokiri Forest and take the milk.|Toca la Canción de Epona junto a la vaca de la casa de Link, en el Bosque Kokiri, y toma la leche.
+Toque a Canção de Epona ao lado de qualquer vaca para ganhar leite.||Play Epona's Song next to any cow to get milk.|Toca la Canción de Epona junto a cualquier vaca para conseguir leche.
+Abra o baú indicado no mapa da região.||Open the chest marked on the region map.|Abre el cofre marcado en el mapa de la región.
+Entre na gruta indicada no mapa da região e marque como concluída aqui.||Enter the grotto marked on the region map and mark it as done here.|Entra en la gruta marcada en el mapa de la región y márcala como completada aquí.

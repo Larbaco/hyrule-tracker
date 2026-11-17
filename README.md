@@ -26,7 +26,7 @@ A Windows desktop app that **reads your local save** and updates the checklist, 
 ## 🚀 First use
 
 1. 🎮 Open the game in a compatible environment and load a game with at least one save.
-2. 📦 Download `Hyrule-Tracker-Setup-1.1.1.exe` from the [Releases](https://github.com/jv-prado/hyrule-tracker/releases) tab, run it and open **Hyrule Tracker**. The tracker looks for saves automatically in known installations.
+2. 📦 Download `Hyrule-Tracker-Setup-1.2.0.exe` from the [Releases](https://github.com/jv-prado/hyrule-tracker/releases) tab, run it and open **Hyrule Tracker**. The tracker looks for saves automatically in known installations.
    > 🛡️ The installer is not code-signed yet, so Windows SmartScreen may show "Windows protected your PC". Click **More info → Run anyway**.
 3. 🟢 Check the status next to the installation name:
    - **Save connected** → the tracker read the save from disk.

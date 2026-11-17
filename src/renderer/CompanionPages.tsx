@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Activity, AppState, PlayerState, TrackedItem } from '../shared/types';
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
+import type { Activity, AppState, PlayerState, TrackedCategory, TrackedItem } from '../shared/types';
 import { LOCAL_NAMES, MASK_SALE_NAMES } from '../core/companion';
 import { api } from './api';
 import { enemyPhoto, regionPhoto } from './referenceImages';
@@ -8,6 +8,8 @@ import { currentLocale, date, hour, languages, number, plural, t, tv, type Local
 import { ObjectiveName } from './ObjectiveName';
 import { GameItemIcon, trackedItemIcon } from './GameItemIcon';
 import { Minigames } from './Minigames';
+import { ZoomPan } from './ZoomPan';
+import { locatePlacement, type AtlasPlace as PositionPlace, type PlayerFix } from '../core/position';
 import atlas from '../../data/atlas.json';
 import { Quiz, Gossip, useStored } from './Recreation';
 import './companion.css';
@@ -123,6 +125,12 @@ export function PageHeader({ page, state, headerActions }: { page: Page; state: 
 }
 
 const value = (n: number | null | undefined) => n == null ? '—' : number(n);
+/** 28237 -> "7h 50m"; under an hour -> "12m". */
+export const playTime = (sec: number | null | undefined) => {
+  if (sec == null || sec < 0) return '—';
+  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60);
+  return h ? `${number(h)}h ${String(m).padStart(2, '0')}m` : `${m}m`;
+};
 
 /**
  * "Search saves" and "Choose folder". Choosing a folder by hand is always possible, even while
@@ -149,11 +157,11 @@ function SaveActions({ onScan, scanning, loading = false, notFound = false }: { 
   </>;
 }
 
-export function CompanionPage({ page, state, onPage, onScan, scanning, onLanguage, headerActions }: { page: Page; state: AppState; onPage: (page: Page) => void; onScan: () => void; scanning: boolean; onLanguage: (locale: Locale) => void; headerActions: ReactNode }) {
+export function CompanionPage({ page, state, onPage, onScan, scanning, onLanguage, headerActions, mapFocus }: { mapFocus?: string; page: Page; state: AppState; onPage: (page: Page) => void; onScan: () => void; scanning: boolean; onLanguage: (locale: Locale) => void; headerActions: ReactNode }) {
   const view = {
     overview: <Overview state={state} onPage={onPage} onScan={onScan} scanning={scanning} />,
     checklist: <Overview state={state} onPage={onPage} onScan={onScan} scanning={scanning} />,
-    map: <HyruleMap state={state} />,
+    map: <HyruleMap state={state} focus={mapFocus} />,
     threads: <Threads state={state} />,
     hall: <Hall state={state} />,
     minigames: <Minigames state={state} />,
@@ -180,6 +188,7 @@ function Overview({ state, onPage, onScan, scanning }: { state: AppState; onPage
     { label: 'Skulltulas douradas', icon: 'gold_skulltula', count: s.tokens, max: 100, detail: s.claimable.length ? t('Recompensa disponível') : s.nextReward ? `${t('Próxima recompensa aos')} ${s.nextReward.tokens}` : t('Todas as recompensas alcançadas') },
     { label: 'Baús abertos', icon: 'chest', count: chests?.done, max: chests?.total, detail: t('Exploração de Hyrule') },
     { label: 'Rupees', icon: 'rupee', count: state.companion?.rupees, detail: t('Saldo atual') },
+    { label: 'Tempo de jogo', icon: 'song_of_time', count: null as number | null | undefined, text: playTime(state.companion?.playSeconds), detail: t('Até o último save') },
   ];
   const artwork = state.saveImage || regionPhoto('HyruleField')?.file;
   return <>
@@ -195,7 +204,7 @@ function Overview({ state, onPage, onScan, scanning }: { state: AppState; onPage
       <div className="progress-place">{t(s.area || sourceName(state))}<small>{s.lastSavedMs ? date(s.lastSavedMs) : t('Último save')}</small></div>
     </section>
     <section className="metric-strip" aria-label={t("Resumo da partida")}>
-      {metrics.map(m => <div className="metric" key={m.label}><span className="metric-label"><GameItemIcon id={m.icon} size={25} />{t(m.label)}</span><strong>{value(m.count)}{m.max != null && <small>/{m.max}</small>}</strong><span>{m.detail}</span></div>)}
+      {metrics.map(m => <div className="metric" key={m.label}><span className="metric-label"><GameItemIcon id={m.icon} size={25} />{t(m.label)}</span><strong>{'text' in m ? m.text : value(m.count)}{m.max != null && <small>/{m.max}</small>}</strong><span>{m.detail}</span></div>)}
     </section>
     <div className="home-grid">
       <section className="focus-panel"><div className="section-line"><h2>{t("Fios do Tempo+")}</h2><button className="text-action" onClick={() => onPage('threads')}>{t("Ver jornada")}</button></div>
@@ -284,82 +293,234 @@ function PlayerPin({ at, yaw, live }: { at: { x: number; y: number }; yaw: numbe
   </div>;
 }
 
-export function HyruleMap({ state }: { state: AppState }) {
+type Era ='all' | 'child' | 'adult';
+/** One collectible placed on a region (by where its chest sits, or by the region the checklist names). */
+interface MapRow { item: TrackedItem; cat: TrackedCategory; area: string; placed: boolean; era?: string; fixes: PlayerFix[] }
+/** A tracked collectible drawn on a floor map. */
+interface TrackedPin { item: TrackedItem; cat: TrackedCategory; at: { map: string; x: number; y: number } }
+const atlasPlaces = atlas.places as unknown as PositionPlace[];
+/** The projection clamps what falls outside a map to its border: those spots are not where they look, so they are not drawn. */
+const atEdge = (at: { x: number; y: number }) => at.x <= 0.021 || at.x >= 0.979 || at.y <= 0.021 || at.y >= 0.979;
+interface Spot { stage?: string; era?: 'child' | 'adult'; x?: number; y?: number; z?: number }
+/** Where a placed collectible falls on the atlas (one fix per map it shows on). */
+const locateSpot = (spot: Spot): PlayerFix[] => spot.stage && spot.x != null && spot.y != null && spot.z != null
+  ? locatePlacement(spot.stage, spot.era, { x: spot.x, y: spot.y, z: spot.z }, atlasPlaces) : [];
+export const MAP_CATEGORIES = new Set(['heart_pieces', 'heart_containers', 'gold_skulltulas', 'chests', 'great_fairies', 'bottles', 'fairy_thoughts', 'scarecrow_spots', 'grottos', 'minigames', 'side_events', 'bean_spots', 'big_poe_spots', 'gossip_stones', 'silver_rupees', 'cow_rewards']);
+/** Game icon of each category in the area panel. */
+const categoryIcons: Record<string, string> = {
+  heart_pieces: 'heart_piece', heart_containers: 'heart_container', gold_skulltulas: 'gold_skulltula', chests: 'chest',
+  great_fairies: 'double_magic', bottles: 'bottle', fairy_thoughts: 'fairy_ocarina', scarecrow_spots: 'scarecrows_song',
+  grottos: 'bomb', minigames: 'gold_rupee', side_events: 'zeldas_letter', bean_spots: 'magic_bean', big_poe_spots: 'big_poe',
+  gossip_stones: 'mask_of_truth', silver_rupees: 'purple_rupee', cow_rewards: 'lon_lon_milk',
+};
+const eras: [Era, string][] = [['all', 'Todas'], ['child', 'Criança'], ['adult', 'Adulto']];
+const normalizeName = (s: string) => s.normalize('NFD').toLowerCase().replace(/ \(.+\)$/, '').replace(/[^a-z0-9]/g, '');
+const findRegion = (name: string) => Object.keys(LOCAL_NAMES).find(k =>
+  normalizeName(k) === normalizeName(name) || normalizeName(LOCAL_NAMES[k]) === normalizeName(name) || englishAliases[k]?.some(a => normalizeName(a) === normalizeName(name)),
+);
+/** Game order for the region list: the atlas's order first, then any other region with items. */
+/** In-game screenshot of each area for the progress list (picked from the atlas's location shots; no HUD dialogue in the middle, where the row crops to). */
+const areaShots: Record<string, string> = {
+  kokiri: 'd47a7cff2873afce.webp',
+  perdido: '6b0eddcd7f5addd9.webp',
+  prado: 'cba5d0058e101bb9.webp',
+  llanura: '34c70292d11802e6.webp',
+  lonlon: '91642ad57803f8af.webp',
+  ciudadela: '6bcb2553b2880932.webp',
+  castillo: '1a2730b6efd43b42.webp',
+  kakariko: 'fb3f847e2ae7abe8.webp',
+  cementerio: 'd7c9d1e96f6b2f07.webp',
+  sendero: 'c90a06d525bd049f.webp',
+  goron: '70f65ff0d0f7842e.webp',
+  crater: 'db42d04fb15d706b.webp',
+  rio: 'ee0d4916fd4db374.webp',
+  dominio: '532dd5c6729880f1.webp',
+  fuente: 'b6ccef48d89d5593.webp',
+  lago: '3b36c9a09d21fd21.webp',
+  valle: '5e6592a7228bc8ab.webp',
+  fortaleza: '902e679ca926440d.webp',
+  desierto: 'd77c310b8b567ad3.webp',
+  coloso: '13114341bbebc7db.webp',
+  deku: '007dfbd483e37f4c.webp',
+  dodongos: '5163696cba9539ce.webp',
+  jabu: 'cfa0683ff00b72c8.webp',
+  bosque: '1ada9fcb97f1047e.webp',
+  fuego: '1da52d01ff92b0e5.webp',
+  agua: 'c4648f47b96fc9a7.webp',
+  sombra: '7071f75c0caac948.webp',
+  espiritu: 'e6fec2857c58bfc1.webp',
+  pozo: '4a3a528aecdf510f.webp',
+  hielo: '0fc9f3e25475a5ad.webp'
+};
+const areaShot = (key: string) => {
+  const place = Object.keys(atlasStages).find(id => atlasStages[id] === key);
+  return place && areaShots[place] ? 'images/atlas/' + areaShots[place] : regionPhoto(key)?.file;
+};
+const regionOrder = [...new Set([...atlas.places.map(p => atlasStages[p.id]), ...Object.keys(LOCAL_NAMES)].filter(Boolean))];
+/** Rounded down, so a region only reads 100% when everything in it is done. */
+const percent = (done: number, total: number) => total ? Math.floor(done / total * 100) : 0;
+const inEra = (r: MapRow, era: Era) => {
+  if (era === 'all') return true;
+  if (r.placed) return !r.era || r.era === era;
+  const ages: string[] = r.item.logic?.ages ?? [];
+  return !ages.length || ages.includes(era);
+};
+
+export function HyruleMap({ state, focus }: { state: AppState; focus?: string }) {
   const player = usePlayer(state);
-  const [region, setRegion] = useState('HyruleField');
-  const [era, setEra] = useState<'all' | 'child' | 'adult'>('all');
+  // The region opened by hand ('' = the world map).
+  const [picked, setPicked] = useState('');
+  const [era, setEra] = useState<Era>('all');
   const [filter, setFilter] = useState('all');
   const [hideDone, setHideDone] = useState(false);
   const [hideUnknown, setHideUnknown] = useStored('map.hideUnknown', false);
   // On by default: the map opens where Link is and keeps up with him.
   const [follow, setFollow] = useStored('map.follow', true);
+  const [panelOpen, setPanelOpen] = useStored('map.panel', true);
   const [active, setActive] = useState<TrackedItem>();
-  const normalize = (s: string) => s.normalize('NFD').toLowerCase().replace(/ \(.+\)$/, '').replace(/[^a-z0-9]/g, '');
-  const findRegion = (name: string) => Object.keys(LOCAL_NAMES).find(k =>
-    normalize(k) === normalize(name) || normalize(LOCAL_NAMES[k]) === normalize(name) || englishAliases[k]?.some(a => normalize(a) === normalize(name)),
-  );
   const inGame = (player && atlasStages[player.placeId]) || findRegion(state.summary?.area?.replace(/ \(.+\)$/, '') ?? '');
-  const selected = follow && inGame ? inGame : region;
+  const selected = follow && inGame ? inGame : picked;
+  const inRegion = selected !== '';
   const seen = new Set([...(state.companion?.visited ?? []), ...(inGame ? [inGame] : [])]);
-  const categories = state.categories.filter(c => ['heart_pieces', 'heart_containers', 'gold_skulltulas', 'chests', 'great_fairies', 'bottles', 'fairy_thoughts', 'scarecrow_spots', 'grottos', 'minigames', 'side_events', 'bean_spots', 'big_poe_spots', 'gossip_stones', 'silver_rupees', 'cow_rewards'].includes(c.id));
   const places = useMemo(() => new Map(Object.entries(state.placements ?? {}).flatMap(([id, rows]) =>
     rows.map(c => [id + '.0x' + c.hash.toString(16), c] as const))), [state.placements]);
-  const localItems = categories.flatMap(cat => cat.items.filter(item => {
-    const chest = places.get(item.id);
-    const area = chest ? chest.stage || 'unknown' : findRegion(item.chapter ?? item.logic?.region ?? '');
-    const ages = item.logic?.ages ?? [];
-    return area === selected && (era === 'all' || (chest ? !chest.era || chest.era === era : !ages.length || ages.includes(era)));
-  }).map(item => ({ item, cat })));
-  const visible = localItems.filter(({ item, cat }) => (!hideDone || !item.done) && (filter === 'all' || filter === cat.id));
-  const points = localItems.flatMap(({ item }) => { const c = places.get(item.id); return c?.x != null && c.z != null ? [{ item, x: c.x, z: c.z }] : []; });
-  const plotted = points.filter(p => visible.some(v => v.item.id === p.item.id));
-  const box = { minX: Math.min(...points.map(p => p.x)), maxX: Math.max(...points.map(p => p.x)), minZ: Math.min(...points.map(p => p.z)), maxZ: Math.max(...points.map(p => p.z)) };
-  function select(k: string) { setRegion(k); setFollow(false); setActive(undefined); }
+  const spots = state.worldMarkers;
+  const rows = useMemo<MapRow[]>(() => state.categories.filter(c => MAP_CATEGORIES.has(c.id)).flatMap(cat => cat.items.map(item => {
+    const spot: Spot | undefined = places.get(item.id) ?? spots?.[item.id];
+    const fixes = spot ? locateSpot(spot) : [];
+    // Placed items belong to the region their map is in (the ranch and the lake are part of the Hyrule Field scene).
+    const area = spot ? atlasStages[fixes[0]?.placeId] ?? (spot.stage || 'unknown') : findRegion(item.chapter ?? item.logic?.region ?? '') ?? '';
+    return { item, cat, placed: !!spot, era: spot?.era, fixes, area };
+  })), [state.categories, places, spots]);
+  // Completion of every region (all eras), for the world map's list.
+  const progress = useMemo(() => {
+    const byKey = new Map<string, { done: number; total: number }>();
+    for (const r of rows) {
+      const entry = byKey.get(r.area) ?? { done: 0, total: 0 };
+      entry.total++;
+      if (r.item.done) entry.done++;
+      byKey.set(r.area, entry);
+    }
+    const regions = regionOrder.filter(key => LOCAL_NAMES[key] && byKey.has(key)).map(key => ({ key, ...byKey.get(key)! }));
+    return { byKey, regions, done: regions.reduce((n, r) => n + r.done, 0), total: regions.reduce((n, r) => n + r.total, 0) };
+  }, [rows]);
+
+  const local = rows.filter(r => r.area === selected && inEra(r, era));
+  const visible = local.filter(r => (!hideDone || !r.item.done) && (filter === 'all' || filter === r.cat.id));
+  const counters = [...local.reduce((map, r) => {
+    const entry = map.get(r.cat.id) ?? { cat: r.cat, icon: categoryIcons[r.cat.id] ?? trackedItemIcon(r.item), done: 0, total: 0 };
+    entry.total++;
+    if (r.item.done) entry.done++;
+    return map.set(r.cat.id, entry);
+  }, new Map<string, { cat: TrackedCategory; icon: string; done: number; total: number }>()).values()];
+  const localDone = local.filter(r => r.item.done).length;
   const showLocation = !hideUnknown || seen.has(selected);
-  const photo = showLocation ? regionPhoto(selected) : undefined;
+  const photo = inRegion && showLocation ? regionPhoto(selected) : undefined;
+  const place = atlas.places.find(p => atlasStages[p.id] === selected);
+  // Fairy thoughts already have their own markers in the atlas.
+  const tracked: TrackedPin[] = place ? local.filter(r => r.cat.id !== 'fairy_thoughts').flatMap(r => r.fixes
+    .filter(f => f.placeId === place.id && f.mapId && f.at && !atEdge(f.at)).map(f => ({ item: r.item, cat: r.cat, at: { map: f.mapId!, x: f.at!.x, y: f.at!.y } }))) : [];
+  const regionName = selected === 'unknown' ? t('Baús sem posição mapeada') : t(LOCAL_NAMES[selected] ?? selected);
+
+  // Arriving from a checklist entry: open its region and highlight it.
+  useEffect(() => {
+    const row = focus ? rows.find(r => r.item.id === focus) : undefined;
+    if (!row) return;
+    setPicked(row.area);
+    setFollow(false);
+    setFilter('all');
+    setEra('all');
+    setHideDone(false);
+    setPanelOpen(true);
+    setActive(row.item);
+    // Only when the requested entry changes; later state refreshes must not pull the map back.
+  }, [focus]);
+
+  function open(key: string) { setPicked(key); setFollow(false); setActive(undefined); setFilter('all'); }
+  const back = () => open('');
   const selectItem = (item: TrackedItem) => setActive(item.id === active?.id ? undefined : item);
-  const activeItem = localItems.find(({ item }) => active?.id === item.id)?.item;
+  const activeItem = local.find(({ item }) => active?.id === item.id)?.item;
+  const showPanel = !panelOpen ? <button type="button" className="map-panel-show" aria-expanded="false" onClick={() => setPanelOpen(true)}>{t('Mostrar painel')}</button> : undefined;
+  const rate = (key: string) => { const r = progress.byKey.get(key); return r ? percent(r.done, r.total) : 0; };
+  const listed = progress.regions.filter(r => !hideUnknown || seen.has(r.key));
+  const unknownRate = progress.byKey.get('unknown');
+
   return <>
     <div className="filter-bar">
-      <label>{t("Região")}{' '}<select value={selected} onChange={e => select(e.target.value)}>{Object.entries(LOCAL_NAMES).filter(([key]) => !hideUnknown || seen.has(key) || key === selected).map(([key, name]) => <option key={key} value={key}>{t(name)}</option>)}{!hideUnknown && <option value="unknown">{t("Baús sem posição mapeada")}</option>}</select></label>
-      <label>{t("Era")}{' '}<select value={era} onChange={e => setEra(e.target.value as typeof era)}><option value="all">{t("Todas")}</option><option value="child">{t("Criança")}</option><option value="adult">{t("Adulto")}</option></select></label>
+      <label>{t("Região")}{' '}<select value={selected} onChange={e => open(e.target.value)}><option value="">{t("Mapa de Hyrule")}</option>{Object.entries(LOCAL_NAMES).filter(([key]) => !hideUnknown || seen.has(key) || key === selected).map(([key, name]) => <option key={key} value={key}>{t(name)}</option>)}{!hideUnknown && <option value="unknown">{t("Baús sem posição mapeada")}</option>}</select></label>
       <label><input type="checkbox" checked={hideUnknown} onChange={e => setHideUnknown(e.target.checked)} />{t("Ocultar regiões não vistas")}</label>
       <label><input type="checkbox" checked={follow} onChange={e => { setFollow(e.target.checked); setActive(undefined); }} />{t("Seguir Link")}</label>
     </div>
-    <div className="map-layout">
-      <section className="focus-panel map-panel">
-        <div className="world-map" aria-label={t("Mapa de Hyrule")} style={{ aspectRatio: atlas.map.width / atlas.map.height, ['--ratio' as string]: atlas.map.width / atlas.map.height }}>
-          <img className="map-art" src={atlas.map.image} alt="" />
-          {atlas.places.filter(place => !hideUnknown || seen.has(atlasStages[place.id])).map(place => {
-            const key = atlasStages[place.id];
-            const label = t(LOCAL_NAMES[key] ?? place.name);
-            return <button key={key} className="map-node" style={{ left: `${place.pin.x * 100}%`, top: `${place.pin.y * 100}%` }} aria-pressed={key === selected} title={label} aria-label={label} onClick={() => select(key)}><i className={key === inGame ? 'in-game' : ''} /><span>{label}</span></button>;
+    <div className={panelOpen ? 'map-stage' : 'map-stage no-panel'}>
+      <section className="map-main">
+        {!inRegion ? <ZoomPan key="world" ratio={atlas.map.width / atlas.map.height} className="world-map" overlay={showPanel}>
+          <img className="map-art" src={atlas.map.image} alt={t("Mapa de Hyrule")} draggable={false} />
+          {atlas.places.filter(p => !hideUnknown || seen.has(atlasStages[p.id])).map(p => {
+            const key = atlasStages[p.id];
+            const label = t(LOCAL_NAMES[key] ?? p.name);
+            const entry = progress.byKey.get(key);
+            const title = entry ? `${label} · ${rate(key)}%` : label;
+            const state = key === inGame ? ' in-game' : entry && entry.done === entry.total ? ' complete' : '';
+            return <button key={key} className={`map-node ${p.kind}${state}`} style={{ left: `${p.pin.x * 100}%`, top: `${p.pin.y * 100}%` }} title={title} aria-label={title} onClick={() => open(key)}><span>{label}</span></button>;
           })}
           {player && <PlayerPin at={player.world} yaw={player.yaw} live={player.source === 'live'} />}
-        </div>
+        </ZoomPan> : <>
+          <div className="map-toolbar">
+            <button type="button" className="map-back" aria-label={t('Voltar ao mapa de Hyrule')} title={t('Voltar ao mapa de Hyrule')} onClick={back}>←</button>
+            <h2>{regionName}</h2>
+          </div>
+          {showLocation && place ? <RegionAtlas key={selected} place={place} state={state} era={era} filter={filter} hideDone={hideDone} player={player} follow={follow} overlay={showPanel} tracked={tracked} />
+            : <p className="quiet">{showLocation ? t('Esta região não tem mapa próprio.') : t('Visite a região para ver os itens.')}</p>}
+        </>}
         <p className="map-caption">{player?.source === 'live' ? t('Link ao vivo') : state.live.using ? t('região atual ao vivo') : player ? t('Link no último save') : t('região no último save')}</p>
-        {showLocation && selected !== 'unknown' && <RegionAtlas key={selected} region={selected} state={state} era={era} filter={filter} hideDone={hideDone} player={player} follow={follow} />}
       </section>
-      <section className="focus-panel map-results">
-        {photo && <img className="region-photo" src={photo.file} alt={t(LOCAL_NAMES[selected])} />}
-        <div className="section-line"><h2>{selected === 'unknown' ? t('Baús sem posição') : t(LOCAL_NAMES[selected])}</h2>{showLocation && <b>{localItems.filter(({ item }) => item.done).length}/{localItems.length}</b>}</div>
-        <div className="filter-bar compact"><label>{t("Coletáveis")}{' '}<select value={filter} onChange={e => setFilter(e.target.value)}><option value="all">{t("Todos")}</option>{categories.map(c => <option key={c.id} value={c.id}>{t(c.label)}</option>)}</select></label>
-        <label><input type="checkbox" checked={hideDone} onChange={e => setHideDone(e.target.checked)} />{t("Só pendentes")}</label></div>
-        {showLocation && !!plotted.length && <div className="local-plot" aria-label={t("Posições dos itens na região")}>{plotted.map(p =>
-          <button key={p.item.id} aria-label={`${t(p.item.name)} · ${t(p.item.done ? 'Coletado' : 'Pendente')}`} aria-pressed={active?.id === p.item.id} className={p.item.done ? 'plot-point done' : 'plot-point'} style={{ left: `${10 + (p.x - box.minX) / (box.maxX - box.minX || 1) * 80}%`, top: `${10 + (p.z - box.minZ) / (box.maxZ - box.minZ || 1) * 80}%` }} onClick={() => selectItem(p.item)}><GameItemIcon id={trackedItemIcon(p.item)} size={14} /></button>,
-        )}</div>}
-        {activeItem && <div className="notice"><p><ObjectiveName done={activeItem.done}>{t(activeItem.name)}</ObjectiveName>{activeItem.where ? ` · ${t(activeItem.where)}` : ''}</p>
-          {(activeItem.state === 'unmapped' || activeItem.manual) && <button className="action" onClick={() => void api.toggleManual(activeItem.id)}>{activeItem.done ? t('Desmarcar') : t('Concluí')}</button>}</div>}
-        {!showLocation ? <p className="quiet">{t("Visite a região para ver os itens.")}</p> : visible.length ? <div className="result-list">{visible.map(({ item, cat }) => <button key={item.id} aria-pressed={item.id === active?.id} onClick={() => selectItem(item)}><span className={item.done ? 'story-dot done' : 'story-dot'} /><span><ObjectiveName done={item.done}>{t(item.name)}</ObjectiveName><small>{t(cat.label)} · {item.done ? t('Coletado') : item.state === 'unknown' || item.state === 'unmapped' ? t('Situação não mapeada') : t('Pendente')}</small></span></button>)}</div> : <p className="quiet">{t("Nenhum item para este filtro.")}</p>}
-      </section>
+      {panelOpen && <aside className="map-side" aria-label={inRegion ? t('Conclusão da área') : t('Progresso de conclusão')}>
+        <div className="map-side-head">
+          <button type="button" className="map-side-collapse" aria-label={t('Recolher painel')} title={t('Recolher painel')} aria-expanded="true" onClick={() => setPanelOpen(false)}>⌄</button>
+          <b>{inRegion ? t('Conclusão da área') : t('Progresso de conclusão')}</b>
+        </div>
+        {!inRegion ? <div className="map-side-body">
+          <div className="side-score"><span className="side-region">{t('Hyrule')}</span><strong>{percent(progress.done, progress.total)}%</strong></div>
+          <p className="side-sub">{progress.done}/{progress.total} · {t('Taxa de conclusão por região')}</p>
+          <div className="region-rates">
+            {listed.map(r => <button key={r.key} type="button" className="region-rate" style={areaShot(r.key) ? { backgroundImage: `linear-gradient(90deg, #14121100 0%, #141211a0 52%, #141211 88%), url("${areaShot(r.key)}")` } : undefined} onClick={() => open(r.key)}>
+              <span className="rate-name">{t(LOCAL_NAMES[r.key])}</span><b>{rate(r.key)}%</b>
+              <span className="rate-track"><i style={{ width: `${rate(r.key)}%` }} /></span>
+            </button>)}
+            {!hideUnknown && unknownRate && <button type="button" className="region-rate" onClick={() => open('unknown')}>
+              <span className="rate-name">{t('Baús sem posição mapeada')}</span><b>{unknownRate.done}/{unknownRate.total}</b>
+              <span className="rate-track"><i style={{ width: `${percent(unknownRate.done, unknownRate.total)}%` }} /></span>
+            </button>}
+          </div>
+        </div> : <div className="map-side-body">
+          {photo && <img className="region-photo" src={photo.file} alt={regionName} />}
+          <div className="side-score"><span className="side-region">{regionName}</span>{showLocation && <strong>{percent(localDone, local.length)}%</strong>}</div>
+          <div className="era-tabs" role="radiogroup" aria-label={t('Era')}>{eras.map(([id, label]) =>
+            <button key={id} type="button" role="radio" aria-checked={era === id} onClick={() => { setEra(id); setActive(undefined); }}>{t(label)}</button>)}</div>
+          {!showLocation ? <p className="quiet">{t("Visite a região para ver os itens.")}</p> : <>
+            {!!counters.length && <div className="side-counters">{counters.map(c =>
+              <button key={c.cat.id} type="button" aria-pressed={filter === c.cat.id} title={t('Filtrar a lista por esta categoria')} onClick={() => setFilter(filter === c.cat.id ? 'all' : c.cat.id)}>
+                <span className="counter-icon"><GameItemIcon id={c.icon} size={18} /></span><span>{t(c.cat.label)}</span><b>{c.done}/{c.total}</b>
+              </button>)}</div>}
+            <div className="side-list-head"><h3>{t('Coletáveis')}</h3><small>{visible.length}</small>
+              <label><input type="checkbox" checked={hideDone} onChange={e => setHideDone(e.target.checked)} />{t("Só pendentes")}</label></div>
+            {visible.length ? <div className="result-list">{visible.map(({ item, cat }) => <Fragment key={item.id}><button aria-expanded={item.id === active?.id} aria-pressed={item.id === active?.id} onClick={() => selectItem(item)}><span className={item.done ? 'story-dot done' : 'story-dot'} /><span><ObjectiveName done={item.done}>{t(item.name)}</ObjectiveName><small>{t(cat.label)} · {item.done ? t('Coletado') : item.state === 'unknown' || item.state === 'unmapped' ? t('Situação não mapeada') : t('Pendente')}</small></span></button>
+              {item.id === activeItem?.id && <div className="result-detail"><p>{activeItem.where ? t(activeItem.where) : t(cat.label)}</p>
+                {activeItem.state !== 'yes' && <button className="action" onClick={() => void api.toggleManual(activeItem.id)}>{activeItem.done ? t('Desmarcar') : t('Concluí')}</button>}</div>}</Fragment>)}</div> : <p className="quiet">{t("Nenhum item para este filtro.")}</p>}
+          </>}
+        </div>}
+      </aside>}
     </div>
   </>;
 }
 
-function RegionAtlas({ region, state, era, filter, hideDone, player, follow }: { region: string; state: AppState; era: string; filter: string; hideDone: boolean; player?: PlayerState; follow: boolean }) {
-  const place = atlas.places.find(p => atlasStages[p.id] === region);
-  const here = player && place && player.placeId === place.id ? player : undefined;
-  const [floor, setFloor] = useState((here?.mapId ?? place?.startMap) ?? '');
+type AtlasPlace = (typeof atlas.places)[number];
+/** One marker on a floor map: an atlas location or a tracked collectible. */
+interface Pin { id: string; filter?: string; icon?: string; kind: string; name: string; at?: { map: string; x: number; y: number }; status: 'done' | 'todo' | 'unknown'; images: string[]; item?: TrackedItem; tick?: { id: string; on: boolean } }
+
+function RegionAtlas({ place, state, era, filter, hideDone, player, follow, overlay, tracked }: { place: AtlasPlace; state: AppState; era: string; filter: string; hideDone: boolean; player?: PlayerState; follow: boolean; overlay?: ReactNode; tracked: TrackedPin[] }) {
+  const here = player && player.placeId === place.id ? player : undefined;
+  const [floor, setFloor] = useState(here?.mapId ?? place.startMap ?? '');
   // Following Link: keep his floor / era on screen as he moves between them.
   useEffect(() => { if (follow && here?.mapId) setFloor(here.mapId); }, [follow, here?.mapId]);
   const [active, setActive] = useState('');
@@ -372,69 +533,83 @@ function RegionAtlas({ region, state, era, filter, hideDone, player, follow }: {
     document.addEventListener('keydown', key);
     return () => document.removeEventListener('keydown', key);
   }, [active]);
-  if (!place) return null;
   const status = state.atlasStatus ?? {};
   const currentFloor = place.maps.find(map => map.id === floor) ?? place.maps[0];
-  const pool = atlas.items.filter(item => item.place === place.id && (filter === 'all' || atlasCategories[item.cat] === filter) &&
-    (era === 'all' || !item.age || item.age === 'both' || item.age === era));
-  const doneCount = pool.filter(m => status[m.id] === 'done').length;
-  const markers = pool.filter(m => (!hideDone || status[m.id] !== 'done') &&
-    (show === 'all' || (show === 'done' ? status[m.id] === 'done' : status[m.id] !== 'done')));
+  const kindOf = (cat: string) => t(atlasKinds[cat] ?? cat);
+  const atlasPins: Pin[] = atlas.items.filter(item => item.place === place.id && (era === 'all' || !item.age || item.age === 'both' || item.age === era)).map(m => ({
+    id: m.id, filter: atlasCategories[m.cat], icon: categoryIcons[atlasCategories[m.cat]] ?? atlasIcons[m.cat], kind: kindOf(m.cat), name: m.name,
+    at: m.at ?? undefined, status: status[m.id] ?? 'unknown', images: m.images,
+    // Detected in the save: nothing to tick. Otherwise tick (or untick a hand tick).
+    tick: status[m.id] !== 'done' || state.atlasManual?.[m.id] ? { id: state.atlasLinks?.[m.id] ?? m.id, on: !!state.atlasManual?.[m.id] } : undefined,
+  }));
+  const trackedPins: Pin[] = tracked.map(p => ({
+    id: p.item.id + '@' + p.at.map, filter: p.cat.id, icon: categoryIcons[p.cat.id], kind: t(p.cat.label), name: p.item.name, at: p.at, images: [], item: p.item,
+    tick: p.item.state !== 'yes' ? { id: p.item.id, on: p.item.done } : undefined,
+    status: p.item.done ? 'done' : p.item.state === 'unknown' || p.item.state === 'unmapped' ? 'unknown' : 'todo',
+  }));
+  const pool = [...atlasPins, ...trackedPins].filter(p => filter === 'all' || p.filter === filter);
+  const doneCount = pool.filter(m => m.status === 'done').length;
+  const markers = pool.filter(m => (!hideDone || m.status !== 'done') &&
+    (show === 'all' || (show === 'done' ? m.status === 'done' : m.status !== 'done')));
   const selected = markers.find(item => item.id === active);
   const select = (id: string) => { setActive(id); setShot(0); };
-  const statusLabel = (id: string) => t(status[id] === 'done' ? 'Coletado' : status[id] === 'todo' ? 'Pendente' : 'Situação não mapeada');
-  const kind = (cat: string) => t(atlasKinds[cat] ?? cat);
+  const statusLabel = (s: Pin['status']) => t(s === 'done' ? 'Coletado' : s === 'todo' ? 'Pendente' : 'Situação não mapeada');
   return <div className="region-atlas">
-    <div className="section-line"><h2>{t("Mapa da região")}</h2>
+    <div className="atlas-controls">
       {place.maps.length > 1 && <label className="inline-field">{t("Andar / era")}<select value={currentFloor.id} onChange={e => { setFloor(e.target.value); select(''); }}>{place.maps.map(m => <option key={m.id} value={m.id}>{t(m.label)}</option>)}</select></label>}
-    </div>
-    {!!pool.length && <div className="marker-filter" role="radiogroup" aria-label={t("Mostrar no mapa")}>
-      {([['all', 'Todos', pool.length], ['todo', 'Faltam', pool.length - doneCount], ['done', 'Coletados', doneCount]] as const).map(([id, label, n]) =>
-        <button key={id} role="radio" aria-checked={show === id} className={`filter-${id}`} onClick={() => { setShow(id); setActive(''); }}>{t(label)} <b>{n}</b></button>)}
-    </div>}
-    {currentFloor && <div className="floor-map" style={{ aspectRatio: currentFloor.aspect ?? 1.6, ['--ratio' as string]: currentFloor.aspect ?? 1.6 }} aria-label={t("Mapa da região")}
-      onClick={e => { if (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('map-art')) setActive(''); }}>
-      <img className="map-art" src={currentFloor.image} alt="" />
-      {markers.filter(m => m.at?.map === currentFloor.id).map(m => {
-        const tipBelow = m.at!.y < 0.22;
-        return <button key={m.id} aria-label={`${kind(m.cat)}: ${t(m.name)} · ${statusLabel(m.id)}`} aria-pressed={active === m.id} aria-expanded={active === m.id}
-          className={`plot-point atlas-marker ${status[m.id] ?? 'unknown'}`} style={{ left: `${m.at!.x * 100}%`, top: `${m.at!.y * 100}%` }}
-          onClick={() => active === m.id ? setActive('') : select(m.id)}>
-          <GameItemIcon id={atlasIcons[m.cat]} size={14} />
-          {active !== m.id && <span className={`marker-tip ${tipBelow ? 'below' : ''} ${m.at!.x > 0.75 ? 'end' : m.at!.x < 0.25 ? 'start' : ''}`} aria-hidden="true">
-            <span className="marker-kind"><GameItemIcon id={atlasIcons[m.cat]} size={13} />{kind(m.cat)}</span>
-            <b>{t(m.name)}</b>
-            <small className={`marker-status ${status[m.id] ?? 'unknown'}`}>{statusLabel(m.id)}</small>
-          </span>}
-        </button>;
-      })}
-      {here?.at && here.mapId === currentFloor.id && <PlayerPin at={here.at} yaw={here.yaw} live={here.source === 'live'} />}
-      {selected?.at?.map === currentFloor.id && <div role="dialog" aria-label={t(selected.name)} className="marker-card"
-        style={{
-          ...(selected.at.x > 0.5 ? { right: `calc(${(1 - selected.at.x) * 100}% + 16px)` } : { left: `calc(${selected.at.x * 100}% + 16px)` }),
-          ...(selected.at.y > 0.5 ? { bottom: `max(8px, calc(${(1 - selected.at.y) * 100}% - 40px))` } : { top: `max(8px, calc(${selected.at.y * 100}% - 40px))` }),
-        }}>
-        <div className="marker-card-head">
-          <span className="marker-kind"><GameItemIcon id={atlasIcons[selected.cat]} size={15} />{kind(selected.cat)}</span>
-          <button className="marker-close" aria-label={t('Fechar')} onClick={() => setActive('')}>×</button>
-        </div>
-        <h3><ObjectiveName done={status[selected.id] === 'done'}>{t(selected.name)}</ObjectiveName></h3>
-        <small className={`marker-status ${status[selected.id] ?? 'unknown'}`}>{statusLabel(selected.id)}</small>
-        {!!selected.images.length && <div className="marker-photo">
-          <img src={selected.images[shot]} alt={t("Local no jogo")} />
-          {selected.images.length > 1 && <>
-            <button className="photo-nav prev" aria-label={t("Foto anterior")} onClick={() => setShot((shot + selected.images.length - 1) % selected.images.length)}>‹</button>
-            <button className="photo-nav next" aria-label={t("Próxima foto")} onClick={() => setShot((shot + 1) % selected.images.length)}>›</button>
-            <span className="photo-count">{shot + 1}/{selected.images.length}</span>
-          </>}
-        </div>}
+      {!!pool.length && <div className="marker-filter" role="radiogroup" aria-label={t("Mostrar no mapa")}>
+        {([['all', 'Todos', pool.length], ['todo', 'Faltam', pool.length - doneCount], ['done', 'Coletados', doneCount]] as const).map(([id, label, n]) =>
+          <button key={id} role="radio" aria-checked={show === id} className={`filter-${id}`} onClick={() => { setShow(id); setActive(''); }}>{t(label)} <b>{n}</b></button>)}
       </div>}
-    </div>}
+    </div>
+    {currentFloor && <ZoomPan key={currentFloor.id} ratio={currentFloor.aspect ?? 1.6} className="floor-map" overlay={overlay}>
+      <div className="floor-fill" aria-label={t("Mapa da região")}
+        onClick={e => { if (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('map-art')) setActive(''); }}>
+        <img className="map-art" src={currentFloor.image} alt="" draggable={false} />
+        {markers.filter(m => m.at?.map === currentFloor.id).map(m => {
+          const tipBelow = m.at!.y < 0.22;
+          return <button key={m.id} aria-label={`${m.kind}: ${t(m.name)} · ${statusLabel(m.status)}`} aria-pressed={active === m.id} aria-expanded={active === m.id}
+            className={`plot-point atlas-marker ${m.status}`} style={{ left: `${m.at!.x * 100}%`, top: `${m.at!.y * 100}%` }}
+            onClick={() => active === m.id ? setActive('') : select(m.id)}>
+            <GameItemIcon id={m.icon} size={14} />
+            {active !== m.id && <span className={`marker-tip ${tipBelow ? 'below' : ''} ${m.at!.x > 0.75 ? 'end' : m.at!.x < 0.25 ? 'start' : ''}`} aria-hidden="true">
+              <span className="marker-kind"><GameItemIcon id={m.icon} size={13} />{m.kind}</span>
+              <b>{t(m.name)}</b>
+              <small className={`marker-status ${m.status}`}>{statusLabel(m.status)}</small>
+            </span>}
+          </button>;
+        })}
+        {here?.at && here.mapId === currentFloor.id && <PlayerPin at={here.at} yaw={here.yaw} live={here.source === 'live'} />}
+        {selected?.at?.map === currentFloor.id && <div role="dialog" aria-label={t(selected.name)} className="marker-card"
+          style={{
+            transformOrigin: `${selected.at.x > 0.5 ? 'right' : 'left'} ${selected.at.y > 0.5 ? 'bottom' : 'top'}`,
+            ...(selected.at.x > 0.5 ? { right: `calc(${(1 - selected.at.x) * 100}% + 16px)` } : { left: `calc(${selected.at.x * 100}% + 16px)` }),
+            ...(selected.at.y > 0.5 ? { bottom: `max(8px, calc(${(1 - selected.at.y) * 100}% - 40px))` } : { top: `max(8px, calc(${selected.at.y * 100}% - 40px))` }),
+          }}>
+          <div className="marker-card-head">
+            <span className="marker-kind"><GameItemIcon id={selected.icon} size={15} />{selected.kind}</span>
+            <button className="marker-close" aria-label={t('Fechar')} onClick={() => setActive('')}>×</button>
+          </div>
+          <h3><ObjectiveName done={selected.status === 'done'}>{t(selected.name)}</ObjectiveName></h3>
+          <small className={`marker-status ${selected.status}`}>{statusLabel(selected.status)}</small>
+          {selected.item?.where && <p className="marker-where">{t(selected.item.where)}</p>}
+          {selected.tick && <button className="action" onClick={() => void api.toggleManual(selected.tick!.id)}>{selected.tick.on ? t('Desmarcar') : t('Concluí')}</button>}
+          {!!selected.images.length && <div className="marker-photo">
+            <img src={selected.images[shot]} alt={t("Local no jogo")} />
+            {selected.images.length > 1 && <>
+              <button className="photo-nav prev" aria-label={t("Foto anterior")} onClick={() => setShot((shot + selected.images.length - 1) % selected.images.length)}>‹</button>
+              <button className="photo-nav next" aria-label={t("Próxima foto")} onClick={() => setShot((shot + 1) % selected.images.length)}>›</button>
+              <span className="photo-count">{shot + 1}/{selected.images.length}</span>
+            </>}
+          </div>}
+        </div>}
+      </div>
+    </ZoomPan>}
     {!!markers.length && <label className="inline-field">{t("Mostrar local")}<select value={selected ? active : ''} onChange={e => {
       const next = markers.find(m => m.id === e.target.value);
       if (next?.at?.map) setFloor(next.at.map);
       select(e.target.value);
-    }}><option value="">{t("Escolha um marcador")}</option>{markers.map(m => <option key={m.id} value={m.id} className={status[m.id] === 'done' ? 'completed-title' : undefined}>{status[m.id] === 'done' && '✓ '}{kind(m.cat)}: {t(m.name)}</option>)}</select></label>}
+    }}><option value="">{t("Escolha um marcador")}</option>{markers.map(m => <option key={m.id} value={m.id} className={m.status === 'done' ? 'completed-title' : undefined}>{m.status === 'done' && '✓ '}{m.kind}: {t(m.name)}</option>)}</select></label>}
   </div>;
 }
 

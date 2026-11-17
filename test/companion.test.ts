@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { companionProgress, extendChecklist, type CompanionData } from '../src/core/companion.js';
+import { companionProgress, extendChecklist, PLAY_TIME, type CompanionData } from '../src/core/companion.js';
 import { evaluateAtlas } from '../src/core/atlas.js';
 import { Tracker } from '../src/core/tracker.js';
 import { murmur3 } from '../src/gamedata/murmur3.js';
@@ -123,6 +123,13 @@ describe('expanded remake coverage', () => {
     expect(state('dampe_race')).toBe('no');
     expect(state('shooting_child_expert')).toBe('unmapped');
     expect(companionProgress(data, local).minigameScores.archery_750).toBe(900);
+  });
+
+  it('reads play time in seconds from the save', () => {
+    const local: GameDataFile = { ...save, entries: new Map() };
+    expect(companionProgress(data, local).playSeconds).toBeNull();
+    local.entries.set(PLAY_TIME, { hash: PLAY_TIME, value: 28237, type: 'UInt', recordOffset: 0 });
+    expect(companionProgress(data, local).playSeconds).toBe(28237);
   });
 
   it('refreshes the selected save even when its disk timestamp is unchanged', async () => {

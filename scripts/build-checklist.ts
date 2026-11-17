@@ -81,7 +81,6 @@ const SECTIONS: Record<string, { id: string; label?: string; icon: string | ((na
 // Sections without a table.
 const COUNTERS: Record<string, { id: string; label: string; max: number; icon: string }> = {
   'Big Poes sold': { id: 'big_poes', label: 'Big Poes Sold', max: 10, icon: 'big_poe' },
-  'Magic Bean soft-soil spots planted': { id: 'magic_beans_planted', label: 'Magic Bean Spots Planted', max: 10, icon: 'magic_bean' },
 };
 
 export function slug(s: string): string {

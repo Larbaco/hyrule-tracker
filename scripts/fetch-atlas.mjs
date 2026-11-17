@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { restyle } from './atlas-palette.mjs';
 
 // Development import only. Runtime reads the bundled atlas and images.
 const repo = 'https://raw.githubusercontent.com/antonioalvromero/Ocarina-Atlas/main/';
@@ -38,7 +39,7 @@ await Promise.all(Array.from({ length: 12 }, async () => {
     } else if (contents.toString('ascii', 0, 4) !== 'RIFF' || contents.toString('ascii', 8, 12) !== 'WEBP') {
       throw Error('Unsupported image ' + file);
     }
-    await fs.writeFile(path.join(output, path.posix.basename(file)), contents);
+    await fs.writeFile(path.join(output, path.posix.basename(file)), file.endsWith('.svg') ? restyle(contents.toString('utf8')) : contents);
   }
 }));
 const map = { image: relative(source.map.image), width: source.map.width, height: source.map.height };

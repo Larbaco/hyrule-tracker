@@ -16,8 +16,8 @@ import { STAGE_KEY, LOCATION_KEY, areaFrom } from '../gamedata/live.js';
 import { keyOf } from '../gamedata/detect.js';
 import { SettingsStore } from './settings.js';
 import type { Activity, AppState, ChangeRow, Summary, Toast, SlotSummary } from '../shared/types.js';
-import { canonicalStage, companionProgress, extendChecklist, RUPEES, type CompanionData } from '../core/companion.js';
-import { evaluateAtlas, type AtlasRule } from '../core/atlas.js';
+import { canonicalStage, companionProgress, extendChecklist, RUPEES, type CompanionData, type WorldMarker } from '../core/companion.js';
+import { evaluateAtlasWithManual, linkAtlas, type AtlasRule } from '../core/atlas.js';
 import { locatePlayer, type AtlasPlace, type PlayerPosition } from '../core/position.js';
 import type { PlayerState } from '../shared/types.js';
 
@@ -48,6 +48,7 @@ export class Controller {
   private companionData: CompanionData;
   private atlasItems: AtlasRule[];
   private atlasPlaces: AtlasPlace[];
+  private atlasLinks: Record<string, string>;
   /** Link's position in the shown save (caption.sav), for when there's no live position. */
   private savePlayer?: PlayerState;
   private playerListeners = new Set<(p: PlayerState | undefined) => void>();
@@ -78,6 +79,7 @@ export class Controller {
     this.atlasPlaces = atlas.places;
     const mapping = read('save-mapping.json') as MappingFile;
     extendChecklist(checklist, mapping, this.companionData);
+    this.atlasLinks = linkAtlas(this.atlasItems, mapping.entries);
     this.tracker = new Tracker(checklist, mapping, settings.data.learned);
     try { this.logic = read('logic.json') as LogicFile; } catch { this.logic = undefined; }
     this.logicRows = this.tracker.checklist.categories.flatMap(c => c.items.map(i => ({ id: i.id, key: `${c.id}#${i.number}`, chapter: i.chapter })));
@@ -102,6 +104,7 @@ export class Controller {
         chests: this.companionData.chests, fairy_thoughts: this.companionData.notes,
         scarecrow_spots: this.companionData.scarecrows, grottos: this.companionData.grottos,
       },
+      worldMarkers: read('world-markers.json') as Record<string, WorldMarker>,
     };
     this.log = new ChangeLog(path.join(paths.userData, 'logs'));
     this.log.enabled = settings.data.changeLog;
@@ -338,7 +341,7 @@ export class Controller {
   }
 
   private fail(status: AppState['status'], message: string, values?: Record<string, string | number>) {
-    this.state = { ...this.state, status, message, messageValues: values, saveReadError: false, slots: [], categories: [], summary: undefined, companion: undefined, atlasStatus: undefined,
+    this.state = { ...this.state, status, message, messageValues: values, saveReadError: false, slots: [], categories: [], summary: undefined, companion: undefined, atlasStatus: undefined, atlasManual: undefined,
       saveDir: this.userDir, sourceLabel: undefined, saveImage: undefined };
     this.emit();
   }
@@ -439,6 +442,7 @@ export class Controller {
     if (!prev || cur.mtimeMs >= prev.mtimeMs || !liveSnap) this.lastShown = cur;
 
     const warning = read.data.warnings[0];
+    const atlasNow = evaluateAtlasWithManual(this.atlasItems, cur.data, manual, this.atlasLinks);
     this.state = {
       ...this.state,
       status: 'ok',
@@ -451,7 +455,7 @@ export class Controller {
       slotMode: pinned ? 'manual' : 'recent',
       activeSlot: slot.name,
       summary, categories, lastChanges, areaRegions, available, canBeAdult,
-      companion, saveImage: image, atlasStatus: evaluateAtlas(this.atlasItems, cur.data),
+      companion, saveImage: image, atlasStatus: atlasNow.status, atlasManual: atlasNow.manual, atlasLinks: this.atlasLinks,
       identify: this.settings.data.pendingIdentify,
       learnedCount: this.settings.data.learned.length,
       snapshots: this.listSnapshots(),
