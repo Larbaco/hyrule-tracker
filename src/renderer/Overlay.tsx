@@ -1,4 +1,4 @@
-import { currentLocale, languages, number, setLocale, t, type Locale } from './i18n';
+import { currentLocale, languages, message, number, setLocale, t, type Locale } from './i18n';
 import { GameItemIcon } from './GameItemIcon';
 import { useEffect, useRef, useState } from 'react';
 import type { AppState, TrackedCategory, OverlayMode } from '../shared/types';
@@ -63,7 +63,7 @@ export function Overlay() {
           {o.mode === 'counters' ? <Counters cats={state.categories} /> : o.mode === 'available' ? <Available state={state} /> : <Remaining state={state} />}
         </>
       )}
-      {state.toasts.slice(-2).map(t => <div key={t.id} className="ov-toast">{t.text}</div>)}
+      {state.toasts.slice(-2).map(toast => <div key={toast.id} className="ov-toast">{message(toast.text, toast.values)}</div>)}
     </div>
   );
 }

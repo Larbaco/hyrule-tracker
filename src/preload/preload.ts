@@ -1,6 +1,6 @@
 // The only bridge between the UI and the main process.
 import { contextBridge, ipcRenderer } from 'electron';
-import type { AppState, UiPrefs, OverlayMode } from '../shared/types.js';
+import type { AppState, UiPrefs, OverlayMode, UpdateState } from '../shared/types.js';
 
 const api = {
   getState: (): Promise<AppState> => ipcRenderer.invoke('state:get'),
@@ -9,6 +9,15 @@ const api = {
     ipcRenderer.on('state', h);
     return () => { ipcRenderer.removeListener('state', h); };
   },
+  getUpdate: (): Promise<UpdateState> => ipcRenderer.invoke('update:get'),
+  onUpdate: (fn: (s: UpdateState) => void) => {
+    const h = (_e: unknown, s: UpdateState) => fn(s);
+    ipcRenderer.on('update', h);
+    return () => { ipcRenderer.removeListener('update', h); };
+  },
+  updateNow: () => ipcRenderer.send('update:now'),
+  updateLater: () => ipcRenderer.send('update:later'),
+  installUpdate: () => ipcRenderer.send('update:install'),
   getPrefs: (): Promise<UiPrefs> => ipcRenderer.invoke('prefs:get'),
   setLanguage: (locale: string) => ipcRenderer.invoke('locale:set', locale),
   onLanguage: (fn: (locale: string) => void) => {

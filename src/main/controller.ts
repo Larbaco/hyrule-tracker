@@ -238,7 +238,7 @@ export class Controller {
     if (!dir || path.resolve(dir).toLowerCase() === path.resolve(this.userDir ?? '').toLowerCase()) return;
     const game = path.dirname(exe).replace(/\\bin$/i, '');
     this.log.write({ kind: 'source', status: 'switched', detail: `Following the running game: ${game}` });
-    this.toast(`Switched to the saves of the game that's running (${game}).`, 8000);
+    this.toast("Switched to the saves of the game that's running ({game}).", 8000, { game });
     await this.useFolder(dir);
   }
 
@@ -426,19 +426,16 @@ export class Controller {
   }
 
   private makeToasts(categories: AppState['categories'], before: GameDataFile, after: GameDataFile) {
-    const add = (text: string) => {
-      const t = { id: this.toastId++, text };
-      this.toasts = [...this.toasts, t].slice(-5);
-      setTimeout(() => { this.toasts = this.toasts.filter(x => x.id !== t.id); this.state = { ...this.state, toasts: this.toasts }; this.emit(); }, 6000);
-    };
     for (const c of categories) {
-      const n = c.items.filter(i => i.justCollected).length;
-      if (n) add(n === 1 ? `+1 ${singular(c.label)}: ${c.items.find(i => i.justCollected)!.name}` : `+${n} ${c.label}`);
+      const items = c.items.filter(i => i.justCollected);
+      if (items.length === 1) this.toast('Collected {item}', 6000, { item: items[0].name });
+      if (items.length > 1) this.toast('+{count} · {category}', 6000, { count: items.length, category: c.label });
     }
     // Tokens have no per-Skulltula mapping yet, so toast on the counter too.
     const tok = (g: GameDataFile) => this.tracker.evaluate(g).summary.tokens ?? 0;
-    const dt = tok(after) - tok(before);
-    if (dt > 0) add(`+${dt} Gold Skulltula${dt > 1 ? 's' : ''} (${tok(after)} total)`);
+    const total = tok(after);
+    const count = total - tok(before);
+    if (count > 0) this.toast('+{count} · Gold Skulltulas ({total} total)', 6000, { count, total });
   }
 
   /** Area string from caption.sav, e.g. "Market/Market_Child". */
@@ -470,9 +467,11 @@ export class Controller {
     for (const g of auto) {
       if (!g.area || g.items.length !== 1) continue;
       const d = this.tracker.describe(g.items[0]);
-      this.toast(`Recognised ${singular(d.category)} #${d.number} from where you are (${g.area}). Wrong? Undo it in its details.`, 8000);
+      this.toast('Recognised {category} #{number} in {area}. You can undo it in the item details.', 8000, {
+        category: d.category, number: d.number, area: g.area,
+      });
     }
-    for (const q of ask) this.toast(`+${q.pick} ${singular(q.categoryLabel)} in ${q.area}: which one? Answer in the tracker.`, 10000);
+    for (const q of ask) this.toast('Identify the items collected in {area}.', 10000, { area: q.area });
   }
 
   async answerIdentify(reqId: string, itemIds: string[]) {
@@ -524,8 +523,8 @@ export class Controller {
     return `Wrote ${n} identified spot${n === 1 ? '' : 's'} into data/save-mapping.json`;
   }
 
-  private toast(text: string, ms = 6000) {
-    const t = { id: this.toastId++, text };
+  private toast(text: string, ms: number, values: Record<string, string | number>) {
+    const t = { id: this.toastId++, text, values };
     this.toasts = [...this.toasts, t].slice(-5);
     setTimeout(() => { this.toasts = this.toasts.filter(x => x.id !== t.id); this.state = { ...this.state, toasts: this.toasts }; this.emit(); }, ms);
   }
@@ -603,11 +602,6 @@ export class Controller {
   stop() { clearInterval(this.firstSaveTimer); this.watcher?.stop(); this.live?.stop(); }
 }
 
-function singular(label: string) {
-  const map: Record<string, string> = { 'Heart Pieces': 'Piece of Heart', 'Gold Skulltulas': 'Gold Skulltula', 'Bosses': 'Boss', 'Mini-bosses': 'Mini-boss',
-    'Dungeons Cleared': 'Dungeon cleared', 'Side Quests': 'Side quest', 'Great Fairies': 'Great Fairy', 'Capacity Upgrades': 'Upgrade', 'Stones & Medallions': 'Stone/Medallion' };
-  return map[label] ?? label.replace(/es$/, '').replace(/s$/, '');
-}
 
 /** "Market_Child" -> "Market (child)", "HyruleField_Adult" -> "Hyrule Field (adult)" */
 export function prettyArea(s: string): string {

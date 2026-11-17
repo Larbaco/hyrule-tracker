@@ -11,6 +11,135 @@ Tocar ocarina||Play ocarina|Tocar la ocarina
 Quiz diário||Daily quiz|Cuestionario diario
 Configurações||Settings|Ajustes
 Idioma||Language|Idioma
+Flying Pot|Vaso voador|Flying Pot|Vasija voladora
+Deku Nut Bundle|Porção de nozes Deku|Deku Nut Bundle|Manojo de nueces deku
+Deku Scrub|Deku|Deku Scrub|Deku
+Dodongo Cavern|Caverna dos Dodongos|Dodongo Cavern|Cueva de los Dodongos
+Gohma Larva|Larva de Gohma|Gohma Larva|Larva de Gohma
+Megaton Hammer|Martelo Megaton|Megaton Hammer|Martillo Megatón
+Great Moblin|Moblin gigante|Great Moblin|Moblin gigante
+Poe Sisters|Irmãs Poe|Poe Sisters|Hermanas Poe
+White Wolfos|Wolfos branco|White Wolfos|Wolfos blanco
+Switched to the saves of the game that's running ({game}).|Acompanhando os saves do jogo em execução ({game}).|Switched to the saves of the game that's running ({game}).|Siguiendo las partidas guardadas del juego en ejecución ({game}).
+Collected {item}|Coletado: {item}|Collected {item}|Recogido: {item}
++{count} · Gold Skulltulas ({total} total)|+{count} · Skulltulas douradas ({total} no total)|+{count} · Gold Skulltulas ({total} total)|+{count} · Skulltulas doradas ({total} en total)
+Recognised {category} #{number} in {area}. You can undo it in the item details.|Registro de {category} nº {number} em {area}. Você pode desfazer nos detalhes do item.|Recognised {category} #{number} in {area}. You can undo it in the item details.|Registro de {category} n.º {number} en {area}. Puedes deshacerlo en los detalles.
+Man on the roof|Homem no telhado|Man on the roof|Hombre del tejado
+A man lying on a rooftop gives it to you. As a child, carry a Cucco up to the ledge behind the windmill and glide over; as an adult, Hookshot up.|O homem deitado no telhado entrega o pedaço. Como criança, leve um Cucco até a plataforma atrás do moinho e plane até o telhado. Como adulto, suba com o gancho.|A man lying on a rooftop gives it to you. As a child, carry a Cucco up to the ledge behind the windmill and glide over; as an adult, Hookshot up.|El hombre tumbado en el tejado te da la pieza. De niño, lleva un cuco al saliente tras el molino y planea hasta el tejado. De adulto, sube con el gancho.
+Dampé's gravedigging tour|Escavação de Dampé|Dampé's gravedigging tour|Excavación de Dampé
+As a child at night, pay Dampé to dig in the graveyard's soft ground. Keep paying for digs until the piece turns up.|Como criança, vá ao cemitério à noite e pague Dampé para cavar na terra fofa até encontrar o pedaço.|As a child at night, pay Dampé to dig in the graveyard's soft ground. Keep paying for digs until the piece turns up.|De niño, ve al cementerio de noche y paga a Dampé para que cave en tierra blanda hasta encontrar la pieza.
+Inside the stone tower|Dentro da torre de pedra|Inside the stone tower|Dentro de la torre de piedra
+As a child, push the crates aside in the ranch's stone tower and crawl through to the round room behind them.|Como criança, empurre os caixotes na torre de pedra do rancho e rasteje até a sala redonda atrás deles.|As a child, push the crates aside in the ranch's stone tower and crawl through to the round room behind them.|De niño, aparta las cajas de la torre de piedra del rancho y gatea hasta la sala circular que hay detrás.
+Chest on the Cucco ledge|Baú na plataforma dos Cuccos|Chest on the Cucco ledge|Cofre en el saliente de los cucos
+In a chest on a ledge partway down the valley. Glide there with a Cucco as a child, or Longshot over as an adult.|O baú fica em uma plataforma no meio do vale. Plane até lá com um Cucco quando criança ou use o gancho longo quando adulto.|In a chest on a ledge partway down the valley. Glide there with a Cucco as a child, or Longshot over as an adult.|El cofre está en un saliente a media altura del valle. Planea con un cuco de niño o usa el supergancho de adulto.
+Behind the waterfall|Atrás da cachoeira|Behind the waterfall|Detrás de la cascada
+On a ledge behind the waterfall near the valley's entrance. Drop down to it from the path above.|O pedaço está em uma plataforma atrás da cachoeira perto da entrada do vale. Salte da trilha acima.|On a ledge behind the waterfall near the valley's entrance. Drop down to it from the path above.|La pieza está en un saliente tras la cascada cerca de la entrada del valle. Déjate caer desde el sendero superior.
+Fishing pond (child prize)|Lago de pesca (prêmio de criança)|Fishing pond (child prize)|Estanque de pesca (premio de niño)
+Catch a big enough fish as a child at the fishing pond by Lake Hylia.|Como criança, pesque um peixe grande o suficiente no lago de pesca perto do Lago Hylia.|Catch a big enough fish as a child at the fishing pond by Lake Hylia.|De niño, atrapa un pez lo bastante grande en el estanque de pesca junto al lago Hylia.
+Richard the lost dog|Richard, o cachorro perdido|Richard the lost dog|Richard, el perro perdido
+As a child at night, find the dog Richard running around the back alley and lead him home to his owner.|Como criança, encontre Richard no beco à noite e acompanhe o cachorro até a casa da dona.|As a child at night, find the dog Richard running around the back alley and lead him home to his owner.|De niño, encuentra a Richard de noche en el callejón y guía al perro hasta la casa de su dueña.
+Skull Kid's ocarina game|Jogo de ocarina dos Skull Kids|Skull Kid's ocarina game|Juego de ocarina de los Skull Kids
+As a child, stand on the stump near the entrance to the Lost Woods and repeat the Skull Kid's tunes. Win three rounds.|Como criança, suba no toco perto da entrada do Bosque Perdido, repita as melodias dos Skull Kids e vença três rodadas.|As a child, stand on the stump near the entrance to the Lost Woods and repeat the Skull Kid's tunes. Win three rounds.|De niño, sube al tocón cerca de la entrada del Bosque Perdido, repite las melodías de los Skull Kids y gana tres rondas.
+Skull Kid's song|Canção do Skull Kid|Skull Kid's song|Canción del Skull Kid
+As a child, play Saria's Song for the Skull Kid sitting on a stump in the Lost Woods.|Como criança, toque a Canção de Saria para o Skull Kid sentado em um toco no Bosque Perdido.|As a child, play Saria's Song for the Skull Kid sitting on a stump in the Lost Woods.|De niño, toca la Canción de Saria para el Skull Kid sentado en un tocón del Bosque Perdido.
+Spinning pot|Vaso giratório|Spinning pot|Vasija giratoria
+As a child, light every torch on Goron City's bottom floor, then drop a Bomb (or a Bomb Flower) into the big spinning pot.|Como criança, acenda todas as tochas do andar inferior da Cidade Goron e jogue uma bomba ou Flor-Bomba dentro do vaso giratório.|As a child, light every torch on Goron City's bottom floor, then drop a Bomb (or a Bomb Flower) into the big spinning pot.|De niño, enciende todas las antorchas del piso inferior de Ciudad Goron y lanza una bomba o una flor bomba dentro de la vasija giratoria.
+Ledge below the crater entrance|Plataforma abaixo da entrada da cratera|Ledge below the crater entrance|Saliente bajo la entrada del cráter
+From the summit entrance, climb down the wall to a hidden ledge. A child can grab it before the heat gets too much; as an adult, wear the Goron Tunic.|A partir da entrada do cume, desça pela parede até a plataforma escondida. Link criança consegue pegar o pedaço antes de o calor ficar insuportável. Como adulto, vista a Túnica Goron.|From the summit entrance, climb down the wall to a hidden ledge. A child can grab it before the heat gets too much; as an adult, wear the Goron Tunic.|Desde la entrada de la cima, baja por la pared hasta el saliente oculto. Link niño puede recoger la pieza antes de que el calor sea insoportable. De adulto, usa la túnica goron.
+Rooftop behind Impa's house|Telhado atrás da casa da Impa|Rooftop behind Impa's house|Tejado tras la casa de Impa
+On the roof above Impa's cow pen. As a child, let Kaepora Gaebora carry you down from the Death Mountain summit (he only offers once you have Din's Fire); as an adult, Hookshot up.|O pedaço está no telhado acima do curral da Impa. Como criança, peça a Kaepora Gaebora para levar você do cume da Montanha da Morte ao telhado após obter o Fogo de Din. Como adulto, suba com o gancho.|On the roof above Impa's cow pen. As a child, let Kaepora Gaebora carry you down from the Death Mountain summit (he only offers once you have Din's Fire); as an adult, Hookshot up.|La pieza está sobre el corral de Impa. De niño, pide a Kaepora Gaebora que te lleve desde la cima de la Montaña de la Muerte cuando tengas el Fuego de Din. De adulto, sube con el gancho.
+Bombchu Bowling|Boliche de Bombchu|Bombchu Bowling|Bolos Bombchu
+One of the prizes at the Bombchu Bowling Alley. The alley opens after you defeat King Dodongo.|O pedaço é um dos prêmios do Boliche de Bombchu, que abre após você derrotar o Rei Dodongo.|One of the prizes at the Bombchu Bowling Alley. The alley opens after you defeat King Dodongo.|La pieza es un premio de la bolera Bombchu, que abre después de derrotar al Rey Dodongo.
+Raised platform|Plataforma elevada|Raised platform|Plataforma elevada
+On top of a pillar near the start of the river. Glide there with a Cucco as a child, or use the Hover Boots as an adult.|O pedaço está no topo de um pilar perto do início do rio. Como criança, plane até lá com um Cucco. Como adulto, use as Botas Flutuantes.|On top of a pillar near the start of the river. Glide there with a Cucco as a child, or use the Hover Boots as an adult.|La pieza está sobre un pilar cerca del comienzo del río. Planea con un cuco de niño o usa las botas flotantes de adulto.
+Ledge by the waterfall|Plataforma perto da cachoeira|Ledge by the waterfall|Saliente junto a la cascada
+On a ledge near the waterfall to Zora's Domain. Glide there with a Cucco as a child, or use the Hover Boots as an adult.|O pedaço fica em uma plataforma perto da cachoeira que dá acesso ao Domínio Zora. Plane até lá com um Cucco quando criança ou use as Botas Flutuantes quando adulto.|On a ledge near the waterfall to Zora's Domain. Glide there with a Cucco as a child, or use the Hover Boots as an adult.|La pieza está en un saliente cerca de la cascada que lleva a la Región de los Zora. Planea con un cuco de niño o usa las botas flotantes de adulto.
+Torch chest|Baú das tochas|Torch chest|Cofre de las antorchas
+Light every torch around Zora's Domain with a burning Deku Stick to make a chest appear.|Acenda todas as tochas do Domínio Zora com um graveto Deku em chamas para fazer o baú aparecer.|Light every torch around Zora's Domain with a burning Deku Stick to make a chest appear.|Enciende todas las antorchas de la Región de los Zora con un palo deku encendido para que aparezca el cofre.
+Magic Bean platform|Plataforma do feijão mágico|Magic Bean platform|Plataforma de la judía mágica
+Plant a Magic Bean in the soft soil by the graveyard wall as a child, then ride the plant as an adult to the platform with the piece.|Como criança, plante um feijão mágico na terra fofa junto ao muro do cemitério. Como adulto, suba na planta para alcançar a plataforma com o pedaço.|Plant a Magic Bean in the soft soil by the graveyard wall as a child, then ride the plant as an adult to the platform with the piece.|De niño, planta una judía mágica en la tierra blanda junto al muro del cementerio. De adulto, sube a la planta para alcanzar la plataforma con la pieza.
+Inside the windmill|Dentro do moinho|Inside the windmill|Dentro del molino
+On a ledge high inside the windmill. As a child, the Boomerang can fetch it; as an adult, come up through the tunnel from Dampé's grave.|O pedaço fica no alto do moinho. Como criança, pegue-o com o bumerangue. Como adulto, chegue pelo túnel do túmulo de Dampé.|On a ledge high inside the windmill. As a child, the Boomerang can fetch it; as an adult, come up through the tunnel from Dampé's grave.|La pieza está en lo alto del molino. De niño, recógela con el bumerán. De adulto, entra por el túnel de la tumba de Dampé.
+Dampé's race|Corrida de Dampé|Dampé's race|Carrera de Dampé
+As an adult, race Dampé's ghost through his tomb in under a minute. The chest at the end holds the piece.|Como adulto, siga o fantasma de Dampé pela tumba e termine a corrida em menos de um minuto. O pedaço está no baú ao final.|As an adult, race Dampé's ghost through his tomb in under a minute. The chest at the end holds the piece.|De adulto, sigue al fantasma de Dampé por la tumba y termina en menos de un minuto. La pieza está en el cofre al final.
+House of Skulltula: 50 tokens|Casa das Skulltulas (50 tokens)|House of Skulltula: 50 tokens|Casa de las Skulltulas (50 fichas)
+The reward for bringing 50 Gold Skulltula tokens to the House of Skulltula.|Leve 50 tokens de Skulltula dourada à Casa das Skulltulas para ganhar o pedaço.|The reward for bringing 50 Gold Skulltula tokens to the House of Skulltula.|Lleva 50 fichas de Skulltula dorada a la Casa de las Skulltulas para obtener la pieza.
+Laboratory roof|Telhado do laboratório|Laboratory roof|Tejado del laboratorio
+On the roof of the Lakeside Laboratory. Ride the Magic Bean planted beside the lab as an adult, or use the Scarecrow's Song with the Hookshot.|O pedaço fica no telhado do laboratório à beira do lago. Como adulto, use a planta de feijão mágico ao lado do laboratório ou toque a Canção do Espantalho e suba com o gancho.|On the roof of the Lakeside Laboratory. Ride the Magic Bean planted beside the lab as an adult, or use the Scarecrow's Song with the Hookshot.|La pieza está en el tejado del laboratorio junto al lago. De adulto, sube con la planta de judía mágica o toca la Canción del Espantapájaros y usa el gancho.
+Laboratory diving game|Mergulho no laboratório|Laboratory diving game|Buceo en el laboratorio
+Reach the bottom of the laboratory's deep pool for the scientist. You'll need the Golden Scale.|Use a Escama Dourada para chegar ao fundo do tanque do laboratório e mostrar ao cientista que conseguiu.|Reach the bottom of the laboratory's deep pool for the scientist. You'll need the Golden Scale.|Usa la Escama de Oro para llegar al fondo del tanque del laboratorio y demostrarlo al científico.
+Above Dodongo's Cavern|Acima da Caverna dos Dodongos|Above Dodongo's Cavern|Sobre la Cueva de los Dodongos
+On a ledge above the cavern entrance. Plant a Magic Bean in the soil there as a child and ride it as an adult.|O pedaço está numa plataforma acima da entrada da caverna. Plante um feijão mágico ali como criança e suba na planta como adulto.|On a ledge above the cavern entrance. Plant a Magic Bean in the soil there as a child and ride it as an adult.|La pieza está en un saliente sobre la entrada de la cueva. Planta una judía mágica allí de niño y sube a la planta de adulto.
+Bean pillar|Pilar do feijão mágico|Bean pillar|Pilar de la judía mágica
+On a tall pillar in the middle of the crater. Plant a Magic Bean in the crater's soil as a child (warp in with the Bolero of Fire), then ride it as an adult.|O pedaço está num pilar alto no centro da cratera. Como criança, chegue com o Bolero do Fogo e plante um feijão mágico. Volte como adulto e use a planta.|On a tall pillar in the middle of the crater. Plant a Magic Bean in the crater's soil as a child (warp in with the Bolero of Fire), then ride it as an adult.|La pieza está en un pilar alto en el centro del cráter. De niño, llega con el Bolero del Fuego y planta una judía mágica. Vuelve de adulto y sube a la planta.
+Iceberg|Iceberg|Iceberg|Iceberg
+As an adult, hop across the floating ice to the farthest iceberg in Zora's Fountain.|Como adulto, pule entre os blocos de gelo até alcançar o iceberg mais distante da Fonte Zora.|As an adult, hop across the floating ice to the farthest iceberg in Zora's Fountain.|De adulto, salta sobre los témpanos hasta llegar al más lejano de la Fuente Zora.
+Bottom of the fountain|Fundo da fonte|Bottom of the fountain|Fondo de la fuente
+As an adult, sink to the bottom of Zora's Fountain with the Iron Boots, wearing the Zora Tunic.|Como adulto, vista a Túnica Zora e use as Botas de Ferro para descer até o fundo da Fonte Zora.|As an adult, sink to the bottom of Zora's Fountain with the Iron Boots, wearing the Zora Tunic.|De adulto, ponte la túnica zora y usa las botas de hierro para bajar al fondo de la Fuente Zora.
+Frogs: Song of Storms|Sapos (Canção das Tempestades)|Frogs: Song of Storms|Ranas (Canción de las Tormentas)
+As a child, play the Song of Storms to the frogs on the log in Zora's River.|Como criança, toque a Canção das Tempestades para os sapos no tronco do Rio Zora.|As a child, play the Song of Storms to the frogs on the log in Zora's River.|De niño, toca la Canción de las Tormentas para las ranas del tronco en el Río Zora.
+Frogs: bug-catching game|Sapos (jogo dos insetos)|Frogs: bug-catching game|Ranas (juego de los insectos)
+As a child, play all six of the frogs' songs, then win their bug-catching game.|Como criança, toque as seis canções pedidas pelos sapos e vença o jogo de pegar insetos.|As a child, play all six of the frogs' songs, then win their bug-catching game.|De niño, toca las seis canciones que piden las ranas y gana el juego de atrapar insectos.
+Treasure Chest Shop|Loja de baús|Treasure Chest Shop|Tienda de cofres
+As a child at night, win the Treasure Chest Shop's game. The Lenses of Truth show which chests to open.|Como criança, vença o jogo da Loja de Baús à noite. A Lente da Verdade indica quais baús abrir.|As a child at night, win the Treasure Chest Shop's game. The Lenses of Truth show which chests to open.|De niño, gana el juego de la Tienda de Cofres por la noche. La Lupa de la Verdad revela qué cofres abrir.
+Rooftop chest|Baú no telhado|Rooftop chest|Cofre en el tejado
+In a chest on a high rooftop of the fortress. Get there with the Scarecrow's Song and Hookshot, the Longshot or the Hover Boots.|O baú fica num telhado alto da fortaleza. Chegue lá com a Canção do Espantalho e o gancho, com o gancho longo ou com as Botas Flutuantes.|In a chest on a high rooftop of the fortress. Get there with the Scarecrow's Song and Hookshot, the Longshot or the Hover Boots.|El cofre está en un tejado alto de la fortaleza. Llega con la Canción del Espantapájaros y el gancho, con el supergancho o con las botas flotantes.
+Horseback archery|Tiro a cavalo|Horseback archery|Tiro con arco a caballo
+Score 750 points at the Gerudo horseback archery range, riding Epona.|Faça 750 pontos no campo de tiro da Fortaleza Gerudo montando Epona.|Score 750 points at the Gerudo horseback archery range, riding Epona.|Consigue 750 puntos en el campo de tiro de la Fortaleza Gerudo montando a Epona.
+Bean platform|Plataforma do feijão mágico|Bean platform|Plataforma de la judía mágica
+Plant a Magic Bean in the soil by the Spirit Temple as a child (warp in with the Requiem of Spirit), then ride it as an adult to the piece.|Como criança, chegue ao Templo dos Espíritos usando o Réquiem do Espírito e plante um feijão mágico. Como adulto, use a planta para chegar ao pedaço.|Plant a Magic Bean in the soil by the Spirit Temple as a child (warp in with the Requiem of Spirit), then ride it as an adult to the piece.|De niño, llega al Templo del Espíritu con el Réquiem del Espíritu y planta una judía mágica. De adulto, sube a la planta para alcanzar la pieza.
+Hidden grave chest|Baú no túmulo escondido|Hidden grave chest|Cofre de la tumba oculta
+Pull back one of the graveyard's gravestones (as a child, only at night) and drop into the grave. The chest is at the end.|Puxe uma das lápides do cemitério e desça pelo buraco. Como criança, faça isso à noite. O baú está no final.|Pull back one of the graveyard's gravestones (as a child, only at night) and drop into the grave. The chest is at the end.|Mueve una lápida del cementerio y baja por el agujero. De niño, hazlo de noche. El cofre está al final.
+Password Business Scrub|Deku Mercador que pede a senha|Password Business Scrub|Deku comerciante que pide la contraseña
+As an adult, read the Fairy Note on the tree near the castle drawbridge for a password. Then, as a child, bomb the cracked ground nearby and buy the piece from the scrub for 100 Rupees.|Como adulto, leia a senha no Pensamento de Fada da árvore perto da ponte levadiça. Volte como criança, exploda o chão rachado ali perto e compre o pedaço do Deku Mercador por 100 rupees.|As an adult, read the Fairy Note on the tree near the castle drawbridge for a password. Then, as a child, bomb the cracked ground nearby and buy the piece from the scrub for 100 Rupees.|De adulto, lee la contraseña en la nota de hada del árbol junto al puente levadizo. Vuelve de niño, vuela el suelo agrietado cercano y compra la pieza al Deku comerciante por 100 rupias.
+Chest by the Gerudo Valley road|Baú na estrada para o Vale Gerudo|Chest by the Gerudo Valley road|Cofre del camino al Valle Gerudo
+As an adult, read the Fairy Note beside the chest under the red cliffs near Gerudo Valley. Then open the chest as a child.|Como adulto, leia o Pensamento de Fada ao lado do baú sob as falésias vermelhas perto do Vale Gerudo. Depois abra o baú como criança.|As an adult, read the Fairy Note beside the chest under the red cliffs near Gerudo Valley. Then open the chest as a child.|De adulto, lee la nota de hada junto al cofre bajo los acantilados rojos cerca del Valle Gerudo. Después abre el cofre de niño.
+{n} floor|{n}º andar|Floor {n}|Planta {n}
+{n} basement|{n}º subsolo|Basement {n}|Sótano {n}
+{n} Gold Skulltula tokens|{n} tokens de Skulltula dourada|{n} Gold Skulltula tokens|{n} fichas de Skulltula dorada
+The scrub sells it for 100 Rupees (the starting wallet holds 200).|O Deku Mercador cobra 100 rupees. A carteira inicial comporta 200.|The scrub sells it for 100 Rupees (the starting wallet holds 200).|El Deku comerciante cobra 100 rupias. La cartera inicial admite 200.
+As a child, from the summit entrance go left and drop down to the ledge below. The scrub there sells the piece for 100 Rupees.|Como criança, entre pela passagem do cume, vire à esquerda e desça até a plataforma. O Deku Mercador vende o pedaço por 100 rupees.|As a child, from the summit entrance go left and drop down to the ledge below. The scrub there sells the piece for 100 Rupees.|De niño, entra por la cima, gira a la izquierda y baja al saliente. El Deku comerciante vende la pieza por 100 rupias.
+A child can grab it before the heat gets too much; as adult, wear the Goron Tunic. No Hookshot needed.|Link criança consegue pegar o pedaço antes de o calor ficar insuportável. Como adulto, vista a Túnica Goron. Dá para chegar sem o gancho.|A child can grab it before the heat gets too much; as adult, wear the Goron Tunic. No Hookshot needed.|Link niño puede recoger la pieza antes de que el calor sea insoportable. De adulto, usa la túnica goron. Puedes llegar sin el gancho.
+Child: the owl at the Death Mountain summit drops you on Impa's roof, but only once you have Din's Fire. Adult: Hookshot.|Como criança, peça à coruja do cume da Montanha da Morte para levar você ao telhado da Impa. É preciso ter o Fogo de Din. Como adulto, use o gancho.|Child: the owl at the Death Mountain summit drops you on Impa's roof, but only once you have Din's Fire. Adult: Hookshot.|De niño, la lechuza de la cima de la Montaña de la Muerte te lleva al tejado de Impa cuando ya tienes el Fuego de Din. De adulto, usa el gancho.
+The Bombchu Bowling Alley opens only after King Dodongo.|O Boliche de Bombchu abre depois que você derrota o Rei Dodongo.|The Bombchu Bowling Alley opens only after King Dodongo.|La bolera Bombchu abre después de derrotar al Rey Dodongo.
+Child: the Boomerang. Adult: through Dampé's grave (Song of Time).|Como criança, use o bumerangue. Como adulto, entre pelo túmulo de Dampé e use a Canção do Tempo.|Child: the Boomerang. Adult: through Dampé's grave (Song of Time).|De niño, usa el bumerán. De adulto, entra por la tumba de Dampé con la Canción del Tiempo.
+The soil is behind the Dodongo's Cavern boulder, which the bracelet's bomb flower opens.|A terra fofa fica atrás da rocha da Caverna dos Dodongos. Com o Bracelete Goron, use uma Flor-Bomba para destruir a rocha.|The soil is behind the Dodongo's Cavern boulder, which the bracelet's bomb flower opens.|La tierra blanda está detrás de la roca de la Cueva de los Dodongos. Con el brazalete goron, usa una flor bomba para destruir la roca.
+No Sun's Song in the remake. As a child the grave can only be pulled at night.|O remake permite abrir esse túmulo sem tocar a Canção do Sol. Como criança, puxe a lápide durante a noite.|No Sun's Song needed in the remake. As a child the grave can only be pulled at night.|En el remake puedes abrir esa tumba sin tocar la Canción del Sol. De niño, mueve la lápida de noche.
+Read the password on the Fairy Note by the hole as adult, then buy it as a child for 100 Rupees.|Como adulto, leia a senha no Pensamento de Fada perto da entrada. Depois volte como criança e compre o pedaço por 100 rupees.|Read the password on the Fairy Note by the hole as adult, then buy it as a child for 100 Rupees.|De adulto, lee la contraseña en la nota de hada junto a la entrada. Vuelve de niño y compra la pieza por 100 rupias.
+Read the Fairy Note as adult first; the chest is opened as a child.|Leia o Pensamento de Fada como adulto antes de abrir o baú como criança.|Read the Fairy Note as adult first; the chest is opened as a child.|Lee la nota de hada de adulto antes de abrir el cofre de niño.
+Burn the web, bomb the wall, then the Boomerang.|Queime a teia, exploda a parede e recolha o token com o bumerangue.|Burn the web, bomb the wall, then the Boomerang.|Quema la telaraña, vuela la pared y recoge la ficha con el bumerán.
+The soil is behind the boulder that the bracelet's bomb flower opens.|A terra fofa fica atrás da rocha. Use o Bracelete Goron para levantar uma Flor-Bomba e explodir a rocha.|The soil is behind the boulder that the bracelet's bomb flower opens.|La tierra blanda está detrás de la roca. Usa el brazalete goron para levantar una flor bomba y destruir la roca.
+Out of reach on the house wall: the Boomerang brings the token back.|Na parede da casa, fora de alcance. Use o bumerangue para trazer o token.|Out of reach on the house wall: the Boomerang brings the token back.|Está fuera de alcance en la pared de la casa. Usa el bumerán para recoger la ficha.
+Kill the Skulltula in the marsh grotto as a child; as adult, break the crate for the token.|Como criança, derrote a Skulltula na gruta do pântano. Como adulto, quebre o caixote para pegar o token.|Kill the Skulltula in the marsh grotto as a child; as adult, break the crate for the token.|De niño, derrota a la Skulltula en la gruta del pantano. De adulto, rompe la caja para obtener la ficha.
+Talon has to be back at the ranch first: get the Weird Egg from Malon at Hyrule Castle, let it hatch, and wake Talon there with the Cucco.|Talon precisa voltar ao rancho. Pegue o Ovo Estranho com Malon no Castelo de Hyrule, espere nascer o Cucco e use-o para acordar Talon.|Talon has to be back at the ranch first: get the Weird Egg from Malon at Hyrule Castle, let it hatch, and wake Talon there with the Cucco.|Talon debe volver al rancho. Consigue el Huevo Raro de Malon en el castillo de Hyrule, espera a que nazca el cuco y úsalo para despertar a Talon.
+Zelda's Lullaby opens Darunia's door; he gives the bracelet after you play Saria's Song.|Toque a Canção de Ninar da Zelda para abrir a porta de Darunia. Ele entrega o bracelete depois que você toca a Canção de Saria.|Zelda's Lullaby opens Darunia's door; he gives the bracelet after you play Saria's Song.|Toca la Nana de Zelda para abrir la puerta de Darunia. Te da el brazalete cuando tocas la Canción de Saria.
+The Bombchu Shop opens at night, after King Dodongo.|A Loja de Bombchus abre à noite após você derrotar o Rei Dodongo.|The Bombchu Shop opens at night, after King Dodongo.|La tienda de bombchus abre de noche después de derrotar al Rey Dodongo.
+Available as soon as you reach Castle Town; no other requirement.|Disponível assim que você chega à Cidade do Castelo.|Available as soon as you reach Castle Town; no other requirement.|Disponible en cuanto llegas a la Ciudadela.
+Appears only once you have Din's Fire. 50 Rupees.|Aparece após obter o Fogo de Din. Custa 50 rupees.|Appears only once you have Din's Fire. 50 Rupees.|Aparece cuando consigues el Fuego de Din. Cuesta 50 rupias.
+Appears only once you have Din's Fire. 100 Rupees.|Aparece após obter o Fogo de Din. Custa 100 rupees.|Appears only once you have Din's Fire. 100 Rupees.|Aparece cuando consigues el Fuego de Din. Cuesta 100 rupias.
+Appears only once you have Din's Fire. 200 Rupees.|Aparece após obter o Fogo de Din. Custa 200 rupees.|Appears only once you have Din's Fire. 200 Rupees.|Aparece cuando consigues el Fuego de Din. Cuesta 200 rupias.
+Appears only once you have Din's Fire. 300 Rupees: more than the starting wallet holds.|Aparece após obter o Fogo de Din. Custa 300 rupees, acima da capacidade da carteira inicial.|Appears only once you have Din's Fire. 300 Rupees: more than the starting wallet holds.|Aparece cuando consigues el Fuego de Din. Cuesta 300 rupias, más de lo que admite la cartera inicial.
+Appears only once you have Din's Fire. 500 Rupees: needs the Adult's Wallet.|Aparece após obter o Fogo de Din. Custa 500 rupees e exige a Carteira de Adulto.|Appears only once you have Din's Fire. 500 Rupees: needs the Adult's Wallet.|Aparece cuando consigues el Fuego de Din. Cuesta 500 rupias y requiere la cartera de adulto.
+King Dodongo|Rei Dodongo|King Dodongo|Rey Dodongo
+Phantom Ganon|Ganon Fantasma|Phantom Ganon|Ganon Fantasma
+Din's Fire|Fogo de Din|Din's Fire|Fuego de Din
+Nayru's Love|Amor de Nayru|Nayru's Love|Amor de Nayru
+Zora Tunic|Túnica Zora|Zora Tunic|Túnica zora
+Goron Tunic|Túnica Goron|Goron Tunic|Túnica goron
+Silver Scale|Escama Prateada|Silver Scale|Escama de plata
+Golden Scale|Escama Dourada|Golden Scale|Escama de oro
+Fire Arrow|Flecha de Fogo|Fire Arrow|Flecha de Fuego
+Light Arrow|Flecha de Luz|Light Arrow|Flecha de Luz
+Ice Arrow|Flecha de Gelo|Ice Arrow|Flecha de Hielo
+Bomb Bag|Bolsa de Bombas|Bomb Bag|Saco de Bombas
+Main Map|Mapa principal|Main Map|Mapa principal
+inimigos||enemies|enemigos
+needs {item}|requer {item}|needs {item}|requiere {item}
+No checklist entries for this area|Sem objetivos para esta região|No checklist entries for this area|Sin objetivos para esta zona
+to get|disponíveis|to get|disponibles
+later|para depois|later|más adelante
+left here|restantes na região|left here|restantes en la zona
+can't reach yet|ainda inacessível|can't reach yet|aún inaccesible
 Hearts|Corações|Hearts|Corazones
 Pieces of Heart|Pedaços de coração|Pieces of Heart|Piezas de corazón
 Key item|Item-chave|Key item|Objeto clave
@@ -39,7 +168,6 @@ Garden palm tree|Palmeira do jardim|Garden palm tree|Palmera del jardín
 As a child, roll into the palm tree in the garden at the foot of the castle wall.|Como criança, role contra a palmeira no jardim, junto à muralha do castelo.|As a child, roll into the palm tree in the garden at the foot of the castle wall.|De niño, rueda contra la palmera del jardín, al pie de la muralla del castillo.
 Big tree|Árvore grande|Big tree|Árbol grande
 Cliff above the log|Penhasco acima do tronco|Cliff above the log|Acantilado sobre el tronco
-Ledge below the crater entrance|Plataforma abaixo da entrada da cratera|Ledge below the crater entrance|Saliente bajo la entrada del cráter
 Entrance alcove crate|Caixote no nicho da entrada|Entrance alcove crate|Caja del nicho de la entrada
 Soft soil by Dodongo's Cavern|Terra fofa perto da Caverna dos Dodongos|Soft soil by Dodongo's Cavern|Tierra blanda junto a la Cueva de los Dodongos
 Cave behind a cracked rock|Gruta atrás da pedra rachada|Cave behind a cracked rock|Gruta tras la roca agrietada
@@ -314,8 +442,6 @@ Pratique as melodias do jogo e compartilhe suas composições.||Practice songs f
 Teste seus conhecimentos sobre Hyrule no desafio diário.||Test your knowledge of Hyrule in the daily quiz.|Pon a prueba tus conocimientos de Hyrule en el reto diario.
 Acompanhe as máscaras desbloqueadas e registre seus amiibo.||Track unlocked masks and log your amiibo.|Consulta las máscaras desbloqueadas y registra tus amiibo.
 Configure o idioma, a origem da partida e a janela flutuante.||Set your language, save source and overlay preferences.|Configura el idioma, el origen de la partida y la ventana flotante.
-Medalha conquistada||Medal earned|Medalla conseguida
-Medalha pendente||Medal pending|Medalla pendiente
 de||of|de
 of|de|of|de
 in|em|in|en
@@ -367,7 +493,7 @@ Close|Fechar|Close|Cerrar
 new in remake|novo no remake|new in the remake|nuevo en el remake
 You can get this now|Disponível agora|Available now|Disponible ahora
 Not yet.|Ainda não disponível.|Not available yet.|Aún no disponible.
-Still needed:|Requisitos pendentes|Still needed|Requisitos pendientes
+Still needed:|Requisitos pendentes:|Still needed:|Requisitos pendientes:
 Wrong spot? Undo this match|Local incorreto? Desfazer associação|Wrong spot? Undo match|¿Lugar incorrecto? Deshacer asociación
 Requirement:|Requisito|Requirement|Requisito
 Logic:|Condição|Logic|Condición
@@ -689,3 +815,13 @@ off|desligado|off|desactivado
 Atualizar agora||Refresh now|Actualizar ahora
 Atualizando…||Refreshing…|Actualizando…
 Falha na atualização. Tente novamente.||Could not refresh. Try again.|No se pudo actualizar. Inténtalo de nuevo.
+Nova versão disponível||New version available|Nueva versión disponible
+Novidades||What's new|Novedades
+Atualizar||Update|Actualizar
+Depois||Later|Más tarde
+Baixando a atualização…||Downloading the update…|Descargando la actualización…
+Atualização pronta||Update ready|Actualización lista
+Reiniciar e instalar||Restart and install|Reiniciar e instalar
+A atualização foi baixada. Reinicie para instalar.||The update was downloaded. Restart to install it.|La actualización se descargó. Reinicia para instalarla.
+Não foi possível baixar a atualização.||The update could not be downloaded.|No se pudo descargar la actualización.
+Tentar novamente||Try again|Reintentar

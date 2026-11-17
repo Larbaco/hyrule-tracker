@@ -12,7 +12,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Languages](https://img.shields.io/badge/lang-PT%20%7C%20EN%20%7C%20ES-orange)
 
-A portable Windows app that **reads your local save** and updates the checklist, map and counters as you play. 🌍 Available in Portuguese, English and Spanish.
+A Windows desktop app that **reads your local save** and updates the checklist, map and counters as you play. 🌍 Available in Portuguese, English and Spanish.
 
 Created by **Joao Victor Prado**, based on [Boomerang Tracker](https://github.com/LucieTheFool/boomerang-tracker).
 
@@ -25,14 +25,14 @@ Created by **Joao Victor Prado**, based on [Boomerang Tracker](https://github.co
 ## 🚀 First use
 
 1. 🎮 Open the game in a compatible environment and load a game with at least one save.
-2. 📦 Open `Hyrule-Tracker-1.0.2-portable.exe`. The tracker looks for saves automatically in known installations.
+2. 📦 Download `Hyrule-Tracker-Setup-1.0.0.exe` from the [Releases](https://github.com/jv-prado/hyrule-tracker/releases) tab, run it and open **Hyrule Tracker**. The tracker looks for saves automatically in known installations.
 3. 🟢 Check the status next to the installation name:
    - **Save connected** → the tracker read the save from disk.
    - **Live** → the tracker is reading the running game.
 4. 📂 Save not found? Open **Settings → Choose folder** and select the folder that contains the `slot_*` directories (game folder or emulator data folder, as long as it has a recognized layout).
-5. 🌐 Use **PT**, **EN** or **ES** next to **Refresh now** to change the language.
+5. 🌐 English is the default on first launch. Use **EN**, **PT** or **ES** next to **Refresh now** to change the language. The tracker remembers your choice.
 
-> 💡 The executable is portable. Published versions live in the repository's **Releases** tab. To update, download and open the new executable. **Refresh now** re-reads your save progress.
+> 💡 **Automatic updates:** the app checks GitHub for new versions, shows what changed and only downloads after you confirm. **Refresh now** re-reads your save progress.
 
 ## ✨ Features
 
@@ -82,7 +82,7 @@ Turn on **Show in-game overlay** in Settings. It can show counters, remaining ob
 <summary>❓ <b>My game does not appear</b></summary>
 
 1. Confirm that you saved inside the game. The tracker looks for `progress.sav` inside a `slot_*` directory.
-2. Open **Settings → Search saves**. For portable installs or secondary drives, use **Choose folder** and select the profile folder that contains the slots.
+2. Open **Settings → Search saves**. For secondary drives or custom emulator folders, use **Choose folder** and select the profile folder that contains the slots.
 3. For **Live** reading, keep the game loaded and select **Follow latest save**. The indicator changes to **Live** when the tracker finds the running game.
 4. If the status stays **Save connected**, save in the game or click **Refresh now** to confirm the on-disk reading follows your changes.
 
@@ -109,11 +109,18 @@ npm run dev
 | `npm start` | ▶️ Builds and opens the app. |
 | `npm run typecheck` | 🔍 Checks TypeScript types. |
 | `npm test` | 🧪 Runs the test suite (tests needing private fixtures are skipped in public clones). |
-| `npm run dist` | 📦 Builds the portable Windows x64 executable in `release/`. |
+| `npm run dist` | 📦 Builds the Windows x64 installer (`Hyrule-Tracker-Setup-<version>.exe`) in `release/`. |
+| `npm run dist:publish` | 🚀 Creates the draft GitHub release from `CHANGELOG.md` and uploads the installer (needs `GH_TOKEN`). |
+
+### 🚀 Releasing a version
+
+1. Bump `version` in `package.json` and add a `## [x.y.z]` section to [CHANGELOG.md](CHANGELOG.md). That section is the release text **and** the "What's new" the app shows to players.
+2. Run `GH_TOKEN=<token> npm run dist:publish`. It creates a **draft** release and uploads the installer, `latest.yml` and the blockmap.
+3. Review the draft on GitHub and publish it. Installed apps only see published releases.
 
 ### 🖼️ Images
 
-Game and wiki images are **not** stored in this repository. Fetch them into `src/renderer/public/` before building:
+Fetch the game and wiki images into `src/renderer/public/` before building. The item icon importer uses FFmpeg to create WebP files.
 
 ```powershell
 node scripts/fetch-item-images.mjs

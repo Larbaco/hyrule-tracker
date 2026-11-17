@@ -1,6 +1,6 @@
 {
   "name": "hyrule-tracker",
-  "version": "1.0.2",
+  "version": "1.0.0",
   "private": true,
   "description": "Ocarina of Time remake companion for Windows.",
   "type": "module",
@@ -13,7 +13,8 @@
     "dev": "node scripts/dev.mjs",
     "build": "vite build && node scripts/build-electron.mjs",
     "start": "npm run build && node scripts/start.mjs",
-    "dist": "npm run build && electron-builder --win portable"
+    "dist": "npm run build && electron-builder --win nsis",
+    "dist:publish": "node scripts/ensure-release.mjs && npm run build && electron-builder --win nsis --publish always"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",
@@ -30,6 +31,7 @@
     "vitest": "^3.2.7"
   },
   "dependencies": {
+    "electron-updater": "^6.8.11",
     "koffi": "3.3.7",
     "qrcode": "^1.5.4",
     "react": "^19.3.1",
@@ -51,25 +53,41 @@
       "LICENSE",
       "THIRD_PARTY_NOTICES.md",
       "docs/atlas-license.txt",
-      "package.json"
+      "package.json",
+      "!dist/brand/icon.png",
+      "build/icon.png"
     ],
     "win": {
-      "signAndEditExecutable": false,
+      "signAndEditExecutable": true,
       "target": [
         {
-          "target": "portable",
+          "target": "nsis",
           "arch": [
             "x64"
           ]
         }
-      ]
-    },
-    "portable": {
-      "artifactName": "Hyrule-Tracker-${version}-portable.exe"
+      ],
+      "icon": "build/icon.ico"
     },
     "asar": true,
     "asarUnpack": [
       "node_modules/koffi/**"
-    ]
+    ],
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Hyrule Tracker",
+      "artifactName": "Hyrule-Tracker-Setup-${version}.exe",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "jv-prado",
+      "repo": "hyrule-tracker"
+    }
   }
 }

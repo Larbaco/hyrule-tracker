@@ -3,7 +3,8 @@ import { app, BrowserWindow, ipcMain, dialog, shell, Menu, globalShortcut, scree
 import path from 'node:path';
 import fs from 'node:fs';
 import { Controller } from './controller.js';
-import type { OverlayMode } from '../shared/types.js';
+import type { OverlayMode, UpdateState } from '../shared/types.js';
+import { createUpdater } from './updater.js';
 import { SettingsStore } from './settings.js';
 
 const isDev = !app.isPackaged;
@@ -15,6 +16,7 @@ if (isDev && process.env.OOT_USER_DATA) app.setPath('userData', process.env.OOT_
 let main: BrowserWindow | null = null;
 let controller: Controller;
 let settings: SettingsStore;
+let updater: ReturnType<typeof createUpdater> | null = null; // only in the installed app
 
 function rendererUrl(page: string) {
   const dev = process.env.VITE_DEV_SERVER_URL;
@@ -28,6 +30,7 @@ function createMain() {
     minWidth: 640, minHeight: 480,
     backgroundColor: '#0e0e0f',
     title: 'Hyrule Tracker',
+    icon: path.join(appDir, 'build', 'icon.png'),
     autoHideMenuBar: true,
     webPreferences: { preload: path.join(appDir, 'dist-electron', 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false },
   });
@@ -165,6 +168,21 @@ function migrateOldUserData() {
   } catch (e) { logError('migrate old settings', e); }
 }
 
+// ---------------- Auto-update (GitHub Releases) ----------------
+function startUpdater() {
+  if (isDev) return; // nothing to update when running from source
+  void import('electron-updater').then(({ autoUpdater }) => {
+    const log = (...a: unknown[]) => console.log(...a);
+    autoUpdater.logger = { info: log, warn: log, error: log, debug: () => {} } as typeof autoUpdater.logger;
+    updater = createUpdater({
+      autoUpdater,
+      log,
+      notify: (s: UpdateState) => { for (const w of BrowserWindow.getAllWindows()) w.webContents.send('update', s); },
+    });
+    updater.start();
+  }).catch(e => console.log('update unavailable', e)); // without electron-updater the app runs normally
+}
+
 app.whenReady().then(async () => {
   if (!process.env.OOT_USER_DATA) migrateOldUserData();
   settings = new SettingsStore(path.join(app.getPath('userData'), 'settings.json'));
@@ -197,6 +215,10 @@ app.whenReady().then(async () => {
   });
 
   ipcMain.handle('state:get', () => controller.state);
+  ipcMain.handle('update:get', () => updater?.getState() ?? { status: 'idle' });
+  ipcMain.on('update:now', () => { void updater?.download(); });
+  ipcMain.on('update:later', () => updater?.later());
+  ipcMain.on('update:install', () => updater?.install());
   ipcMain.handle('prefs:get', () => settings.data.ui);
   ipcMain.handle('locale:set', (_e, locale: string) => {
     if (!['pt-BR', 'en-US', 'es-ES'].includes(locale)) return;
@@ -245,6 +267,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('progress:refresh', () => controller.refreshNow());
 
   createMain();
+  startUpdater();
   if (isDev && process.env.OOT_SAVE_DIR) settings.data.saveDir = process.env.OOT_SAVE_DIR;
   if (isDev && process.env.OOT_DEV_PANEL) settings.data.devPanel = true;
   registerHotkeys();

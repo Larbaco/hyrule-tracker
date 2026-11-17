@@ -6,9 +6,11 @@ import { Symbol } from './symbols';
 import { buildCards, tileItems, Card, TileModel } from './view';
 import { Masonry } from './Masonry';
 import { CompanionPage, Icon, Sidebar, PageHeader, type Page } from './CompanionPages';
-import { currentLocale, languages, setLocale, t, type Locale } from './i18n';
+import { LanguageSwitch } from './LanguageFlags';
+import { currentLocale, message, setLocale, t, type Locale } from './i18n';
 import { useStored } from './Recreation';
 import { ObjectiveName } from './ObjectiveName';
+import { UpdateDialog } from './UpdateDialog';
 import { GameItemIcon, itemImage, trackedItemIcon } from './GameItemIcon';
 
 const icons = symbolIcons;
@@ -73,8 +75,7 @@ export function App() {
   }, [state, cards, selected]);
 
   if (!state || !prefs) return <main className="startup-screen">
-    <div className="brand-mark"><Icon name="triangle" size={28} /></div>
-    <h1>Hyrule Tracker</h1>
+    <img className="brand-logo" src="./brand/logo.webp" alt="Hyrule Tracker" />
     <p role="status">{t("Preparando o diário…")}</p>
     <AuthorCredit />
   </main>;
@@ -93,13 +94,12 @@ export function App() {
       </button>
       {refreshError && <small role="alert">{t('Falha na atualização. Tente novamente.')}</small>}
     </div>
-    <select className="language-picker" aria-label={t('Idioma')} title={languages[locale]} value={locale} onChange={e => changeLanguage(e.target.value as Locale)}>
-      {Object.keys(languages).map(code => <option key={code} value={code}>{code.slice(0, 2).toUpperCase()}</option>)}
-    </select>
+    <LanguageSwitch locale={locale} onChange={changeLanguage} />
   </>;
 
   return (
     <div className="tracker-shell" lang={locale}>
+      <UpdateDialog />
       <Sidebar page={page} onPage={setPage} state={state} />
       {page !== 'checklist' ? (
         <CompanionPage key={locale} page={page} state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} />
@@ -148,7 +148,7 @@ export function App() {
       )}
       <footer className="tracker-footer"><AuthorCredit /></footer>
       <div className="toasts" aria-live="polite">
-        {state.toasts.map(t => <div key={t.id} className="toast">{t.text}</div>)}
+        {state.toasts.map(toast => <div key={toast.id} className="toast">{message(toast.text, toast.values)}</div>)}
       </div>
     </div>
   );

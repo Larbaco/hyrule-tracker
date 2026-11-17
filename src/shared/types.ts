@@ -120,7 +120,7 @@ export interface ChangeReport {
   hiddenNoise: number;
 }
 
-export interface Toast { id: number; text: string }
+export interface Toast { id: number; text: string; values?: Record<string, string | number> }
 
 export interface AppState {
   status: 'ok' | 'no-folder' | 'no-slots' | 'error' | 'loading';
@@ -202,4 +202,12 @@ export interface UiPrefs {
   collapsed: string[];
   showParts: { B: boolean; C: boolean };
   /** Height of the "Can get now" panel in pixels (user-resized) */
+}
+
+/** Auto-update progress, shown in the update dialog. `notes` is the plain-text changelog of the new version. */
+export interface UpdateState {
+  status: 'idle' | 'available' | 'downloading' | 'ready' | 'error';
+  version?: string;
+  percent?: number;
+  notes?: string;
 }

@@ -240,3 +240,12 @@
   .metric:nth-child(n+3) { border-top: 1px solid var(--hyrule-line); }
   .progress-panel { min-height: 220px; }
 }
+
+.brand-icon { width: 39px; height: 39px; flex: none; object-fit: contain; }
+.brand-icon.big { width: 72px; height: 72px; }
+.brand-logo { width: min(420px, 80vw); height: auto; }
+
+.language-switch { display: inline-flex; align-items: center; gap: 8px; min-height: 37px; padding: 4px 10px; border: 1px solid #3a342c; border-radius: 10px; background: rgba(0,0,0,.2); color: inherit; cursor: pointer; }
+.language-switch:hover { border-color: var(--hyrule-gold, #d9a441); background: rgba(217,164,65,.14); }
+.language-switch .flag { display: block; flex: none; }
+.language-switch.labelled { margin-top: 10px; }

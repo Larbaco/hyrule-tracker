@@ -3,6 +3,7 @@ import type { Activity, AppState, TrackedItem } from '../shared/types';
 import { GUIDE, LOCAL_NAMES } from '../core/companion';
 import { api } from './api';
 import { enemyPhoto, regionPhoto } from './referenceImages';
+import { LanguageSwitch } from './LanguageFlags';
 import { currentLocale, date, hour, languages, number, t, type Locale } from './i18n';
 import { ObjectiveName } from './ObjectiveName';
 import { GameItemIcon, trackedItemIcon } from './GameItemIcon';
@@ -33,7 +34,7 @@ const pageDescriptions: Record<Page, string> = {
 };
 const navGroups: Page[][] = [
   ['overview', 'map', 'checklist', 'threads', 'minigames', 'hall'],
-  ['timeline', 'medals', 'gossip', 'photo', 'quiz'],
+  ['timeline', 'medals', 'gossip', /* 'photo' hidden for now */ 'quiz'],
   ['settings'],
 ];
 const iconPaths: Record<string, string> = {
@@ -75,7 +76,7 @@ function connectionStatus(state: AppState) {
 export function Sidebar({ page, onPage, state }: { page: Page; onPage: (p: Page) => void; state: AppState }) {
   const connection = connectionStatus(state);
   return <aside className="tracker-sidebar">
-    <div className="tracker-brand"><div className="brand-mark"><Icon name="triangle" size={23} /></div><div><strong>Hyrule Tracker</strong><small>Ocarina of Time</small></div></div>
+    <div className="tracker-brand"><img className="brand-icon" src="./brand/icon.webp" alt="" /><div><strong>Hyrule Tracker</strong><small>Ocarina of Time</small></div></div>
     <button className={connection.connected ? 'sidebar-source connected' : 'sidebar-source'} title={t(connection.detail ?? connection.label)} onClick={() => onPage('settings')}>
       <span className="status-dot" aria-hidden="true" />
       <b>{t(sourceName(state))}</b>
@@ -129,7 +130,7 @@ export function CompanionPage({ page, state, onPage, onScan, scanning, onLanguag
 function Overview({ state, onPage, onScan, scanning }: { state: AppState; onPage: (p: Page) => void; onScan: () => void; scanning: boolean }) {
   const s = state.summary;
   if (!s) return <section className="focus-panel empty-state">
-    <div className="brand-mark"><Icon name="triangle" size={28} /></div><h2>{state.status === 'loading' ? t('Buscando sua partida') : t('Encontre a sua partida')}</h2>
+    <img className="brand-icon big" src="./brand/icon.webp" alt="" /><h2>{state.status === 'loading' ? t('Buscando sua partida') : t('Encontre a sua partida')}</h2>
     <p>{t(state.message || 'Procurando saves do remake nos locais de instalação.')}</p>
     {state.status !== 'loading' && saveActions(onScan, scanning)}
   </section>;
@@ -171,7 +172,7 @@ function Overview({ state, onPage, onScan, scanning }: { state: AppState; onPage
 
 function Settings({ state, onScan, scanning, onLanguage }: { state: AppState; onScan: () => void; scanning: boolean; onLanguage: (locale: Locale) => void }) {
   return <>
-    <section className="focus-panel setting-panel"><h2>{t("Idioma")}</h2><label className="inline-field">{t("Idioma")}<select value={currentLocale()} onChange={e => onLanguage(e.target.value as Locale)}>{Object.entries(languages).map(([code, label]) => <option key={code} value={code}>{label}</option>)}</select></label></section>
+    <section className="focus-panel setting-panel"><h2>{t("Idioma")}</h2><LanguageSwitch locale={currentLocale()} onChange={onLanguage} labelled /></section>
     <section className="focus-panel setting-panel">
       <h2>{t("Fonte da partida")}</h2>
       <p>{t(sourceName(state))}</p>
