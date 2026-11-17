@@ -6,6 +6,7 @@ import { matchesImage, parseMaps, parseStartTime } from '../src/main/procmem-lin
 import { isWindowsPath, prefixFromEnv, prefixRoaming, toUnixPath, winePrefixes } from '../src/gamedata/wine.js';
 import { isGameFile, programName } from '../src/gamedata/saves.js';
 import { sweepRanges } from '../src/gamedata/live.js';
+import { useX11 } from '../src/main/x11.js';
 
 describe('/proc/<pid>/maps', () => {
   const maps = [
@@ -93,5 +94,24 @@ describe('program names', () => {
     expect(isGameFile('hookshot')).toBe(true);
     expect(isGameFile('Triforce.AppImage')).toBe(true);
     expect(isGameFile('notes.txt')).toBe(false);
+  });
+});
+
+describe('X11 or Wayland', () => {
+  it('prefers X11 when the session advertises a display', () => {
+    expect(useX11({ DISPLAY: ':0', WAYLAND_DISPLAY: 'wayland-0' })).toBe(true);
+    expect(useX11({ DISPLAY: ':0' })).toBe(true);
+  });
+  it('leaves backend selection to Electron without DISPLAY', () => {
+    expect(useX11({ WAYLAND_DISPLAY: 'wayland-0' })).toBe(false);
+    expect(useX11({ DISPLAY: '', XDG_SESSION_TYPE: 'wayland' })).toBe(false);
+    expect(useX11({})).toBe(false);
+  });
+  it('lets the Wayland override take priority', () => {
+    expect(useX11({ DISPLAY: ':0', HYRULE_TRACKER_WAYLAND: '1' })).toBe(false);
+    expect(useX11({ DISPLAY: ':0', HYRULE_TRACKER_X11: '1', HYRULE_TRACKER_WAYLAND: '1' })).toBe(false);
+  });
+  it('can be forced to X11', () => {
+    expect(useX11({ WAYLAND_DISPLAY: 'wayland-0', HYRULE_TRACKER_X11: '1' })).toBe(true);
   });
 });

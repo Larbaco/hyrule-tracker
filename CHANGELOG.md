@@ -12,6 +12,7 @@ Format: `New`, `Improved`, `Fixed`, `Known` (open issue).
 
 ### Fixed
 - **Daily log.** The day's totals had no space between the number and the text ("0enemies").
+- **Linux startup.** The AppImage opens on Wayland-only desktops without setting `HYRULE_TRACKER_WAYLAND=1`. By default, the tracker requests X11 only when the session advertises it through `DISPLAY`.
 
 ## [1.3.0] - 2026-11-17
 

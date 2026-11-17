@@ -8,16 +8,15 @@ import type { AppState, OverlayMode, UpdateState } from '../shared/types.js';
 import { createUpdater } from './updater.js';
 import { SettingsStore } from './settings.js';
 import { boundsVisible, cleanBounds, isLocale, isString, isStringArray, parseHotkeys, parseOverlayPatch, sanitizeUiPrefs, type MainLocale, type Rect } from './validate.js';
-import { x11WindowOwner } from './x11.js';
+import { useX11, x11WindowOwner } from './x11.js';
 import { lanUrls, startLanServer, type LanServer } from './lan.js';
 
 const isDev = !app.isPackaged;
 const appDir = app.getAppPath();
 
-// Linux: run as an X11 client (XWayland under Wayland). Wayland doesn't let an app keep a window on top,
-// set global shortcuts or pick another app's window to capture; under X11 the overlay, hotkeys and game
-// screenshot work as on Windows. HYRULE_TRACKER_WAYLAND=1 keeps native Wayland.
-if (process.platform === 'linux' && !process.env.HYRULE_TRACKER_WAYLAND) app.commandLine.appendSwitch('ozone-platform', 'x11');
+// Prefer X11 for overlay placement, global shortcuts, and game-window capture when DISPLAY is set.
+// In a Wayland-only session, let Electron select its native backend.
+if (process.platform === 'linux' && useX11(process.env)) app.commandLine.appendSwitch('ozone-platform', 'x11');
 
 // Development/testing only: run against a scratch settings folder and save folder.
 if (isDev && process.env.OOT_USER_DATA) app.setPath('userData', process.env.OOT_USER_DATA);

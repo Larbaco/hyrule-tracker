@@ -48,7 +48,7 @@ The Linux build is new and hasn't been tested on many systems yet. **Please tell
    sudo sysctl kernel.yama.ptrace_scope=0
    ```
    This lets programs of your user read each other's memory, as on Windows. Without it the tracker still follows your saves.
-4. The app runs as an X11 client (XWayland on Wayland) so the overlay, hotkeys and game screenshot work. Set `HYRULE_TRACKER_WAYLAND=1` to run on native Wayland instead. The overlay can't stay above a game in exclusive fullscreen or in Gamescope.
+4. In a Wayland-only session, Electron can open the app natively without an environment override. When `DISPLAY` is set, the app requests X11 (XWayland on Wayland) for overlay placement, global shortcuts, and game-window captures. Set `HYRULE_TRACKER_WAYLAND=1` to leave the decision to Electron. On a Wayland desktop with XWayland, pass `--ozone-platform=x11` on launch to select X11 explicitly. Overlay placement, global shortcuts, and game-window captures may be limited in native Wayland. The overlay requires windowed or borderless mode outside Gamescope.
 5. If the AppImage closes right away on Ubuntu 24.04+ with a sandbox error, start it with `--no-sandbox`. Older distros may need `libfuse2`.
 
 ## ✨ Features

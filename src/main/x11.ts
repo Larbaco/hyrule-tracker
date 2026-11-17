@@ -2,6 +2,16 @@
 // too). Used to pick the game's window for a screenshot. Loaded once through koffi; if libX11 or the
 // display isn't there, it answers "don't know".
 type Owner = (xid: number) => number | undefined;
+
+/**
+ * Whether to force Electron to use X11. DISPLAY identifies the X server advertised by the session.
+ * HYRULE_TRACKER_WAYLAND=1 lets Electron select the backend and takes priority over HYRULE_TRACKER_X11=1.
+ */
+export function useX11(env: Record<string, string | undefined>): boolean {
+  if (env.HYRULE_TRACKER_WAYLAND) return false;
+  if (env.HYRULE_TRACKER_X11) return true;
+  return !!env.DISPLAY;
+}
 let owner: Promise<Owner | null> | undefined;
 
 export function x11WindowOwner(): Promise<Owner | null> {
