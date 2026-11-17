@@ -26,3 +26,6 @@ coverage/
 # Personal / third-party text: kept on your PC only
 docs/checklist-source.txt
 data/checklist.local.json
+
+# Game/wiki images: fetched locally via scripts/fetch-*.mjs
+src/renderer/public/

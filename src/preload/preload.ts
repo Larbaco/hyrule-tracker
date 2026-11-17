@@ -10,16 +10,26 @@ const api = {
     return () => { ipcRenderer.removeListener('state', h); };
   },
   getPrefs: (): Promise<UiPrefs> => ipcRenderer.invoke('prefs:get'),
+  setLanguage: (locale: string) => ipcRenderer.invoke('locale:set', locale),
+  onLanguage: (fn: (locale: string) => void) => {
+    const handler = (_e: unknown, locale: string) => fn(locale);
+    ipcRenderer.on('locale', handler);
+    return () => { ipcRenderer.removeListener('locale', handler); };
+  },
   setPrefs: (p: UiPrefs): Promise<UiPrefs> => ipcRenderer.invoke('prefs:set', p),
   pinSlot: (name: string | null) => ipcRenderer.invoke('slot:pin', name),
   toggleManual: (id: string) => ipcRenderer.invoke('manual:toggle', id),
   setDevPanel: (on: boolean) => ipcRenderer.invoke('dev:set', on),
   setLive: (on: boolean) => ipcRenderer.invoke('live:set', on),
+  captureGame: (): Promise<string | undefined> => ipcRenderer.invoke('capture:get'),
+  setCaptureActivity: (on: boolean) => ipcRenderer.invoke('capture:set', on),
   setChangeLog: (on: boolean) => ipcRenderer.invoke('log:set', on),
   openLogFolder: () => ipcRenderer.invoke('log:open'),
   takeSnapshot: (label: string) => ipcRenderer.invoke('snapshot:take', label),
   openSnapshotFolder: () => ipcRenderer.invoke('snapshot:open-folder'),
   browseFolder: (): Promise<AppState> => ipcRenderer.invoke('folder:browse'),
+  scanFolders: (): Promise<AppState> => ipcRenderer.invoke('folder:scan'),
+  refreshProgress: (): Promise<void> => ipcRenderer.invoke('progress:refresh'),
   answerIdentify: (reqId: string, itemIds: string[]) => ipcRenderer.invoke('identify:answer', reqId, itemIds),
   skipIdentify: (reqId: string) => ipcRenderer.invoke('identify:skip', reqId),
   forgetIdentification: (itemId: string) => ipcRenderer.invoke('identify:forget', itemId),

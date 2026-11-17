@@ -1,5 +1,5 @@
 // Electron entry point.
-import { app, BrowserWindow, ipcMain, dialog, shell, Menu, globalShortcut, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell, Menu, globalShortcut, screen, desktopCapturer } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import { Controller } from './controller.js';
@@ -26,8 +26,8 @@ function createMain() {
   main = new BrowserWindow({
     width: b?.width ?? 1280, height: b?.height ?? 900, x: b?.x, y: b?.y,
     minWidth: 640, minHeight: 480,
-    backgroundColor: '#11131a',
-    title: 'Boomerang Tracker',
+    backgroundColor: '#0e0e0f',
+    title: 'Hyrule Tracker',
     autoHideMenuBar: true,
     webPreferences: { preload: path.join(appDir, 'dist-electron', 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false },
   });
@@ -40,7 +40,11 @@ function createMain() {
   // would otherwise keep it running in the background).
   main.on('closed', () => { main = null; overlay?.destroy(); app.quit(); });
   // Links open in the browser, never inside the app.
-  main.webContents.setWindowOpenHandler(({ url }) => { void shell.openExternal(url); return { action: 'deny' }; });
+  main.webContents.setWindowOpenHandler(({ url }) => {
+    const target = new URL(url);
+    if (target.protocol === 'https:' && ['nintendoeverything.com', 'www.nintendo.com', 'zelda.mtwildwood.net'].includes(target.hostname)) void shell.openExternal(url);
+    return { action: 'deny' };
+  });
   if (isDev && process.env.OOT_DEVTOOLS) main.webContents.openDevTools({ mode: 'detach' });
 }
 
@@ -125,6 +129,23 @@ function logError(where: string, e: unknown) {
   try { fs.appendFileSync(logFile(), line); } catch { /* ignore */ }
   console.error(line);
 }
+
+async function captureGame(pid: number, width = 960): Promise<string | undefined> {
+  if (!pid || process.platform !== 'win32') return;
+  try {
+    const { default: koffi } = await import('koffi');
+    const user32 = koffi.load('user32.dll');
+    const owner = user32.func('uint32_t __stdcall GetWindowThreadProcessId(uint64_t hwnd, _Out_ uint32_t *pid)');
+    const sources = await desktopCapturer.getSources({ types: ['window'], thumbnailSize: { width, height: Math.round(width * 9 / 16) }, fetchWindowIcons: false });
+    for (const source of sources) {
+      const hwnd = /^window:(\d+):/.exec(source.id)?.[1];
+      if (!hwnd || source.thumbnail.isEmpty()) continue;
+      const result = [0];
+      owner(BigInt(hwnd), result);
+      if (result[0] === pid) return 'data:image/jpeg;base64,' + source.thumbnail.toJPEG(75).toString('base64');
+    }
+  } catch (err) { console.error('game capture', err); }
+}
 process.on('uncaughtException', e => logError('uncaughtException', e));
 process.on('unhandledRejection', e => logError('unhandledRejection', e));
 
@@ -153,10 +174,11 @@ app.whenReady().then(async () => {
       userData: app.getPath('userData'),
       snapshots: isDev ? path.join(appDir, 'fixtures', 'snapshots') : path.join(app.getPath('userData'), 'snapshots'),
       version: app.getVersion(),
+      captureGame,
     }, settings);
   } catch (e) {
     logError('startup', e);
-    dialog.showErrorBox('Boomerang Tracker could not start',
+    dialog.showErrorBox('Hyrule Tracker',
       `The tracker's data files (data/checklist.json, data/save-mapping.json) are missing or broken.\n\n${(e as Error).message}`);
     app.quit();
     return;
@@ -176,11 +198,17 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('state:get', () => controller.state);
   ipcMain.handle('prefs:get', () => settings.data.ui);
+  ipcMain.handle('locale:set', (_e, locale: string) => {
+    if (!['pt-BR', 'en-US', 'es-ES'].includes(locale)) return;
+    for (const w of BrowserWindow.getAllWindows()) w.webContents.send('locale', locale);
+  });
   ipcMain.handle('prefs:set', (_e, ui) => { settings.update(s => (s.ui = ui)); return settings.data.ui; });
   ipcMain.handle('slot:pin', (_e, name: string | null) => controller.pinSlot(name));
   ipcMain.handle('manual:toggle', (_e, id: string) => controller.toggleManual(id));
   ipcMain.handle('dev:set', (_e, on: boolean) => controller.setDevPanel(on));
   ipcMain.handle('live:set', (_e, on: boolean) => controller.setLiveEnabled(on));
+  ipcMain.handle('capture:get', () => controller.captureGame());
+  ipcMain.handle('capture:set', (_e, on: boolean) => controller.setCaptureActivity(on === true));
   ipcMain.handle('log:set', (_e, on: boolean) => controller.setChangeLog(on));
   ipcMain.handle('log:open', () => shell.openPath(controller.logDir()));
   ipcMain.handle('snapshot:take', (_e, label: string) => controller.takeSnapshot(label));
@@ -205,13 +233,16 @@ app.whenReady().then(async () => {
   });
   ipcMain.handle('folder:browse', async () => {
     const r = await dialog.showOpenDialog(main!, {
-      title: 'Choose your game folder (Hookshot, Longshot, Triforce or ReLink) or its user\\save\\<id> folder, or Fritchii\'s data folder',
+      title: 'Hyrule Tracker',
       properties: ['openDirectory'],
       defaultPath: settings.data.saveDir,
     });
     if (!r.canceled && r.filePaths[0]) await controller.useFolder(r.filePaths[0]);
     return controller.state;
   });
+
+  ipcMain.handle('folder:scan', () => controller.scanFolders());
+  ipcMain.handle('progress:refresh', () => controller.refreshNow());
 
   createMain();
   if (isDev && process.env.OOT_SAVE_DIR) settings.data.saveDir = process.env.OOT_SAVE_DIR;

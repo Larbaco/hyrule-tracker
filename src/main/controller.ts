@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseGameData, GameDataFile, GameDataError } from '../gamedata/parser.js';
-import { autoDetectUserFolder, resolveUserFolders, listSlots, mostRecentSlot, readSaveStable, userFolderForExe, SlotInfo } from '../gamedata/saves.js';
+import { autoDetectUserFolder, installationLabel, latestUserFolder, resolveUserFolders, listSlots, mostRecentSlot, readSaveStable, userFolderForExe, SlotInfo } from '../gamedata/saves.js';
 import { loadNames } from '../gamedata/names.js';
 import { Tracker, ChecklistFile, MappingFile, DescriptionsFile, applyDescriptions } from '../core/tracker.js';
 import { regionsForArea } from '../core/areas.js';
@@ -15,13 +15,16 @@ import { ChangeLog } from './changelog.js';
 import { STAGE_KEY, LOCATION_KEY, areaFrom } from '../gamedata/live.js';
 import { keyOf } from '../gamedata/detect.js';
 import { SettingsStore } from './settings.js';
-import type { AppState, Toast, SlotSummary } from '../shared/types.js';
+import type { Activity, AppState, ChangeRow, Summary, Toast, SlotSummary } from '../shared/types.js';
+import { canonicalStage, companionProgress, extendChecklist, RUPEES, type CompanionData } from '../core/companion.js';
+import { evaluateAtlas, type AtlasRule } from '../core/atlas.js';
 
 export interface ControllerPaths {
   appDir: string; // holds data/ (and local/ in development)
   userData: string;
   snapshots: string;
   version: string;
+  captureGame?: (pid: number, width?: number) => Promise<string | undefined>;
 }
 
 export class Controller {
@@ -30,6 +33,14 @@ export class Controller {
   private enumNames = new Map<number, string>();
   private watcher?: SaveWatcher;
   private userDir?: string;
+  private refreshId = 0;
+  private companionData: CompanionData;
+  private atlasItems: AtlasRule[];
+  private lastActivityStats?: ReturnType<typeof companionProgress>;
+  private lastHeartStats?: { hearts: number | null; pieces: number | null };
+  private lastSaveImage?: { key: string; value?: string };
+  private lastCaptureAt = 0;
+  private firstSaveTimer?: NodeJS.Timeout;
   /** last parsed save per slot, for "just collected" and the change list */
   private lastParsed = new Map<string, { mtimeMs: number; data: GameDataFile; buf: Buffer }>();
   /** the save shown last (any slot) */
@@ -47,7 +58,11 @@ export class Controller {
     const local = path.join(paths.appDir, 'data', 'checklist.local.json');
     let checklist = (fs.existsSync(local) ? JSON.parse(fs.readFileSync(local, 'utf8')) : read('checklist.json')) as ChecklistFile;
     try { checklist = applyDescriptions(checklist, read('descriptions.json') as DescriptionsFile); } catch (e) { console.error('descriptions', e); }
-    this.tracker = new Tracker(checklist, read('save-mapping.json') as MappingFile, settings.data.learned);
+    this.companionData = read('companion.json') as CompanionData;
+    this.atlasItems = (read('atlas.json') as { items: AtlasRule[] }).items;
+    const mapping = read('save-mapping.json') as MappingFile;
+    extendChecklist(checklist, mapping, this.companionData);
+    this.tracker = new Tracker(checklist, mapping, settings.data.learned);
     try { this.logic = read('logic.json') as LogicFile; } catch { this.logic = undefined; }
     this.logicRows = this.tracker.checklist.categories.flatMap(c => c.items.map(i => ({ id: i.id, key: `${c.id}#${i.number}`, chapter: i.chapter })));
     for (const f of [path.join(paths.appDir, 'local', 'names.json'), path.join(paths.userData, 'names.json')]) {
@@ -65,6 +80,12 @@ export class Controller {
       hotkeys: { ...settings.data.hotkeys, errors: [] },
       live: { status: 'off', enabled: settings.data.live.enabled, using: false },
       changeLog: { enabled: settings.data.changeLog, dir: path.join(paths.userData, 'logs') },
+      activity: this.loadActivity(),
+      captureActivity: settings.data.captureActivity,
+      placements: {
+        chests: this.companionData.chests, fairy_thoughts: this.companionData.notes,
+        scarecrow_spots: this.companionData.scarecrows, grottos: this.companionData.grottos,
+      },
     };
     this.log = new ChangeLog(path.join(paths.userData, 'logs'));
     this.log.enabled = settings.data.changeLog;
@@ -102,11 +123,25 @@ export class Controller {
   async start() {
     let dir = this.settings.data.saveDir;
     if (!dir || !resolveUserFolders(dir).length) {
-      const found = autoDetectUserFolder();
-      if (found) { dir = found; this.settings.update(s => (s.saveDir = found)); }
+      dir = autoDetectUserFolder() ?? undefined;
     }
     await this.useFolder(dir);
+    this.firstSaveTimer = setInterval(() => {
+      if (!this.userDir) void this.scanFolders();
+    }, 8000);
     if (this.settings.data.live.enabled) await this.startLive();
+  }
+
+  async scanFolders() {
+    const found = autoDetectUserFolder();
+    if (found || !this.userDir) await this.useFolder(found ?? undefined);
+    return this.state;
+  }
+
+  async refreshNow() {
+    if (this.userDir) await this.refresh(true, true);
+    else await this.scanFolders();
+    if (!this.settings.data.pinnedSlot) await this.live?.refreshNow();
   }
 
   // ---- live (read-only) progress from the running game
@@ -123,7 +158,7 @@ export class Controller {
         s.live.hints = [...new Set([h, ...prev])].slice(0, 4);
         s.live.hint = h;
       }),
-      onGame: exe => void this.followGame(exe),
+      onGame: exe => this.followGame(exe),
       onChange: () => void this.refresh(true),
       onStatus: () => {
         const i = this.live?.info;
@@ -145,7 +180,7 @@ export class Controller {
 
   /** Ints the mapping or logic reads (other Ints, like play time, change all the time). */
   private watchedInts(): Set<number> {
-    const out = new Set<number>();
+    const out = new Set<number>([RUPEES, ...this.companionData.enemyCounters, ...this.atlasItems.flatMap(item => item.hex32)]);
     for (const k of this.tracker.keyToEntries.keys()) if (typeof k === 'number') out.add(k >>> 0);
     const walk = (x: unknown) => {
       if (Array.isArray(x)) return x.forEach(walk);
@@ -162,19 +197,32 @@ export class Controller {
   private lastShownSave?: GameDataFile;
 
   async useFolder(dir: string | undefined) {
+    const users = dir ? resolveUserFolders(dir) : [];
+    if (dir && !users.length && this.userDir) {
+      this.patch({ message: 'A pasta escolhida não contém um save compatível.' });
+      return;
+    }
+    this.refreshId++;
     this.watcher?.stop();
     this.watcher = undefined;
     this.lastParsed.clear();
     this.lastShownBySlot.clear();
     this.lastShown = undefined;
+    this.lastActivityStats = undefined;
+    this.lastHeartStats = undefined;
+    this.lastSaveImage = undefined;
+    this.state.lastChanges = undefined;
+    this.lastShownSave = undefined;
+    this.live?.setReference(undefined);
     this.userDir = undefined;
-    if (!dir) return this.fail('no-folder', "No save folder found. Choose your game folder (Hookshot, Longshot, NX2navi's Triforce or ReLink) or its user\\save\\<id> folder, or Fritchii's data folder (%APPDATA%\\fritchii).");
-    if (!fs.existsSync(dir)) return this.fail('no-folder', `The save folder no longer exists:\n${dir}`);
-    const users = resolveUserFolders(dir);
-    if (!users.length) return this.fail('no-slots', `No slot_* folders with a progress.sav were found in:\n${dir}`);
+    if (!dir) return this.fail('no-folder', 'Nenhuma partida encontrada. Abra o jogo e salve uma vez, ou selecione a pasta do jogo.');
+    if (!users.length) return this.fail('no-slots', 'A pasta escolhida não contém um save compatível.');
     // If a game folder holds several profiles, use the most recently played one.
-    this.userDir = users.sort((a, b) => Math.max(0, ...listSlots(b).map(s => s.mtimeMs)) - Math.max(0, ...listSlots(a).map(s => s.mtimeMs)))[0];
-    if (this.settings.data.saveDir !== this.userDir) this.settings.update(s => (s.saveDir = this.userDir));
+    this.userDir = latestUserFolder(users)!;
+    if (this.settings.data.saveDir !== this.userDir) this.settings.update(s => {
+      s.saveDir = this.userDir;
+      s.pinnedSlot = null;
+    });
     this.watcher = new SaveWatcher(this.userDir, () => void this.refresh(true));
     this.watcher.start();
     await this.refresh(false);
@@ -195,30 +243,34 @@ export class Controller {
   }
 
   private fail(status: AppState['status'], message: string) {
-    this.state = { ...this.state, status, message, slots: [], categories: [], summary: undefined, saveDir: this.userDir };
+    this.state = { ...this.state, status, message, saveReadError: false, slots: [], categories: [], summary: undefined, companion: undefined, atlasStatus: undefined,
+      saveDir: this.userDir, sourceLabel: undefined, saveImage: undefined };
     this.emit();
   }
 
   /** Re-read the active slot. `fromWatcher` = a new save was written (enables glow and toasts). */
-  async refresh(fromWatcher: boolean) {
+  async refresh(fromWatcher: boolean, forceRead = false) {
     if (!this.userDir) return;
+    const refreshId = ++this.refreshId;
     const slots = listSlots(this.userDir);
     if (!slots.length) return this.fail('no-slots', `No slot_* folders with a progress.sav in:\n${this.userDir}`);
-    const pinned = this.settings.data.pinnedSlot;
+    const pinned = slots.some(s => s.name === this.settings.data.pinnedSlot) ? this.settings.data.pinnedSlot : null;
     const slot: SlotInfo = (pinned && slots.find(s => s.name === pinned)) || mostRecentSlot(slots);
 
     let read: { mtimeMs: number; data: GameDataFile; buf: Buffer };
     try {
       // Live updates refresh often; don't re-read a save that hasn't changed.
-      const cached = this.lastParsed.get(slot.name);
+      const cached = forceRead ? undefined : this.lastParsed.get(slot.name);
       read = cached && cached.mtimeMs === slot.mtimeMs ? cached : await readSaveStable(slot.progress);
     } catch (e) {
+      if (refreshId !== this.refreshId) return;
       // Keep showing the last good state; just report the problem.
       const msg = e instanceof GameDataError ? `This save doesn't look like an Ocarina of Time save: ${e.message}` : `Couldn't read ${slot.name}/progress.sav: ${(e as Error).message}`;
-      this.state = { ...this.state, status: this.state.summary ? 'ok' : 'error', message: msg };
+      this.state = { ...this.state, status: this.state.summary ? 'ok' : 'error', message: msg, saveReadError: true };
       this.emit();
       return;
     }
+    if (refreshId !== this.refreshId) return;
     const saved = { mtimeMs: read.mtimeMs, data: read.data, buf: read.buf };
     this.lastParsed.set(slot.name, saved);
     // Live data is used only when following the most recent save (it is the game's
@@ -256,7 +308,17 @@ export class Controller {
     const age = rawArea !== stage ? stage?.match(/_(Adult|Child)$/)?.[0] ?? '' : '';
     summary.area = rawArea ? prettyArea(rawArea.split('/').pop()! + age) : undefined;
     const { available, canBeAdult } = this.applyLogic(categories, cur.data, areaRegions);
-    summary.lastSavedMs = read.mtimeMs;
+    summary.lastSavedMs = slot.savedAtMs ?? read.mtimeMs;
+    const companion = companionProgress(this.companionData, cur.data);
+    const visited = this.settings.data.visited[this.userDir] ?? [];
+    const currentStage = canonicalStage(rawArea);
+    if (!pinned && currentStage && !visited.includes(currentStage)) {
+      visited.push(currentStage);
+      this.settings.update(s => (s.visited[this.userDir!] = visited));
+    }
+    companion.visited = [...new Set([...companion.visited, ...visited])];
+    if (forceRead) this.lastSaveImage = undefined;
+    const image = this.readSaveImage(slot);
 
     let lastChanges = this.state.lastChanges;
     if (isNewSave) {
@@ -267,7 +329,12 @@ export class Controller {
         this.log.write({ kind: 'change', source: liveSnap ? 'live' : 'save', slot: slot.name, area: rawArea, known: rep.known, unknown: rep.unknown, unknownTotal: rep.unknown.length });
       }
       if (fromWatcher && samePlaythrough) this.makeToasts(categories, prev!.data, cur.data);
+      if (fromWatcher && samePlaythrough) this.recordActivity(
+        companion, summary, rep.known, liveSnap ? 'live' : 'save', liveSnap ? undefined : image,
+      );
     }
+    this.lastActivityStats = companion;
+    this.lastHeartStats = { hearts: summary.hearts, pieces: summary.heartPiecesHeld };
     this.lastShownBySlot.set(slot.name, cur);
     if (!prev || cur.mtimeMs >= prev.mtimeMs || !liveSnap) this.lastShown = cur;
 
@@ -276,11 +343,14 @@ export class Controller {
       ...this.state,
       status: 'ok',
       message: warn,
+      saveReadError: false,
       saveDir: this.userDir,
-      slots: slots.map((s): SlotSummary => ({ name: s.name, mtimeMs: s.mtimeMs, area: this.readArea(s) })),
+      sourceLabel: this.state.saveDir === this.userDir ? this.state.sourceLabel : installationLabel(this.userDir),
+      slots: slots.map((s): SlotSummary => ({ name: s.name, mtimeMs: s.savedAtMs ?? s.mtimeMs, area: this.readArea(s) })),
       slotMode: pinned ? 'manual' : 'recent',
       activeSlot: slot.name,
       summary, categories, lastChanges, areaRegions, available, canBeAdult,
+      companion, saveImage: image, atlasStatus: evaluateAtlas(this.atlasItems, cur.data),
       identify: this.settings.data.pendingIdentify,
       learnedCount: this.settings.data.learned.length,
       snapshots: this.listSnapshots(),
@@ -291,6 +361,69 @@ export class Controller {
     this.emit();
   }
   private lastShownBySlot = new Map<string, { mtimeMs: number; data: GameDataFile; buf: Buffer }>();
+
+  private get activityPath() { return path.join(this.paths.userData, 'activity.json'); }
+  async captureGame(width?: number) {
+    const pid = this.live?.gamePid;
+    return pid ? this.paths.captureGame?.(pid, width) : undefined;
+  }
+  setCaptureActivity(on: boolean) {
+    this.settings.update(s => (s.captureActivity = on));
+    this.patch({ captureActivity: on });
+  }
+  private loadActivity(): Activity[] {
+    try { const value = JSON.parse(fs.readFileSync(this.activityPath, 'utf8')); return Array.isArray(value) ? value : []; }
+    catch { return []; }
+  }
+
+  private readSaveImage(slot: SlotInfo): string | undefined {
+    const key = `${slot.caption}|${slot.mtimeMs}|${slot.savedAtMs}`;
+    if (key === this.lastSaveImage?.key) return this.lastSaveImage.value;
+    let value: string | undefined;
+    try {
+      const caption = parseGameData(fs.readFileSync(slot.caption));
+      const data = caption.entries.get(0x63696a32)?.value;
+      if (data && typeof data === 'object' && 'bytes' in data && data.bytes.startsWith('ffd8ff') && data.bytes.length < 200_000)
+        value = 'data:image/jpeg;base64,' + Buffer.from(data.bytes, 'hex').toString('base64');
+    } catch { /* some slots have no photo */ }
+    this.lastSaveImage = { key, value };
+    return value;
+  }
+
+  private recordActivity(current: NonNullable<AppState['companion']>, summary: Summary, changes: ChangeRow[], source: Activity['source'], screenshot?: string) {
+    if (!this.settings.data.changeLog || !this.lastActivityStats || !this.lastHeartStats) return;
+    const delta = (next: number | null, prev: number | null) => next === null || prev === null ? 0 : Math.max(0, next - prev);
+    const enemies = delta(current.enemies, this.lastActivityStats.enemies);
+    const rupees = delta(current.rupees, this.lastActivityStats.rupees);
+    const hearts = delta(summary.hearts, this.lastHeartStats.hearts);
+    const pieces = delta(summary.heartPiecesHeld, this.lastHeartStats.pieces);
+    const entries = [...new Set(changes.filter(row => !row.entries?.every(label => label === 'Summary')).flatMap(row => row.entries ?? []))];
+    if (!entries.length && !enemies && !rupees && !hearts && !pieces) return;
+    const prior = this.state.activity ?? [];
+    const event: Activity = { ms: Date.now(), source, area: summary.area, entries, hearts, pieces, enemies, rupees, screenshot };
+    const activity = [event, ...prior].slice(0, 500).map((row, i) => i < 16 ? row : { ...row, screenshot: undefined });
+    this.state.activity = activity;
+    this.persistActivity(activity);
+    if (!screenshot && source === 'live' && this.settings.data.captureActivity && (entries.length || hearts || pieces) &&
+        event.ms - this.lastCaptureAt > 1200) {
+      this.lastCaptureAt = event.ms;
+      void this.captureGame(400).then(image => {
+        const current = this.state.activity ?? [];
+        if (!image || !current.includes(event)) return;
+        const next = current.map(row => row === event ? { ...row, screenshot: image } : row);
+        this.patch({ activity: next });
+        this.persistActivity(next);
+      });
+    }
+  }
+
+  private persistActivity(activity: Activity[]) {
+    try {
+      fs.mkdirSync(this.paths.userData, { recursive: true });
+      fs.writeFileSync(this.activityPath + '.tmp', JSON.stringify(activity));
+      fs.renameSync(this.activityPath + '.tmp', this.activityPath);
+    } catch (e) { console.error('activity', e); }
+  }
 
   private makeToasts(categories: AppState['categories'], before: GameDataFile, after: GameDataFile) {
     const add = (text: string) => {
@@ -403,7 +536,7 @@ export class Controller {
     await this.refresh(false);
   }
 
-  private manualKey(slot: string) { return `${this.userDir}|${slot}`; }
+  private manualKey(slot: string) { return `${this.userDir}|${this.settings.data.pinnedSlot ? slot : '@recent'}`; }
   private manualFor(slot: string) { return this.settings.data.manual[this.manualKey(slot)] ?? {}; }
 
   async toggleManual(itemId: string) {
@@ -467,7 +600,7 @@ export class Controller {
     this.emit();
   }
 
-  stop() { this.watcher?.stop(); this.live?.stop(); }
+  stop() { clearInterval(this.firstSaveTimer); this.watcher?.stop(); this.live?.stop(); }
 }
 
 function singular(label: string) {

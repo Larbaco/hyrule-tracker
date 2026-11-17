@@ -30,6 +30,8 @@ export interface Settings {
   live: { enabled: boolean; hint?: string; hints?: string[] };
   /** Keep a local log of every tracked change (logs/changes-YYYY-MM.jsonl). */
   changeLog: boolean;
+  captureActivity: boolean;
+  visited: Record<string, string[]>;
 }
 
 export const DEFAULTS: Settings = {
@@ -43,6 +45,8 @@ export const DEFAULTS: Settings = {
   pendingIdentify: [],
   live: { enabled: true },
   changeLog: true,
+  captureActivity: true,
+  visited: {},
 };
 
 /**

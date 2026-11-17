@@ -75,6 +75,18 @@ export interface SlotSummary {
   area?: string;
 }
 
+export interface Activity {
+  ms: number;
+  source: 'live' | 'save';
+  area?: string;
+  entries: string[];
+  hearts?: number;
+  pieces?: number;
+  enemies?: number;
+  rupees?: number;
+  screenshot?: string;
+}
+
 export interface Summary {
   hearts: number | null;
   maxHeartsPossible: number;
@@ -112,8 +124,16 @@ export interface Toast { id: number; text: string }
 
 export interface AppState {
   status: 'ok' | 'no-folder' | 'no-slots' | 'error' | 'loading';
+  saveReadError?: boolean;
   message?: string;
   saveDir?: string;
+  sourceLabel?: string;
+  companion?: import('../core/companion.js').CompanionProgress;
+  placements?: Record<string, import('../core/companion.js').ChestPlacement[]>;
+  atlasStatus?: Record<string, import('../core/atlas.js').AtlasStatus>;
+  activity?: Activity[];
+  saveImage?: string;
+  captureActivity?: boolean;
   slots: SlotSummary[];
   slotMode: 'recent' | 'manual';
   activeSlot?: string;
@@ -182,5 +202,4 @@ export interface UiPrefs {
   collapsed: string[];
   showParts: { B: boolean; C: boolean };
   /** Height of the "Can get now" panel in pixels (user-resized) */
-  availableHeight?: number;
 }

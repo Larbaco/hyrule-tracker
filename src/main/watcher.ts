@@ -27,7 +27,7 @@ export class SaveWatcher {
   }
 
   private signature() {
-    return listSlots(this.dir).map(s => `${s.name}:${s.mtimeMs}`).join('|');
+    return listSlots(this.dir).map(s => `${s.name}:${s.mtimeMs}:${s.savedAtMs ?? ''}`).join('|');
   }
 
   private kick() {

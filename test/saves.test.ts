@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, it, expect, afterAll } from 'vitest';
-import { userFolderForExe, resolveUserFolders, OOT_TITLE_ID } from '../src/gamedata/saves.js';
+import { userFolderForExe, resolveUserFolders, listSlots, mostRecentSlot, OOT_TITLE_ID } from '../src/gamedata/saves.js';
 
 // Made-up game folders in a temp directory (no real saves involved).
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bt-saves-'));
@@ -41,6 +41,27 @@ describe('the running game\'s save folder', () => {
   it('gives nothing when that install has no saves yet', () => {
     expect(userFolderForExe(gameFolder('Fresh', { saves: false }).exe)).toBeNull();
   });
+});
+
+it('orders Triforce slots by the timestamp inside the caption when file times tie', () => {
+  const { user } = gameFolder('Rotating', { exe: 'Triforce.exe' });
+  const stamp = new Date(2026, 10, 16, 18, 0, 0);
+  const make = (slot: string, seconds: number) => {
+    const dir = path.join(user, slot);
+    fs.mkdirSync(dir, { recursive: true });
+    const progress = path.join(dir, 'progress.sav');
+    fs.writeFileSync(progress, '');
+    fs.utimesSync(progress, stamp, stamp);
+    const caption = Buffer.alloc(0x2a0);
+    caption.writeUInt32LE(0x01020304, 0);
+    caption.writeUInt32LE(0x2a0, 8);
+    [[0x9811a3f7, 2026], [0xdfd840d3, 11], [0xbd46f485, 16], [0x23f3d75e, 18], [0x27853bf7, 0], [0x5ee50bed, seconds]]
+      .forEach(([key, value], i) => { caption.writeUInt32LE(key, 40 + i * 8); caption.writeUInt32LE(value, 44 + i * 8); });
+    fs.writeFileSync(path.join(dir, 'caption.sav'), caption);
+  };
+  make('slot_00', 5);
+  make('slot_03', 24);
+  expect(mostRecentSlot(listSlots(user)).name).toBe('slot_03');
 });
 
 describe("an emulator's save folders", () => {

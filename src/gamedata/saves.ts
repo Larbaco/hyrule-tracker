@@ -12,6 +12,7 @@ export interface SlotInfo {
   progress: string;
   caption: string;
   mtimeMs: number; // progress.sav modified time
+  savedAtMs?: number; // wall-clock time recorded by the game
 }
 
 /** A user folder holds slot_* dirs: <...>\save\<32-hex user id>\ */
@@ -28,6 +29,7 @@ export function isUserFolder(dir: string): boolean {
 export function resolveUserFolders(start: string): string[] {
   if (!fs.existsSync(start)) return [];
   if (isUserFolder(start)) return [start];
+  if (/^slot_\d+$/i.test(path.basename(start)) && isUserFolder(path.dirname(start))) return [path.dirname(start)];
   const tries = [start, path.join(start, 'save'), path.join(start, 'user', 'save')];
   const out: string[] = [];
   for (const t of tries) {
@@ -55,7 +57,7 @@ export const OOT_TITLE_ID = '0400486024DEC000';
 function emulatorUserFolders(start: string): string[] {
   const out: string[] = [];
   const saveDirs = [start, path.join(start, 'save'), path.join(start, 'nand', 'user', 'save'), path.join(start, 'user', 'nand', 'user', 'save')];
-  const accountDirs = [start, ...saveDirs.map(d => path.join(d, '0000000000000000'))];
+  const accountDirs = [...saveDirs, ...saveDirs.map(d => path.join(d, '0000000000000000'))];
   for (const a of accountDirs) {
     const accounts = /^[0-9a-f]{32}$/i.test(path.basename(a)) ? [a] : readdir(a).filter(n => /^[0-9a-f]{32}$/i.test(n)).map(n => path.join(a, n));
     for (const acc of accounts) {
@@ -67,44 +69,90 @@ function emulatorUserFolders(start: string): string[] {
 }
 
 /** Emulator exes, and the data folders (under %APPDATA%) they keep saves in. Fritchii runs as lichii.exe. */
-const EMULATOR_EXES = ['lichii.exe'];
+export const EMULATOR_EXES = ['fritchii.exe', 'lichii.exe'];
+const EMULATOR_DIRS = ['fritchii', 'lichii', 'eden', 'orchid', 'eglantine', 'pokedinner'];
 function emulatorDataDirs(appData = process.env.APPDATA ?? path.join(os.homedir(), 'AppData', 'Roaming')): string[] {
-  return ['fritchii', 'lichii'].map(n => path.join(appData, n));
+  return EMULATOR_DIRS.map(n => path.join(appData, n));
 }
 
-/** Game exes, at the top of a game folder or in bin\: Hookshot, its fork Longshot, NX2navi's Triforce, Project ReLink. */
-const GAME_EXES = ['hookshot.exe', path.join('bin', 'hookshot.exe'), 'Longshot.exe', 'Triforce.exe', 'ReLink.exe', path.join('bin', 'relink-game.exe')];
-/** Folder names those games are usually installed under. */
-const GAME_NAMES = /hookshot|longshot|triforce|nx2navi|relink/i;
+export const NATIVE_EXES = ['Triforce.exe', 'hookshot.exe', 'Longshot.exe', 'nx2navi.exe', 'relink-game.exe',
+  'ocarina-reborn-game.exe', 'ocarina-reborn.exe', 'OcarinaReborn.exe'];
+const GAME_NAMES = /zelda|ocarina|hookshot|longshot|triforce|nx2navi|relink|fritchii|lichii|eden|orchid|eglantine|pokedinner/i;
+const GAME_FILES = new Set([...NATIVE_EXES, ...EMULATOR_EXES, 'ReLink.exe'].map(n => n.toLowerCase()));
+const installations: Record<string, string> = {
+  fritchii: 'Fritchii', lichii: 'Lichii', eden: 'Eden', orchid: 'Orchid', eglantine: 'Eglantine',
+  pokedinner: 'PokeDinner', triforce: 'Triforce', longshot: 'Longshot', hookshot: 'Hookshot',
+  nx2navi: 'NX2navi', 'ocarina reborn': 'Ocarina Reborn', 'ocarina-reborn': 'Ocarina Reborn',
+  ocarinareborn: 'Ocarina Reborn', relink: 'ReLink', 'relink-game': 'ReLink',
+};
+export function installationLabel(saveDir: string): string | undefined {
+  const dirs: string[] = [];
+  for (let dir = saveDir; dir !== path.dirname(dir) && dirs.length < 9; dir = path.dirname(dir)) dirs.push(dir);
+  for (const dir of dirs) {
+    const name = installations[path.basename(dir).toLowerCase()];
+    if (name) return name;
+    if (/^(save|user|nand|[0-9a-f]{16,32})$/i.test(path.basename(dir))) continue;
+    const game = readdir(dir).find(name => GAME_FILES.has(name.toLowerCase()));
+    if (game) return installations[path.basename(game, '.exe').toLowerCase().replace(/\.exe$/, '')];
+  }
+}
+const SEARCH_GROUPS = /^(apps?|programs?|games?|jogos|emulators?|emuladores|downloads|desktop|documents|gamesbuilds?|builds?|ports?|steamapps|common|quiverlauncher)$/i;
 
-function isGameFolder(dir: string): boolean {
-  return GAME_EXES.some(f => fs.existsSync(path.join(dir, f)));
+function configPaths(base: string, file: string, keys: string[]): string[] {
+  try {
+    const config = JSON.parse(fs.readFileSync(path.join(base, file), 'utf8').replace(/^\uFEFF/, ''));
+    const values = [config, ...(Array.isArray(config.builds) ? config.builds : [])];
+    return values.flatMap(value => keys.map(key => value?.[key]))
+      .filter((value): value is string => typeof value === 'string' && path.isAbsolute(value));
+  } catch { return []; }
 }
 
-/** Places Hookshot, Longshot, NX2navi (Triforce) and Project ReLink game folders usually live. */
+/** Look in launcher config, standard data directories and shallow game-library layouts. */
 export function candidateGameFolders(): string[] {
   const home = os.homedir();
-  // NX2navi's setup builds the game into %USERPROFILE%\Games\Triforce; Project ReLink's setup defaults to Games\ReLink.
-  const c = ['Hookshot', 'Longshot', 'Triforce', 'ReLink'].map(n => path.join(home, 'Games', n));
-  const gameDirs = [path.join(home, 'Games')];
-  for (const drive of ['C:', 'D:', 'E:', 'F:']) {
-    // Launchers (e.g. QuiverLauncher) install builds as Apps\<name>-Hookshot, Apps\<name>-NX2navi.
-    for (const base of [path.join(drive + '\\', 'Games', 'QuiverLauncher', 'Apps'), path.join(home, 'QuiverLauncher', 'Apps')]) {
-      try {
-        for (const n of fs.readdirSync(base)) if (GAME_NAMES.test(n)) c.push(path.join(base, n));
-      } catch { /* not there */ }
+  const roaming = process.env.APPDATA ?? path.join(home, 'AppData', 'Roaming');
+  const local = process.env.LOCALAPPDATA ?? path.join(home, 'AppData', 'Local');
+  const native = ['Hookshot', 'Longshot', 'Triforce', 'NX2navi', 'Ocarina Reborn', 'OcarinaReborn', 'ReLink'];
+  const storage = [roaming, local, path.join(local, 'Programs'), path.join(home, 'Games')];
+  const known = [...emulatorDataDirs(roaming), ...emulatorDataDirs(local),
+    ...storage.flatMap(base => native.map(name => path.join(base, name))),
+    ...configPaths(local, 'Ocarina Reborn/Config/settings.json', ['game_dir']),
+    ...configPaths(local, 'Ocarina Reborn/Config/build-state.json', ['dest']),
+    ...configPaths(local, 'LongshotLauncher/builds.json', ['folder']),
+    ...configPaths(local, 'LongshotLauncher/settings.json', ['buildsFolder']),
+    ...configPaths(local, 'ReLink/install.json', ['Out'])];
+  const volumes = process.platform === 'win32'
+    ? Array.from('CDEFGHIJKLMNOPQRSTUVWXYZ', letter => letter + ':\\').filter(root => fs.existsSync(root))
+    : [];
+  const roots = [...volumes, home, ...storage, path.join(home, 'Downloads'), path.join(home, 'Desktop'), path.join(home, 'Documents')];
+  const found = new Set(known);
+  const inspected = new Set<string>();
+  function scan(dir: string, depth: number, library: boolean) {
+    const key = dir.toLowerCase();
+    if (inspected.has(key) || inspected.size >= 2500) return;
+    inspected.add(key);
+    let entries: fs.Dirent[];
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    if (entries.some(e => e.isFile() && GAME_FILES.has(e.name.toLowerCase())) ||
+        entries.some(e => e.isDirectory() && e.name.toLowerCase() === 'user') ||
+        (GAME_NAMES.test(path.basename(dir)) && entries.some(e => e.isDirectory() && /^(save|nand)$/i.test(e.name)))) found.add(dir);
+    if (!depth) return;
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const named = GAME_NAMES.test(entry.name);
+      const grouping = SEARCH_GROUPS.test(entry.name);
+      if (named || grouping || (library && depth >= 2 && !entry.name.startsWith('.'))) {
+        scan(path.join(dir, entry.name), depth - 1, named || grouping);
+      }
     }
-    gameDirs.push(path.join(drive + '\\', 'Games'));
   }
-  // Game folders straight under a Games folder, e.g. D:\Games\Longshot.
-  for (const games of gameDirs) {
-    try {
-      for (const n of fs.readdirSync(games)) { const p = path.join(games, n); if (GAME_NAMES.test(n) && isGameFolder(p)) c.push(p); }
-    } catch { /* not there */ }
+  for (const root of roots) scan(root, 4, SEARCH_GROUPS.test(path.basename(root)));
+  // Ports can choose the installation folder's name freely. Check top-level folders on
+  // secondary drives for recognizable binaries or a portable user/save layout.
+  for (const root of volumes.filter(dir => !/^c:/i.test(dir))) {
+    for (const name of readdir(root).filter(n => !n.startsWith('.') && !n.startsWith('$'))) scan(path.join(root, name), 1, false);
   }
-  // Emulators keep their saves in their own data folder (Fritchii: %APPDATA%\fritchii).
-  c.push(...emulatorDataDirs());
-  return [...new Set(c)];
+  return [...found];
 }
 
 /**
@@ -115,18 +163,33 @@ export function candidateGameFolders(): string[] {
 export function userFolderForExe(exe: string, appData?: string): string | null {
   let dir = path.dirname(exe);
   if (path.basename(dir).toLowerCase() === 'bin') dir = path.dirname(dir);
-  const roots = EMULATOR_EXES.includes(path.basename(exe).toLowerCase()) ? [dir, ...emulatorDataDirs(appData)] : [dir];
-  return roots.flatMap(resolveUserFolders).sort((a, b) => latestMtime(b) - latestMtime(a))[0] ?? null;
+  const image = path.basename(exe).toLowerCase();
+  const priority = /fritchii/i.test(exe) ? 'fritchii' : /lichii/i.test(exe) ? 'lichii' : undefined;
+  const emulatorRoots = emulatorDataDirs(appData);
+  const portable = latestUserFolder(resolveUserFolders(dir));
+  if (portable) return portable;
+  if (EMULATOR_EXES.includes(image)) {
+    const preferred = emulatorRoots.find(root => path.basename(root) === priority);
+    return (preferred && latestUserFolder(resolveUserFolders(preferred))) ||
+      latestUserFolder(emulatorRoots.flatMap(resolveUserFolders));
+  }
+  const roaming = appData ?? process.env.APPDATA ?? path.join(os.homedir(), 'AppData', 'Roaming');
+  const brand = /longshot/i.test(exe) ? 'Longshot' : /ocarina[ -]?reborn/i.test(exe) ? 'Ocarina Reborn' :
+    /hookshot/i.test(dir) ? 'Hookshot' : undefined;
+  return brand ? latestUserFolder(resolveUserFolders(path.join(roaming, brand))) : null;
 }
 
 /** The save folder with the most recent save across every install found. */
 export function autoDetectUserFolder(): string | null {
   const all = candidateGameFolders().flatMap(g => resolveUserFolders(g));
-  return all.sort((a, b) => latestMtime(b) - latestMtime(a))[0] ?? null;
+  return latestUserFolder(all);
 }
 
-function latestMtime(userDir: string): number {
-  return Math.max(0, ...listSlots(userDir).map(s => s.mtimeMs));
+export function latestUserFolder(folders: string[]): string | null {
+  return [...new Set(folders)].map(dir => {
+    const slot = mostRecentSlot(listSlots(dir));
+    return { dir, time: slot?.savedAtMs ?? slot?.mtimeMs ?? 0 };
+  }).sort((a, b) => b.time - a.time)[0]?.dir ?? null;
 }
 
 export function listSlots(userDir: string): SlotInfo[] {
@@ -138,13 +201,35 @@ export function listSlots(userDir: string): SlotInfo[] {
     const progress = path.join(dir, 'progress.sav');
     try {
       const st = fs.statSync(progress);
-      out.push({ name, dir, progress, caption: path.join(dir, 'caption.sav'), mtimeMs: st.mtimeMs });
+      const caption = path.join(dir, 'caption.sav');
+      out.push({ name, dir, progress, caption, mtimeMs: st.mtimeMs, savedAtMs: readSaveTime(caption) });
     } catch { /* slot without progress.sav */ }
   }
   return out;
 }
 
-export const mostRecentSlot = (slots: SlotInfo[]) => [...slots].sort((a, b) => b.mtimeMs - a.mtimeMs)[0];
+export const mostRecentSlot = (slots: SlotInfo[]) => [...slots].sort((a, b) =>
+  (b.savedAtMs ?? b.mtimeMs) - (a.savedAtMs ?? a.mtimeMs) || b.mtimeMs - a.mtimeMs || a.name.localeCompare(b.name))[0];
+
+const TIME_FIELDS = [0x9811a3f7, 0xdfd840d3, 0xbd46f485, 0x23f3d75e, 0x27853bf7, 0x5ee50bed];
+
+export function readSaveTime(caption: string): number | undefined {
+  try {
+    // Only the caption's record table is needed, not the embedded screenshot.
+    const table = Buffer.alloc(0x2a0);
+    const fd = fs.openSync(caption, 'r');
+    let count: number;
+    try { count = fs.readSync(fd, table, 0, table.length, 0); } finally { fs.closeSync(fd); }
+    if (count !== table.length || table.readUInt32LE(0) !== MAGIC || table.readUInt32LE(8) !== table.length) return;
+    const values = new Map<number, number>();
+    for (let i = 0x28; i < table.length; i += 8) values.set(table.readUInt32LE(i), table.readUInt32LE(i + 4));
+    const [year, month, day, hour, minute, sec = 0] = TIME_FIELDS.map(k => values.get(k));
+    if (year === undefined || month === undefined || day === undefined || hour === undefined || minute === undefined) return;
+    const date = new Date(year, month - 1, day, hour, minute, sec);
+    if (year >= 1980 && year <= 2107 && date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day &&
+        date.getHours() === hour && date.getMinutes() === minute && date.getSeconds() === sec) return date.getTime();
+  } catch { /* legacy or currently being saved */ }
+}
 
 export class IncompleteSaveError extends Error {}
 

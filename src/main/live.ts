@@ -5,6 +5,7 @@
 import type { GameDataFile } from '../gamedata/parser.js';
 import { locate, readTables, buildLive, fingerprint, matchesReference, sweepRanges, LiveTables, Agreement } from '../gamedata/live.js';
 import { ProcessMemory, findProcesses, initMemoryAccess } from './procmem.js';
+import { NATIVE_EXES, EMULATOR_EXES } from '../gamedata/saves.js';
 import type { LiveInfo } from '../shared/types.js';
 
 /**
@@ -13,9 +14,8 @@ import type { LiveInfo } from '../shared/types.js';
  * at a fixed place. The Fritchii
  * emulator (lichii.exe) puts it somewhere new every run, so it's found by sweeping.
  */
-const GAMES: { image: string; emulator?: boolean }[] = [
-  { image: 'hookshot.exe' }, { image: 'Triforce.exe' }, { image: 'relink-game.exe' }, { image: 'lichii.exe', emulator: true },
-];
+const GAMES = [...NATIVE_EXES.map(image => ({ image, emulator: false })),
+  ...EMULATOR_EXES.map(image => ({ image, emulator: true }))];
 const TICK_MS = 500;
 const FIND_EVERY_MS = 3000;
 /**
@@ -34,7 +34,7 @@ export interface LiveOptions {
   hints: string[];
   onHint(hex: string): void;
   /** A game was attached to: the full path of its exe, if Windows gave it. */
-  onGame?(exe: string | undefined): void;
+  onGame?(exe: string | undefined): Promise<void>;
   onChange(): void;
   onStatus(): void;
 }
@@ -52,7 +52,7 @@ export class LiveSource {
   /** Where the sweep is: ranges to search (host [lo, hi)), the current one and the next window's centre. */
   private sweep?: { ranges: [bigint, bigint][]; i: number; at: bigint };
   private sweepPausedUntil = 0;
-  private busy = false;
+  private inFlight?: Promise<void>;
   watchInts = new Set<number>();
 
   constructor(private opts: LiveOptions) {}
@@ -61,6 +61,7 @@ export class LiveSource {
     if (!(await initMemoryAccess())) return this.set({ status: 'unavailable', detail: 'Reading game memory is not available on this system.' });
     this.set({ status: 'no-game' });
     this.timer = setInterval(() => void this.tick(), TICK_MS);
+    void this.tick();
   }
 
   stop() {
@@ -71,10 +72,23 @@ export class LiveSource {
   }
 
   /** The latest save: tells types apart and confirms we're looking at the same playthrough. */
-  setReference(ref: GameDataFile) { this.ref = ref; }
+  setReference(ref: GameDataFile | undefined) {
+    if (this.ref === ref) return;
+    this.ref = ref;
+    this.lastPrint = undefined;
+    if (!ref) this.snapshot = undefined;
+  }
 
   /** Live data, only while it matches the reference save. */
   current() { return this.info.status === 'live' ? this.snapshot : undefined; }
+  get gamePid() { return this.current() ? this.mem?.pid : undefined; }
+
+  refreshNow() {
+    if (!this.timer) return;
+    this.lastFind = 0;
+    this.sweepPausedUntil = 0;
+    return this.tick();
+  }
 
   private set(info: LiveInfo) {
     const changed = info.status !== this.info.status || info.detail !== this.info.detail;
@@ -89,13 +103,18 @@ export class LiveSource {
     this.snapshot = undefined;
     this.lastPrint = undefined;
     this.sweep = undefined;
+    this.sweepPausedUntil = 0;
   }
 
-  private async tick() {
-    if (this.busy) return;
-    this.busy = true;
-    try { await this.step(); } catch (e) { console.error('live', e); this.detach(); this.set({ status: 'no-game', detail: String((e as Error).message ?? e) }); }
-    finally { this.busy = false; }
+  private tick() {
+    this.inFlight ??= this.step().catch(e => {
+      console.error('live', e);
+      this.detach();
+      this.set({ status: 'no-game', detail: String((e as Error).message ?? e) });
+    }).finally(() => {
+      this.inFlight = undefined;
+    });
+    return this.inFlight;
   }
 
   private async step() {
@@ -104,11 +123,13 @@ export class LiveSource {
       if (Date.now() - this.lastFind < FIND_EVERY_MS) return;
       this.lastFind = Date.now();
       const game = await findGame();
+      if (!this.timer) return;
       if (!game) return this.set({ status: 'no-game' });
       this.mem = new ProcessMemory(game.pid);
       this.emulator = !!game.emulator;
-      this.opts.onGame?.(this.mem.imagePath());
+      await this.opts.onGame?.(this.mem.imagePath());
     }
+    if (!this.mem) return;
     if (!this.ref) return this.set({ status: 'searching', detail: 'Waiting for a save to compare with.' });
     if (!this.tables && !this.find()) return;
     const raw = readTables(this.mem, this.tables!);
@@ -149,7 +170,9 @@ export class LiveSource {
         const t = locate(mem, ref, h, SWEEP_WINDOW);
         if (t) return this.found(t);
       }
-      const ranges: [bigint, bigint][] = this.emulator ? sweepRanges(mem.regions()) : [[HEAP_LO, HEAP_HI]];
+      const ranges: [bigint, bigint][] = this.emulator
+        ? sweepRanges(mem.regions())
+        : [[HEAP_LO, HEAP_HI], ...sweepRanges(mem.regions()).filter(([lo, hi]) => hi <= HEAP_LO || lo >= HEAP_HI)];
       this.sweep = { ranges, i: 0, at: (ranges[0]?.[0] ?? 0n) + BigInt(SWEEP_WINDOW) };
     }
     const s = this.sweep;
