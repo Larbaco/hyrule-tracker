@@ -1,106 +1,145 @@
-# Hyrule Tracker
+<div align="center">
 
-**Acompanhe sua jornada no remake de Ocarina of Time para Nintendo Switch 2.**
+# 🗡️ Hyrule Tracker
 
-Hyrule Tracker é um aplicativo portátil para Windows que lê a partida local e atualiza o checklist, o mapa e os contadores conforme você joga. Funciona em português, inglês e espanhol. Criado por **Joao Victor Prado**, a partir do [Boomerang Tracker](https://github.com/LucieTheFool/boomerang-tracker).
+### Track your journey through the Ocarina of Time remake for Nintendo Switch 2
 
-[Primeiro uso](#primeiro-uso) · [Recursos](#recursos) · [Compatibilidade](#compatibilidade) · [Dados locais](#dados-locais) · [Desenvolvimento](#desenvolvimento)
+![Platform](https://img.shields.io/badge/platform-Windows%20x64-0078D6?logo=windows&logoColor=white)
+![Electron](https://img.shields.io/badge/Electron-47848F?logo=electron&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Languages](https://img.shields.io/badge/lang-PT%20%7C%20EN%20%7C%20ES-orange)
 
-## Primeiro uso
+A portable Windows app that **reads your local save** and updates the checklist, map and counters as you play. 🌍 Available in Portuguese, English and Spanish.
 
-1. Abra o jogo em um ambiente compatível e carregue uma partida com pelo menos um save.
-2. Abra `Hyrule-Tracker-1.0.2-portable.exe`. O tracker procura os saves automaticamente nas instalações conhecidas.
-3. Confira o estado ao lado do nome da instalação. **Save conectado** em verde indica que o tracker leu a partida do disco. **Ao vivo** em verde indica leitura da partida em execução.
-4. Se a busca não encontrar sua partida, abra **Configurações → Escolher pasta** e selecione a pasta que contém os diretórios `slot_*`. A pasta escolhida pode ser a do jogo ou a de dados do emulador se contiver um layout reconhecido.
-5. Use **PT**, **EN** ou **ES** ao lado de **Atualizar agora** para mudar o idioma.
+Created by **Joao Victor Prado**, based on [Boomerang Tracker](https://github.com/LucieTheFool/boomerang-tracker).
 
-O executável é portátil. Quando houver uma versão publicada, ela estará na aba **Releases** do repositório. Para atualizar o aplicativo, baixe e abra o novo executável. O botão **Atualizar agora** relê o progresso da partida.
+[🚀 First use](#-first-use) · [✨ Features](#-features) · [🎮 Compatibility](#-compatibility) · [🔒 Local data](#-local-data) · [🛠️ Development](#️-development)
 
-## Recursos
+</div>
 
-| Tela | O que você pode acompanhar |
+---
+
+## 🚀 First use
+
+1. 🎮 Open the game in a compatible environment and load a game with at least one save.
+2. 📦 Open `Hyrule-Tracker-1.0.2-portable.exe`. The tracker looks for saves automatically in known installations.
+3. 🟢 Check the status next to the installation name:
+   - **Save connected** → the tracker read the save from disk.
+   - **Live** → the tracker is reading the running game.
+4. 📂 Save not found? Open **Settings → Choose folder** and select the folder that contains the `slot_*` directories (game folder or emulator data folder, as long as it has a recognized layout).
+5. 🌐 Use **PT**, **EN** or **ES** next to **Refresh now** to change the language.
+
+> 💡 The executable is portable. Published versions live in the repository's **Releases** tab. To update, download and open the new executable. **Refresh now** re-reads your save progress.
+
+## ✨ Features
+
+| | Screen | What you can track |
+| :-: | --- | --- |
+| 📊 | **Overview** | Checklist %, hearts, Gold Skulltulas, opened chests, rupees and recent activity. |
+| 🗺️ | **Hyrule Map** | 32 regions, per-floor maps, location photos and filters by Link's age, collectible type and completion. **Follow Link** tracks the current region. |
+| ✅ | **100% Checklist** | Hearts, 100 Gold Skulltulas, songs, equipment, trades, dungeons and more. Done items are struck through. **Available now** shows what you can get with known requirements. |
+| ⏳ | **Threads of Time+** | Chapters, story steps and seven side quests. Cutscene playback uses videos you pick on your computer. |
+| 🎯 | **Minigames** | 18 activities with wins, prizes and scores: shooting galleries, Bombchu Bowling, fishing, races. Deku Theater and expert modes accept manual marking. |
+| ⚔️ | **Hall of Enemies** | 84 statues, 25 rematches and three trials, with best times from your save and reference images. |
+| 📅 | **Daily log and My data** | Progress seen while the tracker is open, local captures and medals calculated from your game. |
+| 📸 | **Rumor quests** | The tracker's photo hunt: follow clues, visit the region and capture the game window in **Live** mode. |
+| 🖼️ | **Photo studio and Daily quiz** | Use captures in the studio and test your knowledge of the game. |
+
+The overall percentage uses the **100% Checklist** objectives. Minigame prizes that belong to it (heart pieces, equipment upgrades) already count. Wins and records are counted separately on the **Minigames** page.
+
+📚 The catalog includes **206** chest flags, **196** identified locations, **23** Fairy Thoughts, **16** Pierre summons and **37** underground entrance markers. Entries without automatic detection accept manual marking, and the map flags chests whose position is still unmapped. See the [sources and coverage details](docs/coverage-sources.md).
+
+### 🔄 Updating during play
+
+| Mode | Behavior |
 | --- | --- |
-| **Visão geral** | Percentual do checklist, corações, Skulltulas douradas, baús abertos, rupees e atividade recente. |
-| **Mapa de Hyrule** | 32 regiões, mapas por andar, fotos de localização e filtros por idade de Link, tipo de coletável e estado de conclusão. **Seguir Link** acompanha a região disponível na leitura atual. |
-| **Checklist 100%** | Corações, 100 Skulltulas douradas, canções, equipamento, trocas, masmorras e mais. Objetivos concluídos ficam riscados. **Disponível agora** indica o que pode ser obtido com os requisitos conhecidos. |
-| **Fios do Tempo+** | Capítulos, etapas da história e sete missões secundárias. A reprodução de cenas usa vídeos que você seleciona no computador. |
-| **Minijogos** | 18 atividades com vitórias, prêmios e pontuações disponíveis no save, como tiro ao alvo, Boliche de Bombchu, pesca e corridas. O Teatro Deku e os modos especialistas aceitam marcação manual. |
-| **Salão dos Inimigos** | 84 estátuas, 25 revanches e três provações. Mostra os melhores tempos registrados no save e imagens de referência. |
-| **Registro do dia e Meus dados** | Avanços observados enquanto o tracker está aberto, capturas locais e medalhas calculadas a partir da sua partida. |
-| **Missões de rumores** | Caça fotográfica do tracker. Siga as pistas, visite a região e capture a janela do jogo com o modo **Ao vivo**. |
-| **Estúdio de fotos e Quiz diário** | Use capturas e imagens locais no estúdio e teste seus conhecimentos sobre o jogo. |
+| ⚡ **Live** | Polls progress about every half second once the tracker links the running session to the recent save. |
+| 💾 **Save connected** | Follows the next save or autosave, watching the folder and periodically checking slots. |
+| 🔁 **Refresh now** | Forces an immediate read, retrying if the save is being written. |
+| 📌 **Follow latest save** | Enables live reading. Pinning a slot shows the on-disk reading of that save. |
 
-O percentual geral usa os objetivos do **Checklist 100%**. Prêmios de minijogos que fazem parte dele, como pedaços de coração e melhorias de equipamento, já contribuem para o percentual. Vitórias e recordes têm contagem própria na página **Minijogos**.
+### 🪟 In-game overlay
 
-O catálogo inclui 206 flags de baús, 196 localizações identificadas, 23 Pensamentos de Fada, 16 invocações de Pierre e 37 marcadores de entradas subterrâneas. Entradas sem detecção automática aceitam marcação manual. O mapa indica os baús cuja posição ainda precisa ser mapeada. Consulte as [fontes e detalhes de cobertura](docs/coverage-sources.md).
+Turn on **Show in-game overlay** in Settings. It can show counters, remaining objectives in the region or what is available now, with adjustable opacity and locking.
 
-### Atualização durante o jogo
-
-- **Ao vivo** consulta o progresso em intervalos de cerca de meio segundo depois que o tracker conecta a sessão em execução ao save recente.
-- **Save conectado** acompanha o próximo salvamento ou autosave. O tracker monitora mudanças na pasta e verifica periodicamente se um slot foi atualizado.
-- **Atualizar agora** força leitura imediata. Se o save estiver sendo gravado, o tracker tenta reler o arquivo antes de informar falha.
-- **Seguir o save mais recente** permite leitura ao vivo. Fixar um slot exibe a leitura daquele save em disco.
-
-### Painel durante o jogo
-
-Ative **Mostrar painel no jogo** em Configurações. O painel pode mostrar contadores, objetivos restantes na região ou o que está disponível agora. Ajuste a opacidade e o bloqueio na própria interface.
-
-| Atalho padrão | Ação |
+| Default shortcut | Action |
 | --- | --- |
-| `Ctrl + Shift + O` | Mostrar ou ocultar o painel. |
-| `Ctrl + Shift + L` | Bloquear ou liberar o painel para mover e redimensionar. |
+| `Ctrl + Shift + O` | 👁️ Show or hide the overlay. |
+| `Ctrl + Shift + L` | 🔒 Lock or unlock the overlay for moving and resizing. |
 
-## Compatibilidade
+## 🎮 Compatibility
 
-- Aplicativo desktop para **Windows x64**. Usa o formato de save do **remake para Nintendo Switch 2**.
-- A busca reconhece instalações e saves compatíveis de **Triforce / NX2navi**, **Hookshot**, **Longshot**, **ReLink**, **Ocarina Reborn**, **Fritchii** e **Lichii**.
-- A leitura ao vivo depende da versão do jogo e do layout de memória do port ou emulador. A [documentação do modo ao vivo](docs/live-memory.md) descreve os ambientes e versões investigados.
-- Saves de outros ambientes podem ser selecionados manualmente se expuserem o mesmo formato. Saves do Nintendo 64, de Ocarina of Time 3D e de ports do jogo original usam formatos diferentes.
+- 🖥️ Desktop app for **Windows x64**, using the save format of the **Nintendo Switch 2 remake**.
+- 🔎 Search recognizes installations and saves from **Triforce / NX2navi**, **Hookshot**, **Longshot**, **ReLink**, **Ocarina Reborn**, **Fritchii** and **Lichii**.
+- ⚡ Live reading depends on the game version and the memory layout of the port or emulator. See the [live mode documentation](docs/live-memory.md).
+- 🗂️ Saves from other environments can be selected manually if they expose the same format.
+- ❌ Nintendo 64, Ocarina of Time 3D and original-game port saves use different formats and are **not** supported.
 
-### Se a partida não aparecer
+<details>
+<summary>❓ <b>My game does not appear</b></summary>
 
-1. Confirme que você já salvou dentro do jogo. O tracker procura `progress.sav` dentro de um diretório `slot_*`.
-2. Abra **Configurações → Buscar saves**. Em instalações portáteis ou em unidades secundárias, tente **Escolher pasta** e selecione a pasta do perfil que contém os slots.
-3. Para leitura **Ao vivo**, deixe o jogo carregado e selecione **Seguir o save mais recente**. O indicador de disco muda para **Ao vivo** quando o tracker localiza a partida.
-4. Se o estado permanecer **Save conectado**, salve no jogo ou clique em **Atualizar agora** para confirmar que a leitura em disco acompanha as mudanças.
+1. Confirm that you saved inside the game. The tracker looks for `progress.sav` inside a `slot_*` directory.
+2. Open **Settings → Search saves**. For portable installs or secondary drives, use **Choose folder** and select the profile folder that contains the slots.
+3. For **Live** reading, keep the game loaded and select **Follow latest save**. The indicator changes to **Live** when the tracker finds the running game.
+4. If the status stays **Save connected**, save in the game or click **Refresh now** to confirm the on-disk reading follows your changes.
 
-## Dados locais
+</details>
 
-O aplicativo funciona offline e guarda preferências, marcações manuais e atividade em `%APPDATA%\Hyrule Tracker`. Os mapas, as fotos e os ícones em WebP vêm no pacote. Os links de referência abrem no navegador por ação do jogador.
+## 🔒 Local data
 
-A leitura do save e da memória do jogo é feita em modo somente leitura. Nos ambientes compatíveis, capturas de janela para o histórico podem ser desligadas em **Configurações**. As funções de progresso são locais e independem de conta Nintendo, banco de dados remoto ou VPS.
+- 📴 Works **offline**. Preferences, manual marks and activity are stored in `%APPDATA%\Hyrule Tracker`.
+- 🗺️ Maps, photos and WebP icons are bundled with the app. Reference links open in your browser only when you click them.
+- 👀 Save and memory reading is **read-only**. Window captures for the history can be turned off in **Settings**.
+- 🏠 Everything is local: no Nintendo account, remote database or VPS.
 
-## Desenvolvimento
+## 🛠️ Development
 
-Esta versão usa **Electron**, **React**, **TypeScript**, **Vite** e **Vitest**. Use **Node.js 22 ou posterior** e npm. A primeira instalação de dependências e o empacotamento podem baixar ferramentas e binários de build.
+Built with **Electron**, **React**, **TypeScript**, **Vite** and **Vitest**. Requires **Node.js 22+** and npm. The first install and packaging may download build tools and binaries.
 
 ```powershell
 npm ci
 npm run dev
 ```
 
-| Comando | Resultado |
+| Command | Result |
 | --- | --- |
-| `npm start` | Compila e abre o aplicativo. |
-| `npm run typecheck` | Verifica os tipos TypeScript. |
-| `npm test` | Executa a suíte automatizada. Alguns testes locais dependem de fixtures privadas e são pulados em clones públicos. |
-| `npm run dist` | Gera o executável portátil de Windows x64 em `release/`. |
+| `npm start` | ▶️ Builds and opens the app. |
+| `npm run typecheck` | 🔍 Checks TypeScript types. |
+| `npm test` | 🧪 Runs the test suite (tests needing private fixtures are skipped in public clones). |
+| `npm run dist` | 📦 Builds the portable Windows x64 executable in `release/`. |
 
-```text
-src/main/        Processo do Electron, descoberta de saves, monitoramento e leitura ao vivo
-src/preload/     Ponte IPC entre a janela e o processo principal
-src/gamedata/    Leitura do formato binário e avaliação de flags
-src/core/        Catálogo, regras de progresso, mapas e lógica de disponibilidade
-src/renderer/    Interface React, traduções e imagens empacotadas
-data/            Checklist, mapeamentos e dados do remake
-test/            Testes automatizados
-docs/            Referências e documentação técnica
+### 🖼️ Images
+
+Game and wiki images are **not** stored in this repository. Fetch them into `src/renderer/public/` before building:
+
+```powershell
+node scripts/fetch-item-images.mjs
+node scripts/fetch-reference-images.mjs
+node scripts/fetch-atlas.mjs
 ```
 
-Ao relatar um problema, inclua a versão do tracker, o port ou emulador, o estado de conexão e o objetivo observado. A descrição de passos e valores observados costuma ser suficiente para reproduzir problemas sem compartilhar seus arquivos de partida. Consulte [o formato dos saves](docs/save-format.md) e [as regras de mapeamento](docs/save-mapping.md) para contribuir com detecções.
+### 📁 Project layout
 
-## Créditos e licença
+```text
+src/main/        Electron process, save discovery, watching and live reading
+src/preload/     IPC bridge between the window and the main process
+src/gamedata/    Binary format reading and flag evaluation
+src/core/        Catalog, progress rules, maps and availability logic
+src/renderer/    React interface, translations and bundled images
+data/            Checklist, mappings and remake data
+test/            Automated tests
+docs/            References and technical documentation
+```
 
-- **Joao Victor Prado** criou o Hyrule Tracker. O [Boomerang Tracker](https://github.com/LucieTheFool/boomerang-tracker) é a base do projeto.
-- Mapas e fotos de locais vêm do Ocarina Atlas e do Nintendúo. Imagens de inimigos, regiões e itens têm atribuições na documentação. [Créditos de terceiros](THIRD_PARTY_NOTICES.md)
-- O código segue a [licença MIT](LICENSE). As imagens e marcas do jogo pertencem aos respectivos titulares e têm condições próprias de uso. Hyrule Tracker é um projeto independente de fãs, sem afiliação com a Nintendo.
+🐛 **Reporting an issue:** include the tracker version, port or emulator, connection status and the objective you observed. Steps and observed values are usually enough, no need to share save files. See [the save format](docs/save-format.md) and [the mapping rules](docs/save-mapping.md) to contribute detections.
+
+## 🙏 Credits and license
+
+- 👤 **Joao Victor Prado** created Hyrule Tracker. [Boomerang Tracker](https://github.com/LucieTheFool/boomerang-tracker) is the basis of the project.
+- 🗺️ Maps and location photos come from Ocarina Atlas and Nintendúo. Enemy, region and item images are credited in the docs. See [third-party credits](THIRD_PARTY_NOTICES.md).
+- 📄 Code is under the [MIT license](LICENSE). Game images and trademarks belong to their owners and have their own terms of use.
+
+> ⚠️ Hyrule Tracker is an independent fan project, not affiliated with Nintendo.
