@@ -1753,6 +1753,8 @@
   "Confira se o aparelho está no mesmo Wi-Fi (não na rede de convidados nem nos dados móveis).": "Проверь, что устройство в той же сети Wi-Fi (не в гостевой и не через мобильный интернет).",
   "Na primeira vez, o sistema pode perguntar sobre o firewall: permita o Hyrule Tracker em redes privadas.": "В первый раз система может спросить про брандмауэр: разреши Hyrule Tracker в частных сетях.",
   "Qualquer aparelho na sua rede poderá ver o progresso e marcar itens. Desative quando não estiver usando.": "Любое устройство в твоей сети сможет видеть прогресс и отмечать предметы. Выключай, когда не пользуешься.",
+  "O Windows marcou a rede “{name}” como pública, e o firewall bloqueia outros aparelhos nela. Mude o tipo da rede para privada.": "Windows отметила сеть «{name}» как общедоступную, и брандмауэр блокирует в ней другие устройства. Смените тип сети на частную.",
+  "Abrir configurações de rede": "Открыть параметры сети",
   "Mais": "Ещё",
   "Início": "Главная",
   "Mapa": "Карта",

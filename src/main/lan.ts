@@ -3,6 +3,7 @@
 //   GET  /api/events  server-sent events: state, player
 //   POST /api/rpc     {"method": "...", "args": [...]} -> {"result": ...}; only the methods passed in `rpc`
 // On by default (settings.lan). No Electron imports, so it can be tested with plain Node.
+import { execFile } from 'node:child_process';
 import http from 'node:http';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -64,6 +65,34 @@ export function lanUrls(port: number, interfaces = os.networkInterfaces()): stri
   // Home networks first (192.168.x, then 10.x); 172.16-31.x is often a virtual adapter (WSL, Hyper-V, Docker).
   const rank = (u: string) => u.startsWith('http://192.168.') ? 0 : u.startsWith('http://10.') ? 1 : 2;
   return [...new Set(urls)].sort((a, b) => rank(a) - rank(b));
+}
+
+/**
+ * Names of the Windows networks this PC is on that are set to Public, from Get-NetConnectionProfile as JSON.
+ * Windows Firewall blocks the tracker on those, even after the user allowed it on private networks.
+ * NetworkCategory: 0 Public, 1 Private, 2 DomainAuthenticated.
+ */
+export function publicNetworkNames(json: string): string[] {
+  let list: unknown;
+  try { list = JSON.parse(json); } catch { return []; }
+  if (!Array.isArray(list)) list = list && typeof list === 'object' ? [list] : [];
+  const names: string[] = [];
+  for (const p of list as Record<string, unknown>[]) {
+    if (!p || (p.NetworkCategory !== 0 && p.NetworkCategory !== 'Public')) continue;
+    const name = typeof p.Name === 'string' && p.Name.trim() ? p.Name.trim() : typeof p.InterfaceAlias === 'string' ? p.InterfaceAlias : '';
+    if (name) names.push(name);
+  }
+  return [...new Set(names)];
+}
+
+/** Networks set to Public on this PC (Windows only; empty elsewhere or if PowerShell can't tell). */
+export function findPublicNetworks(): Promise<string[]> {
+  if (process.platform !== 'win32') return Promise.resolve([]);
+  const script = 'ConvertTo-Json -Compress -InputObject @(Get-NetConnectionProfile | Select-Object Name, InterfaceAlias, @{n="NetworkCategory";e={[int]$_.NetworkCategory}})';
+  return new Promise(resolve => {
+    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], { windowsHide: true, timeout: 8000 },
+      (err, stdout) => resolve(err ? [] : publicNetworkNames(String(stdout))));
+  });
 }
 
 function send(res: http.ServerResponse, status: number, body: string | Buffer, type = 'text/plain; charset=utf-8', extra: http.OutgoingHttpHeaders = {}) {

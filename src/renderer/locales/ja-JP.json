@@ -1753,6 +1753,8 @@
   "Confira se o aparelho está no mesmo Wi-Fi (não na rede de convidados nem nos dados móveis).": "端末が同じWi-Fiに接続されているか確認してください（ゲストネットワークやモバイルデータではないか）。",
   "Na primeira vez, o sistema pode perguntar sobre o firewall: permita o Hyrule Tracker em redes privadas.": "初回はファイアウォールについて確認されることがあります。プライベートネットワークで Hyrule Tracker を許可してください。",
   "Qualquer aparelho na sua rede poderá ver o progresso e marcar itens. Desative quando não estiver usando.": "ネットワーク上のどの端末からでも進行状況を見たり、項目にチェックを付けたりできます。使わないときはオフにしてください。",
+  "O Windows marcou a rede “{name}” como pública, e o firewall bloqueia outros aparelhos nela. Mude o tipo da rede para privada.": "Windows がネットワーク「{name}」をパブリックに設定しているため、ファイアウォールがほかのデバイスをブロックしています。ネットワークの種類をプライベートに変更してください。",
+  "Abrir configurações de rede": "ネットワーク設定を開く",
   "Mais": "その他",
   "Início": "ホーム",
   "Mapa": "マップ",

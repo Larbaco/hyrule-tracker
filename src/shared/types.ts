@@ -210,6 +210,8 @@ export interface LanState {
   urls: string[];
   /** The port couldn't be opened (in use, blocked). */
   error?: boolean;
+  /** Windows networks this PC is on that are set to Public: the firewall blocks other devices there. */
+  publicNetworks?: string[];
 }
 
 /**

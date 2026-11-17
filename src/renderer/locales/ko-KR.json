@@ -1753,6 +1753,8 @@
   "Confira se o aparelho está no mesmo Wi-Fi (não na rede de convidados nem nos dados móveis).": "기기가 같은 Wi-Fi에 연결되어 있는지 확인하세요(게스트 네트워크나 모바일 데이터가 아닌지).",
   "Na primeira vez, o sistema pode perguntar sobre o firewall: permita o Hyrule Tracker em redes privadas.": "처음에는 방화벽에 대해 물어볼 수 있어요. 개인 네트워크에서 Hyrule Tracker를 허용하세요.",
   "Qualquer aparelho na sua rede poderá ver o progresso e marcar itens. Desative quando não estiver usando.": "네트워크의 어떤 기기든 진행 상황을 보고 항목을 체크할 수 있어요. 사용하지 않을 때는 꺼 두세요.",
+  "O Windows marcou a rede “{name}” como pública, e o firewall bloqueia outros aparelhos nela. Mude o tipo da rede para privada.": "Windows가 네트워크 “{name}”을(를) 공용으로 설정해 방화벽이 다른 기기를 차단하고 있습니다. 네트워크 유형을 개인으로 바꾸세요.",
+  "Abrir configurações de rede": "네트워크 설정 열기",
   "Mais": "더보기",
   "Início": "홈",
   "Mapa": "지도",

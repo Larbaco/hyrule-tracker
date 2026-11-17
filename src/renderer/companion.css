@@ -43,8 +43,8 @@
 .sidebar-live.on b { color: var(--hyrule-green); }
 .sidebar-live.on .live-dot { background: var(--hyrule-green); }
 .sidebar-live.on .live-dot::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--hyrule-green); opacity: 0; animation: player-pulse 1.6s ease-out 3; }
-.notice.live-off { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin: 10px 0 0; }
-.notice.live-off p { margin: 0; }
+.notice.with-action { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin: 10px 0 0; }
+.notice.with-action p { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .sidebar-live.on .live-dot::after { animation: none; } }
 .tracker-sidebar nav { overflow: auto; scrollbar-width: thin; scrollbar-color: #38363a transparent; min-height: 0; }
 .nav-group { display: flex; flex-direction: column; padding: 6px 0; gap: 2px; }

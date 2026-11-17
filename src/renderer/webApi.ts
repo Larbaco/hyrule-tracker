@@ -87,5 +87,7 @@ export function createWebApi(): TrackerApi & { onConnection: (fn: Listener<Conne
     setOverlay: nothing,
     setHotkeys: nothing,
     setLan: () => rpc<AppState>('getState').then(s => s.lan),
+    checkLan: () => rpc<AppState>('getState').then(s => s.lan),
+    openNetworkSettings: nothing,
   } as TrackerApi & { onConnection: (fn: Listener<Connection>) => () => void };
 }

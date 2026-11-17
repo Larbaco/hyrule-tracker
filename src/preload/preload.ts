@@ -46,6 +46,9 @@ const api = {
   scanFolders: (): Promise<AppState> => ipcRenderer.invoke('folder:scan'),
   /** Serve the tracker on the local network (phone/tablet). */
   setLan: (on: boolean): Promise<AppState['lan']> => ipcRenderer.invoke('lan:set', on),
+  /** Reads the network addresses and Windows network profiles again. */
+  checkLan: (): Promise<AppState['lan']> => ipcRenderer.invoke('lan:check'),
+  openNetworkSettings: (): Promise<void> => ipcRenderer.invoke('lan:network-settings'),
   refreshProgress: (): Promise<void> => ipcRenderer.invoke('progress:refresh'),
   answerIdentify: (reqId: string, itemIds: string[]) => ipcRenderer.invoke('identify:answer', reqId, itemIds),
   skipIdentify: (reqId: string) => ipcRenderer.invoke('identify:skip', reqId),

@@ -1753,6 +1753,8 @@
   "Confira se o aparelho está no mesmo Wi-Fi (não na rede de convidados nem nos dados móveis).": "Vérifiez que l’appareil est sur le même Wi-Fi (pas sur le réseau invité ni en données mobiles).",
   "Na primeira vez, o sistema pode perguntar sobre o firewall: permita o Hyrule Tracker em redes privadas.": "La première fois, le système peut poser une question sur le pare-feu : autorisez Hyrule Tracker sur les réseaux privés.",
   "Qualquer aparelho na sua rede poderá ver o progresso e marcar itens. Desative quando não estiver usando.": "Tout appareil de votre réseau pourra voir la progression et cocher des objets. Désactivez-le quand vous ne l’utilisez pas.",
+  "O Windows marcou a rede “{name}” como pública, e o firewall bloqueia outros aparelhos nela. Mude o tipo da rede para privada.": "Windows a classé le réseau « {name} » comme public, et le pare-feu y bloque les autres appareils. Passez le type de réseau en privé.",
+  "Abrir configurações de rede": "Ouvrir les paramètres réseau",
   "Mais": "Plus",
   "Início": "Accueil",
   "Mapa": "Carte",

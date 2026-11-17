@@ -1753,6 +1753,8 @@
   "Confira se o aparelho está no mesmo Wi-Fi (não na rede de convidados nem nos dados móveis).": "确认设备连接的是同一个 Wi-Fi（不是访客网络或移动数据）。",
   "Na primeira vez, o sistema pode perguntar sobre o firewall: permita o Hyrule Tracker em redes privadas.": "首次使用时，系统可能会询问防火墙设置：请在专用网络中允许 Hyrule Tracker。",
   "Qualquer aparelho na sua rede poderá ver o progresso e marcar itens. Desative quando não estiver usando.": "你网络中的任何设备都能查看进度并勾选项目。不用时请关闭。",
+  "O Windows marcou a rede “{name}” como pública, e o firewall bloqueia outros aparelhos nela. Mude o tipo da rede para privada.": "Windows 已将网络“{name}”设为公用，防火墙会阻止该网络中的其他设备。请将网络类型改为专用。",
+  "Abrir configurações de rede": "打开网络设置",
   "Mais": "更多",
   "Início": "首页",
   "Mapa": "地图",

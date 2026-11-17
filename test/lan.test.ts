@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { allowedHost, lanUrls, startLanServer, type LanServer } from '../src/main/lan.js';
+import { allowedHost, lanUrls, publicNetworkNames, startLanServer, type LanServer } from '../src/main/lan.js';
 
 describe('allowedHost', () => {
   it('accepts addresses and local names', () => {
@@ -101,5 +101,21 @@ describe('startLanServer', () => {
       req.on('error', reject);
     });
     expect(got).toContain('data: {"x":1}');
+  });
+});
+
+describe('publicNetworkNames', () => {
+  it('names the networks set to Public', () => {
+    const json = JSON.stringify([
+      { Name: 'Home Wi-Fi', InterfaceAlias: 'Wi-Fi', NetworkCategory: 0 },
+      { Name: 'Office', InterfaceAlias: 'Ethernet', NetworkCategory: 1 },
+      { Name: 'corp.example', InterfaceAlias: 'Ethernet 2', NetworkCategory: 2 },
+      { Name: '', InterfaceAlias: 'Ethernet 3', NetworkCategory: 'Public' },
+    ]);
+    expect(publicNetworkNames(json)).toEqual(['Home Wi-Fi', 'Ethernet 3']);
+  });
+  it('accepts a single profile and ignores junk', () => {
+    expect(publicNetworkNames('{"Name":"Rede 2","InterfaceAlias":"Ethernet","NetworkCategory":0}')).toEqual(['Rede 2']);
+    for (const bad of ['', 'not json', 'null', '[]', '[null]']) expect(publicNetworkNames(bad), bad).toEqual([]);
   });
 });

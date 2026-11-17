@@ -1753,6 +1753,8 @@
   "Confira se o aparelho está no mesmo Wi-Fi (não na rede de convidados nem nos dados móveis).": "Controleer of het apparaat op hetzelfde wifi zit (niet op een gastnetwerk of mobiele data).",
   "Na primeira vez, o sistema pode perguntar sobre o firewall: permita o Hyrule Tracker em redes privadas.": "De eerste keer kan het systeem naar de firewall vragen: sta Hyrule Tracker toe op privénetwerken.",
   "Qualquer aparelho na sua rede poderá ver o progresso e marcar itens. Desative quando não estiver usando.": "Elk apparaat op je netwerk kan de voortgang zien en items afvinken. Zet het uit als je het niet gebruikt.",
+  "O Windows marcou a rede “{name}” como pública, e o firewall bloqueia outros aparelhos nela. Mude o tipo da rede para privada.": "Windows heeft het netwerk ‘{name}’ als openbaar ingesteld en de firewall blokkeert andere apparaten daarop. Zet het netwerktype op privé.",
+  "Abrir configurações de rede": "Netwerkinstellingen openen",
   "Mais": "Meer",
   "Início": "Start",
   "Mapa": "Kaart",

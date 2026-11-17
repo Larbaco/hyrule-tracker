@@ -322,6 +322,9 @@ function SecondScreen({ state }: { state: AppState }) {
     setBusy(true);
     try { await api.setLan(next); } finally { setBusy(false); }
   }
+  // The network may have changed since the app started (another Wi-Fi, profile switched to Private).
+  useEffect(() => { if (!isRemote) void api.checkLan(); }, []);
+  const publicNets = !isRemote && on ? lan!.publicNetworks ?? [] : [];
   const steps = [
     'A segunda tela já vem ativada. Se quiser, desative no quadro acima.',
     'Conecte o celular ou tablet à mesma rede Wi-Fi deste PC.',
@@ -341,6 +344,10 @@ function SecondScreen({ state }: { state: AppState }) {
             {lan!.urls.length > 1 && <span className="quiet">{t('Mais de um endereço? Use o da rede em que o aparelho está (normalmente começa com 192.168).')}</span>}
           </div>
         : <p className="notice">{t('Este PC não está conectado a uma rede local.')}</p>)}
+      {publicNets.length > 0 && <div className="notice with-action" role="alert">
+        <p>{tv('O Windows marcou a rede “{name}” como pública, e o firewall bloqueia outros aparelhos nela. Mude o tipo da rede para privada.', { name: publicNets.join(', ') })}</p>
+        <button className="action" onClick={() => void api.openNetworkSettings()}>{t('Abrir configurações de rede')}</button>
+      </div>}
     </section>
     <section className="focus-panel setting-panel"><h2>{t('Como conectar')}</h2>
       <ol className="second-steps">{steps.map(s => <li key={s}>{t(s)}</li>)}</ol>

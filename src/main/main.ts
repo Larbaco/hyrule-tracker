@@ -9,7 +9,7 @@ import { createUpdater } from './updater.js';
 import { SettingsStore } from './settings.js';
 import { boundsVisible, cleanBounds, isLocale, isString, isStringArray, parseHotkeys, parseOverlayPatch, sanitizeUiPrefs, type MainLocale, type Rect } from './validate.js';
 import { useX11 } from './x11.js';
-import { lanUrls, startLanServer, type LanServer } from './lan.js';
+import { findPublicNetworks, lanUrls, startLanServer, type LanServer } from './lan.js';
 
 const isDev = !app.isPackaged;
 const appDir = app.getAppPath();
@@ -286,7 +286,8 @@ function applyLan(): Promise<AppState['lan']> {
       try { lanServer = await startLanServer({ root: path.join(appDir, 'dist'), port, rpc: remoteApi() }); }
       catch (e) { error = true; logError('lan server', e); }
     }
-    controller.patch({ lan: { enabled: want, port, urls: lanServer ? lanUrls(lanServer.port) : [], error } });
+    const publicNetworks = lanServer ? await findPublicNetworks() : [];
+    controller.patch({ lan: { enabled: want, port, urls: lanServer ? lanUrls(lanServer.port) : [], error, publicNetworks } });
   });
   return lanBusy.then(() => controller.state.lan);
 }
@@ -407,6 +408,9 @@ if (primaryInstance) app.whenReady().then(async () => {
     settings.update(s => (s.lan.enabled = on === true));
     return applyLan();
   });
+  // Networks change (another Wi-Fi, a profile switched to Private): the Second Screen page asks again when opened.
+  ipcMain.handle('lan:check', () => applyLan());
+  ipcMain.handle('lan:network-settings', () => shell.openExternal('ms-settings:network-status'));
   ipcMain.handle('folder:find', async () => {
     const choices = await controller.findSaveFolders();
     if (process.platform === 'win32') {

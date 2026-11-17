@@ -944,6 +944,8 @@ Se não abrir||If it doesn't open|Si no se abre
 Confira se o aparelho está no mesmo Wi-Fi (não na rede de convidados nem nos dados móveis).||Check that the device is on the same Wi-Fi (not a guest network or mobile data).|Comprueba que el dispositivo está en la misma Wi-Fi (no en la red de invitados ni con datos móviles).
 Na primeira vez, o sistema pode perguntar sobre o firewall: permita o Hyrule Tracker em redes privadas.||The first time, your system may ask about the firewall: allow Hyrule Tracker on private networks.|La primera vez, el sistema puede preguntar por el cortafuegos: permite Hyrule Tracker en redes privadas.
 Qualquer aparelho na sua rede poderá ver o progresso e marcar itens. Desative quando não estiver usando.||Any device on your network can see your progress and tick items. Turn it off when you’re not using it.|Cualquier dispositivo de tu red podrá ver el progreso y marcar objetos. Desactívalo cuando no lo uses.
+O Windows marcou a rede “{name}” como pública, e o firewall bloqueia outros aparelhos nela. Mude o tipo da rede para privada.||Windows has set the network “{name}” to public, and the firewall blocks other devices on it. Change the network type to private.|Windows marcó la red “{name}” como pública y el cortafuegos bloquea otros dispositivos en ella. Cambia el tipo de red a privada.
+Abrir configurações de rede||Open network settings|Abrir configuración de red
 Mais||More|Más
 Início||Home|Inicio
 Mapa||Map|Mapa

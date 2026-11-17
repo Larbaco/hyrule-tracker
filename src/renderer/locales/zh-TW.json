@@ -1753,6 +1753,8 @@
   "Confira se o aparelho está no mesmo Wi-Fi (não na rede de convidados nem nos dados móveis).": "確認裝置連的是同一個 Wi-Fi（不是訪客網路或行動數據）。",
   "Na primeira vez, o sistema pode perguntar sobre o firewall: permita o Hyrule Tracker em redes privadas.": "第一次使用時，系統可能會詢問防火牆設定：請在私人網路中允許 Hyrule Tracker。",
   "Qualquer aparelho na sua rede poderá ver o progresso e marcar itens. Desative quando não estiver usando.": "你網路中的任何裝置都能查看進度並勾選項目。不用時請關閉。",
+  "O Windows marcou a rede “{name}” como pública, e o firewall bloqueia outros aparelhos nela. Mude o tipo da rede para privada.": "Windows 已將網路「{name}」設為公用，防火牆會封鎖該網路中的其他裝置。請將網路類型改為私人。",
+  "Abrir configurações de rede": "開啟網路設定",
   "Mais": "更多",
   "Início": "首頁",
   "Mapa": "地圖",
