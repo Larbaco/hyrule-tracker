@@ -1,23 +1,33 @@
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Activity, AppState, PlayerState, TrackedCategory, TrackedItem } from '../shared/types';
 import { LOCAL_NAMES, MASK_SALE_NAMES } from '../core/companion';
-import { api, isRemote, onConnection } from './api';
+import { api, isRemote } from './api';
 import { enemyPhoto, regionPhoto } from './referenceImages';
 import { LanguageSwitch } from './LanguageFlags';
 import { currentLocale, date, hour, languages, number, plural, t, tv, type Locale } from './i18n';
 import { ObjectiveName } from './ObjectiveName';
 import { GameItemIcon, trackedItemIcon } from './GameItemIcon';
 import { Minigames } from './Minigames';
+import { PageProgress } from './PageProgress';
 import { ZoomPan } from './ZoomPan';
 import { locatePlacement, type AtlasPlace as PositionPlace, type PlayerFix } from '../core/position';
 import atlas from '../../data/atlas.json';
-import { Quiz, Gossip, useStored } from './Recreation';
+import { Quiz, useStored } from './Recreation';
+import { useModalDialog } from './useModalDialog';
 import './companion.css';
+
+const EasterEggs = lazy(() => import('./EasterEggs').catch(error => {
+  console.error(error);
+  return { default: () => <div className="focus-panel">
+    <p role="alert">{t('Não foi possível abrir o diário.')}</p>
+    <button type="button" className="action" onClick={() => location.reload()}>{t('Tentar novamente')}</button>
+  </div> };
+}));
 
 const pages = {
   overview: 'Visão geral', todo: 'O que fazer?', map: 'Mapa de Hyrule', checklist: 'Checklist 100%', threads: 'Fios do Tempo+',
   hall: 'Salão dos Inimigos', minigames: 'Minijogos', timeline: 'Registro do dia', medals: 'Meus dados',
-  gossip: 'Missões de rumores', quiz: 'Quiz diário', second: 'Segunda tela', settings: 'Configurações',
+  secrets: 'Easter Eggs and Secrets', quiz: 'Quiz diário', second: 'Segunda tela', settings: 'Configurações',
 };
 export type Page = keyof typeof pages;
 const pageDescriptions: Record<Page, string> = {
@@ -30,14 +40,14 @@ const pageDescriptions: Record<Page, string> = {
   minigames: 'Veja os minijogos que você já venceu, os prêmios e os recordes da partida.',
   timeline: 'Consulte o progresso registrado pelo tracker ao longo de cada dia.',
   medals: 'Veja seus totais e os marcos conquistados na jornada.',
-  gossip: 'Siga as pistas e fotografe as regiões indicadas.',
+  secrets: 'Explore interações escondidas, referências e diálogos do remake.',
   quiz: 'Teste seus conhecimentos sobre Hyrule no desafio diário.',
   second: 'Acompanhe a jornada no celular ou tablet enquanto joga na TV.',
   settings: 'Configure o idioma, a origem da partida e a janela flutuante.',
 };
 const navGroups: Page[][] = [
-  ['overview', 'todo', 'map', 'checklist', 'threads', 'minigames', 'hall'],
-  ['timeline', 'medals', 'gossip', 'quiz'],
+  ['overview', 'todo', 'map', 'checklist', 'threads', 'minigames', 'hall', 'secrets'],
+  ['timeline', 'medals', 'quiz'],
   ['second', 'settings'],
 ];
 const iconPaths: Record<string, string> = {
@@ -50,7 +60,7 @@ const iconPaths: Record<string, string> = {
   minigames: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 5h.01',
   timeline: 'M12 8v5l3 2M3 12a9 9 0 1 0 2.6-6.4L3 8m0-4v4h4',
   medals: 'M8 3h8v6l-4 4-4-4zM12 13a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
-  gossip: 'M12 22s7-5 7-12a7 7 0 0 0-14 0c0 7 7 12 7 12Zm0-15v.1m0 3v4',
+  secrets: 'm21 21-5-5M19 10.5a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0ZM10.5 7v7M7 10.5h7',
   quiz: 'M9 8a3 3 0 1 1 4.5 2.6c-1.5.8-1.5 1.5-1.5 3.4m0 4h.01M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z',
   second: 'M2 4h13v10H2zM6 18h5m-2.5-4v4M17 8h5v13h-5zm2 10h1',
   settings: 'M3 6h7m4 0h7M3 12h12m4 0h2M3 18h2m4 0h12M10 4h4v4h-4zm5 6h4v4h-4zM5 16h4v4H5z',
@@ -63,7 +73,7 @@ export function Icon({ name, size = 20 }: { name: string; size?: number }) {
 }
 
 function sourceName(state: AppState) {
-  return state.sourceLabel ?? (state.saveDir ? 'Partida local' : 'Aguardando partida');
+  return state.sourceLabel ?? t(state.saveDir ? 'Partida local' : 'Aguardando partida');
 }
 /** Connection label (a key, translated where shown) and an already translated detail line. */
 function connectionStatus(state: AppState): { label: string; detail?: string; connected: boolean } {
@@ -107,7 +117,7 @@ export function Sidebar({ page, onPage, state }: { page: Page; onPage: (p: Page)
     <div className="tracker-brand"><img className="brand-icon" src="./brand/icon.webp" alt="" /><div><strong>Hyrule Tracker</strong><small>Ocarina of Time</small></div></div>
     <button className={connection.connected ? 'sidebar-source connected' : 'sidebar-source'} title={connection.detail ?? t(connection.label)} onClick={() => onPage('settings')}>
       <span className="status-dot" aria-hidden="true" />
-      <b>{t(sourceName(state))}</b>
+      <b>{sourceName(state)}</b>
       <small>{t(connection.label)}</small>
     </button>
     <LiveIndicator state={state} />
@@ -120,18 +130,19 @@ export function Sidebar({ page, onPage, state }: { page: Page; onPage: (p: Page)
 
 /** Phones (portrait): tab bar at the bottom with the main pages; "More" opens a sheet with the rest. Hidden by CSS elsewhere. */
 const tabPages: Page[] = ['overview', 'todo', 'map', 'checklist'];
-/** Short names that fit a tab. */
 const tabNames: Partial<Record<Page, string>> = { overview: 'Início', map: 'Mapa', checklist: 'Checklist' };
 export function MobileNav({ page, onPage, state }: { page: Page; onPage: (p: Page) => void; state: AppState }) {
   const [open, setOpen] = useState(false);
+  const dialog = useModalDialog(open);
   const connection = connectionStatus(state);
   const others = navGroups.flat().filter(p => !tabPages.includes(p) && !(isRemote && p === 'second'));
   const go = (p: Page) => { setOpen(false); onPage(p); };
   useEffect(() => {
     if (!open) return;
-    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    document.addEventListener('keydown', key);
-    return () => document.removeEventListener('keydown', key);
+    const layout = matchMedia('(max-width: 640px)');
+    const closeOnWideLayout = () => { if (!layout.matches) setOpen(false); };
+    layout.addEventListener('change', closeOnWideLayout);
+    return () => layout.removeEventListener('change', closeOnWideLayout);
   }, [open]);
   const moreActive = !tabPages.includes(page);
   return <>
@@ -139,28 +150,33 @@ export function MobileNav({ page, onPage, state }: { page: Page; onPage: (p: Pag
       {tabPages.map(p => <button key={p} type="button" aria-current={p === page && !open ? 'page' : undefined} onClick={() => go(p)}>
         <span className="tab-icon"><Icon name={p} size={21} /></span><span className="tab-label">{t(tabNames[p] ?? pages[p])}</span>
       </button>)}
-      <button type="button" aria-expanded={open} aria-current={moreActive && !open ? 'page' : undefined} className={open ? 'open' : undefined} onClick={() => setOpen(o => !o)}>
-        <span className="tab-icon"><Icon name="more" size={21} /></span><span className="tab-label">{moreActive ? t(pages[page]) : t('Mais')}</span>
+      <button type="button" aria-haspopup="dialog" aria-expanded={open} aria-current={moreActive && !open ? 'true' : undefined} className={open ? 'open' : undefined} onClick={() => setOpen(true)}>
+        <span className="tab-icon"><Icon name="more" size={21} /></span><span className="tab-label">{t('Mais')}</span>
       </button>
     </nav>
-    {open && <div className="mobile-sheet-backdrop" onClick={() => setOpen(false)}>
-      <div className="mobile-sheet" role="dialog" aria-modal="true" aria-label={t('Mais')} onClick={e => e.stopPropagation()}>
-        <span className="sheet-handle" aria-hidden="true" />
+    {open && <dialog className="mobile-sheet" ref={dialog} aria-labelledby="mobile-sheet-title" onCancel={e => { e.preventDefault(); setOpen(false); }}
+      onClick={e => {
+        if (e.target === e.currentTarget && e.clientY < e.currentTarget.getBoundingClientRect().top) setOpen(false);
+      }}>
+        <div className="sheet-heading">
+          <h2 id="mobile-sheet-title">{t('Mais')}</h2>
+          <button type="button" className="action" onClick={() => setOpen(false)}>{t('Fechar')}</button>
+        </div>
         <div className={connection.connected ? 'sheet-source connected' : 'sheet-source'}>
           <span className="status-dot" aria-hidden="true" />
-          <div><b>{t(sourceName(state))}</b><small>{connection.detail ?? t(connection.label)}</small></div>
+          <div><b>{sourceName(state)}</b><small>{connection.detail ?? t(connection.label)}</small></div>
         </div>
         <div className="sheet-grid">{others.map(p => <button key={p} type="button" aria-current={p === page ? 'page' : undefined} onClick={() => go(p)}>
           <Icon name={p} size={22} /><span>{t(pages[p])}</span>
         </button>)}</div>
-      </div>
-    </div>}
+    </dialog>}
   </>;
 }
 
-export function PageHeader({ page, state, headerActions }: { page: Page; state: AppState; headerActions: ReactNode }) {
+export function PageHeader({ page, state, headerActions, connectionLost }: { page: Page; state: AppState; headerActions: ReactNode; connectionLost: boolean }) {
   const connection = connectionStatus(state);
   return <header className="page-header">
+    {connectionLost && <p className="notice connection-notice" role="alert">{t('Sem conexão com o PC. Tentando reconectar…')}</p>}
     <div><h1>{t(pages[page])}</h1><p className="page-description">{t(pageDescriptions[page])}</p></div>
     <div className="page-header-actions">
       <span className={connection.connected ? 'connection connected' : 'connection'} title={connection.detail} role="status"><i aria-hidden="true" />{t(connection.label)}</span>
@@ -202,7 +218,7 @@ function SaveActions({ onScan, scanning, loading = false, notFound = false }: { 
   </>;
 }
 
-export function CompanionPage({ page, state, onPage, onScan, scanning, onLanguage, headerActions, mapFocus, onShowInChecklist, todoView }: { mapFocus?: string; onShowInChecklist?: (id: string) => void; todoView?: ReactNode; page: Page; state: AppState; onPage: (page: Page) => void; onScan: () => void; scanning: boolean; onLanguage: (locale: Locale) => void; headerActions: ReactNode }) {
+export function CompanionPage({ page, state, onPage, onScan, scanning, onLanguage, headerActions, connectionLost, mapFocus, onShowInChecklist, todoView }: { mapFocus?: string; onShowInChecklist?: (id: string) => void; todoView?: ReactNode; page: Page; state: AppState; onPage: (page: Page) => void; onScan: () => void; scanning: boolean; onLanguage: (locale: Locale) => void; headerActions: ReactNode; connectionLost: boolean }) {
   const view = {
     overview: <Overview state={state} onPage={onPage} onScan={onScan} scanning={scanning} />,
     checklist: <Overview state={state} onPage={onPage} onScan={onScan} scanning={scanning} />,
@@ -214,19 +230,14 @@ export function CompanionPage({ page, state, onPage, onScan, scanning, onLanguag
     minigames: <Minigames state={state} />,
     timeline: <Timeline state={state} />,
     medals: <Medals state={state} />,
-    gossip: <Gossip state={state} />,
+    secrets: <Suspense fallback={<p className="quiet" role="status">{t('Carregando descobertas…')}</p>}>
+      <EasterEggs marks={state.easterEggs} offline={connectionLost} areaPhoto={areaShot} />
+    </Suspense>,
     quiz: <Quiz />,
     second: <SecondScreen state={state} />,
     settings: <Settings state={state} onScan={onScan} scanning={scanning} onLanguage={onLanguage} />,
   };
-  return <main className="companion-page" key={page}><RemoteNotice /><PageHeader page={page} state={state} headerActions={headerActions} />{view[page]}</main>;
-}
-
-/** On a phone/tablet: says so when the PC stops answering (the page reconnects by itself). */
-function RemoteNotice() {
-  const [lost, setLost] = useState(false);
-  useEffect(() => (isRemote ? onConnection(c => setLost(c === 'lost')) : undefined), []);
-  return lost ? <p className="notice" role="alert">{t('Sem conexão com o PC. Tentando reconectar…')}</p> : null;
+  return <main className="companion-page" key={page}><PageHeader page={page} state={state} headerActions={headerActions} connectionLost={connectionLost} />{view[page]}</main>;
 }
 
 /**
@@ -276,16 +287,19 @@ function SecondScreen({ state }: { state: AppState }) {
 
 function Overview({ state, onPage, onScan, scanning }: { state: AppState; onPage: (p: Page) => void; onScan: () => void; scanning: boolean }) {
   const s = state.summary;
+  const loading = state.status === 'loading';
   if (!s) return <section className="focus-panel empty-state">
-    <img className="brand-icon big" src="./brand/icon.webp" alt="" /><h2>{state.status === 'loading' ? t('Buscando sua partida') : t('Encontre a sua partida')}</h2>
-    <p>{state.message ? tv(state.message, state.messageValues) : t('Procurando saves do remake nos locais de instalação.')}</p>
-    <SaveActions onScan={onScan} scanning={scanning} loading={state.status === 'loading'} notFound={state.status !== 'loading'} />
+    <img className="brand-icon big" src="./brand/icon.webp" alt="" /><h2>{t(loading ? 'Buscando sua partida' : 'Encontre a sua partida')}</h2>
+    <p>{isRemote && !loading ? t('Abra o Hyrule Tracker no PC e selecione a pasta da partida.')
+      : state.message ? tv(state.message, state.messageValues) : t('Procurando saves do remake nos locais de instalação.')}</p>
+    {isRemote
+      ? <button className="action" disabled={scanning || loading} onClick={onScan}>{t(scanning || loading ? 'Buscando…' : 'Buscar saves')}</button>
+      : <SaveActions onScan={onScan} scanning={scanning} loading={loading} notFound={!loading} />}
   </section>;
   const chests = state.categories.find(c => c.id === 'chests');
-  // Details are translated here (plurals need the count).
   const metrics = [
     { label: 'Corações', icon: 'heart', count: s.hearts, max: 20, detail: s.heartPiecesHeld == null ? t('Capacidade máxima') : plural(s.heartPiecesHeld, '{n}/4 pedaço para o próximo', '{n}/4 pedaços para o próximo') },
-    { label: 'Skulltulas douradas', icon: 'gold_skulltula', count: s.tokens, max: 100, detail: s.claimable.length ? t('Recompensa disponível') : s.nextReward ? `${t('Próxima recompensa aos')} ${s.nextReward.tokens}` : t('Todas as recompensas alcançadas') },
+    { label: 'Skulltulas douradas', icon: 'gold_skulltula', count: s.tokens, max: 100, detail: s.tokens == null ? t('Not in this save yet') : s.claimable.length ? t('Recompensa disponível') : s.nextReward ? `${t('Próxima recompensa aos')} ${number(s.nextReward.tokens)}` : t('Todas as recompensas alcançadas') },
     { label: 'Baús abertos', icon: 'chest', count: chests?.done, max: chests?.total, detail: t('Exploração de Hyrule') },
     { label: 'Rupees', icon: 'rupee', count: state.companion?.rupees, detail: t('Saldo atual') },
     { label: 'Tempo de jogo', icon: 'song_of_time', count: null as number | null | undefined, text: playTime(state.companion?.playSeconds), detail: t('Até o último save') },
@@ -301,7 +315,7 @@ function Overview({ state, onPage, onScan, scanning }: { state: AppState; onPage
         <p>{s.doneA} {t("de")} {s.totalA} {t("objetivos concluídos")}</p>
         <button className="action primary" onClick={() => onPage('checklist')}>{t("Abrir checklist")}</button>
       </div>
-      <div className="progress-place">{t(s.area || sourceName(state))}<small>{s.lastSavedMs ? date(s.lastSavedMs) : t('Último save')}</small></div>
+      <div className="progress-place">{s.area ? t(s.area) : sourceName(state)}<small>{s.lastSavedMs ? date(s.lastSavedMs) : t('Último save')}</small></div>
     </section>
     <section className="metric-strip" aria-label={t("Resumo da partida")}>
       {metrics.map(m => <div className="metric" key={m.label}><span className="metric-label"><GameItemIcon id={m.icon} size={25} />{t(m.label)}</span><strong>{'text' in m ? m.text : value(m.count)}{m.max != null && <small>/{m.max}</small>}</strong><span>{m.detail}</span></div>)}
@@ -324,7 +338,7 @@ function Settings({ state, onScan, scanning, onLanguage }: { state: AppState; on
     <section className="focus-panel setting-panel"><h2>{t("Idioma")}</h2><LanguageSwitch locale={currentLocale()} onChange={onLanguage} labelled /></section>
     <section className="focus-panel setting-panel">
       <h2>{t("Fonte da partida")}</h2>
-      <p>{t(sourceName(state))}</p>
+      <p>{sourceName(state)}</p>
       <code className="save-path">{state.saveDir || t('Pasta do save ainda não encontrada.')}</code>
       {state.message && <p className="notice" role="status">{tv(state.message, state.messageValues)}</p>}
       {!isRemote && <SaveActions onScan={onScan} scanning={scanning} loading={state.status === 'loading'} notFound={!state.saveDir && state.status !== 'loading'} />}
@@ -614,7 +628,6 @@ export function HyruleMap({ state, focus, onShowInChecklist }: { state: AppState
             focusItem={activeItem?.id} onPickItem={item => setActive(item)} onShowInChecklist={onShowInChecklist} />
             : <p className="quiet">{showLocation ? t('Esta região não tem mapa próprio.') : t('Visite a região para ver os itens.')}</p>}
         </>}
-        <p className="map-caption">{player?.source === 'live' ? t('Link ao vivo') : state.live.using ? t('região atual ao vivo') : player ? t('Link no último save') : t('região no último save')}</p>
       </section>
       {panelOpen && <aside className="map-side" aria-label={inRegion ? t('Conclusão da área') : t('Progresso de conclusão')}>
         <div className="map-side-head">
@@ -786,68 +799,82 @@ function RegionAtlas({ place, state, era, filter, hideDone, player, follow, over
 function Threads({ state }: { state: AppState }) {
   const chapters = state.companion?.chapters ?? [];
   const side = state.categories.find(c => c.id === 'side_quests');
-  return <div className="story-grid">
-    <section className="focus-panel"><h2>{t("História principal")}</h2>
-      {chapters.length ? chapters.map(c => <details className="story-chapter" key={c.id}>
-        <summary><span className={c.stages.every(s => s.done) ? 'story-dot done' : 'story-dot'} /><ObjectiveName done={c.stages.every(s => s.done)}>{t(c.title)}</ObjectiveName><small>{c.stages.filter(s => s.done).length}/{c.stages.length}</small></summary>
-        <ul>{c.stages.map(s => <li key={s.label}><span><ObjectiveName done={s.done}>{t(s.label)}</ObjectiveName></span><small>{s.done ? t('Concluído') : s.started ? t('Em andamento') : t('Aguardando')}</small></li>)}</ul>
-      </details>) : <p className="quiet">{t("Encontre um save para ver a história.")}</p>}
-    </section>
-    <section className="focus-panel"><h2>{t("Missões secundárias")}{' '}{side && <small>{side.done}/{side.total}</small>}</h2>
-      {side?.items.length ? side.items.map(i => {
-        const sold = i.id === 'side_quests.happy_mask_shopkeeper' ? state.companion?.maskSales : null;
-        const fountains = i.id === 'side_quests.to_the_great_fairy' ? state.categories.find(c => c.id === 'great_fairies') : undefined;
-        const status = i.done ? 'Concluído' : sold || fountains?.done ? 'Em andamento' : i.state === 'unknown' ? 'Situação não mapeada' : 'Aguardando';
-        return (
-          <details className="story-chapter side-quest" key={i.id}>
-            <summary>
-              <span className={i.done ? 'story-dot done' : 'story-dot'} aria-hidden="true" />
-              <b><ObjectiveName done={i.done}>{t(i.name)}</ObjectiveName></b>
-              <small>{t(status)}{sold != null && ` · ${sold}/${MASK_SALE_NAMES.length}`}{fountains && ` · ${fountains.done}/${fountains.total}`}</small>
-            </summary>
-            <p>{t(i.where ?? 'Detalhes da missão indisponíveis.')}</p>
-            {sold != null && <ul aria-label={t('Vendas de máscaras')}>{MASK_SALE_NAMES.map((mask, index) => (
-              <li key={mask}>
-                <span><ObjectiveName done={index < sold}>{t(mask)}</ObjectiveName></span>
-                <small>{t(index < sold ? 'Vendida' : 'Aguardando')}</small>
-              </li>
-            ))}</ul>}
-            {fountains && <ul aria-label={t('Grandes Fadas')}>{fountains.items.map(f => (
-              <li key={f.id}>
-                <span><ObjectiveName done={f.done}>{t(f.name)}</ObjectiveName></span>
-                <small>{t(f.done ? 'Concluído' : 'Aguardando')}</small>
-              </li>
-            ))}</ul>}
-          </details>
-        );
-      }) : <p className="quiet">{t("Encontre um save para ver as missões secundárias.")}</p>}
-    </section>
+  const stages = chapters.flatMap(chapter => chapter.stages);
+  const done = stages.filter(stage => stage.done).length + (side?.done ?? 0);
+  const total = stages.length + (side?.total ?? 0);
+  return <div>
+    <PageProgress done={done} total={total} />
+    <div className="story-grid">
+      <section className="focus-panel"><h2>{t("História principal")}</h2>
+        {chapters.length ? chapters.map(c => <details className="story-chapter" key={c.id}>
+          <summary><span className={c.stages.every(s => s.done) ? 'story-dot done' : 'story-dot'} /><ObjectiveName done={c.stages.every(s => s.done)}>{t(c.title)}</ObjectiveName><small>{c.stages.filter(s => s.done).length}/{c.stages.length}</small></summary>
+          <ul>{c.stages.map(s => <li key={s.label}><span><ObjectiveName done={s.done}>{t(s.label)}</ObjectiveName></span><small>{s.done ? t('Concluído') : s.started ? t('Em andamento') : t('Aguardando')}</small></li>)}</ul>
+        </details>) : <p className="quiet">{t("Encontre um save para ver a história.")}</p>}
+      </section>
+      <section className="focus-panel"><h2>{t("Missões secundárias")}{' '}{side && <small>{side.done}/{side.total}</small>}</h2>
+        {side?.items.length ? side.items.map(i => {
+          const sold = i.id === 'side_quests.happy_mask_shopkeeper' ? state.companion?.maskSales : null;
+          const fountains = i.id === 'side_quests.to_the_great_fairy' ? state.categories.find(c => c.id === 'great_fairies') : undefined;
+          const status = i.done ? 'Concluído' : sold || fountains?.done ? 'Em andamento' : i.state === 'unknown' ? 'Situação não mapeada' : 'Aguardando';
+          return (
+            <details className="story-chapter side-quest" key={i.id}>
+              <summary>
+                <span className={i.done ? 'story-dot done' : 'story-dot'} aria-hidden="true" />
+                <b><ObjectiveName done={i.done}>{t(i.name)}</ObjectiveName></b>
+                <small>{t(status)}{sold != null && ` · ${sold}/${MASK_SALE_NAMES.length}`}{fountains && ` · ${fountains.done}/${fountains.total}`}</small>
+              </summary>
+              <p>{t(i.where ?? 'Detalhes da missão indisponíveis.')}</p>
+              {sold != null && <ul aria-label={t('Vendas de máscaras')}>{MASK_SALE_NAMES.map((mask, index) => (
+                <li key={mask}>
+                  <span><ObjectiveName done={index < sold}>{t(mask)}</ObjectiveName></span>
+                  <small>{t(index < sold ? 'Vendida' : 'Aguardando')}</small>
+                </li>
+              ))}</ul>}
+              {fountains && <ul aria-label={t('Grandes Fadas')}>{fountains.items.map(f => (
+                <li key={f.id}>
+                  <span><ObjectiveName done={f.done}>{t(f.name)}</ObjectiveName></span>
+                  <small>{t(f.done ? 'Concluído' : 'Aguardando')}</small>
+                </li>
+              ))}</ul>}
+            </details>
+          );
+        }) : <p className="quiet">{t("Encontre um save para ver as missões secundárias.")}</p>}
+      </section>
+    </div>
   </div>;
 }
 
+const hallTabs = [['statues', 'Estátuas'], ['rematches', 'Revanches'], ['trials', 'Provações']] as const;
+
 function Hall({ state }: { state: AppState }) {
-  const [tab, setTab] = useState('statues');
-  const cat = state.categories.find(c => c.id === tab);
+  const [tab, setTab] = useState<typeof hallTabs[number][0]>('statues');
+  const categories = state.categories.filter(category => hallTabs.some(([id]) => category.id === id));
+  const cat = categories.find(category => category.id === tab);
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<string>();
   const highlighted = cat?.items.find(item => item.id === selected);
   const highlightedPhoto = highlighted ? enemyPhoto(highlighted.id, highlighted.name) : undefined;
-  return <section className="focus-panel hall-panel">
-    <div className="section-line"><h2>{t(cat?.label ?? 'Salão dos Inimigos')}</h2>{cat && <b>{cat.done}/{cat.total}</b>}</div>
-    <div className="segment">{[['statues','Estátuas'],['rematches','Revanches'],['trials','Provações']].map(([id,label]) => <button key={id} aria-pressed={tab === id} onClick={() => setTab(id)}>{t(label)}</button>)}</div>
-    {tab !== 'trials' && <label className="inline-field">{t("Buscar inimigo")}<input type="search" value={query} onChange={e => setQuery(e.target.value)} /></label>}
-    {highlightedPhoto && <div className="enemy-focus"><img src={highlightedPhoto.file} alt={highlighted?.name} /><div><h3><ObjectiveName done={highlighted?.done}>{highlighted?.name}</ObjectiveName></h3><span>{highlighted?.done ? t('Obtido') : t('Pendente')}</span></div><button className="action" onClick={() => setSelected(undefined)}>{t("Fechar")}</button></div>}
-    <div className="hall-list">{cat?.items.filter(i => tab === 'trials' || i.name.toLowerCase().includes(query.toLowerCase())).map(i => {
-      const trial = state.companion?.trials.find(t => i.id.endsWith('.' + t.id));
-      const rematch = state.companion?.rematches.find(r => r.id === i.id);
-      const frames = trial?.frames ?? rematch?.frames;
-      const photo = enemyPhoto(i.id, i.name);
-      return <div className="hall-row" key={i.id}><span className={i.done ? 'story-dot done' : 'story-dot'} />{photo && <button className="enemy-thumb" aria-label={i.name} onClick={() => setSelected(i.id)}><img src={photo.file} alt="" loading="lazy" /></button>}<b><ObjectiveName done={i.done}>{t(i.name)}</ObjectiveName></b>
-        <span>{i.done && frames != null && frames > 0 && frames < 216000 ? `${t('Recorde')} · ${number(frames / 60)} s` : i.done ? t('Concluído') : i.state === 'unknown' ? t('Indisponível') : t('Pendente')}</span>
-      </div>;
-    })}</div>
-    {!cat && <p className="quiet">{t("Encontre um save para ver o Salão.")}</p>}
-  </section>;
+  const done = categories.reduce((count, category) => count + category.done, 0);
+  const total = categories.reduce((count, category) => count + category.total, 0);
+  return <div>
+    <PageProgress done={done} total={total} />
+    <section className="focus-panel hall-panel">
+      <div className="section-line"><h2>{t(cat?.label ?? 'Salão dos Inimigos')}</h2>{cat && <b>{cat.done}/{cat.total}</b>}</div>
+      <div className="segment">{hallTabs.map(([id, label]) => <button key={id} aria-pressed={tab === id} onClick={() => setTab(id)}>{t(label)}</button>)}</div>
+      {tab !== 'trials' && <label className="inline-field">{t("Buscar inimigo")}<input type="search" value={query} onChange={e => setQuery(e.target.value)} /></label>}
+      {highlightedPhoto && <div className="enemy-focus"><img src={highlightedPhoto.file} alt={highlighted?.name} /><div><h3><ObjectiveName done={highlighted?.done}>{highlighted?.name}</ObjectiveName></h3><span>{highlighted?.done ? t('Obtido') : t('Pendente')}</span></div><button className="action" onClick={() => setSelected(undefined)}>{t("Fechar")}</button></div>}
+      <div className="hall-list">{cat?.items.filter(i => tab === 'trials' || i.name.toLowerCase().includes(query.toLowerCase())).map(i => {
+        const trial = state.companion?.trials.find(t => i.id.endsWith('.' + t.id));
+        const rematch = state.companion?.rematches.find(r => r.id === i.id);
+        const frames = trial?.frames ?? rematch?.frames;
+        const photo = enemyPhoto(i.id, i.name);
+        return <div className="hall-row" key={i.id}><span className={i.done ? 'story-dot done' : 'story-dot'} />{photo && <button className="enemy-thumb" aria-label={i.name} onClick={() => setSelected(i.id)}><img src={photo.file} alt="" loading="lazy" /></button>}<b><ObjectiveName done={i.done}>{t(i.name)}</ObjectiveName></b>
+          <span>{i.done && frames != null && frames > 0 && frames < 216000 ? `${t('Recorde')} · ${number(frames / 60)} s` : i.done ? t('Concluído') : i.state === 'unknown' ? t('Indisponível') : t('Pendente')}</span>
+        </div>;
+      })}</div>
+      {!cat && <p className="quiet">{t("Encontre um save para ver o Salão.")}</p>}
+    </section>
+  </div>;
 }
 
 function dayStamp(ts = Date.now()) { const d = new Date(ts); return [d.getFullYear(), d.getMonth() + 1, d.getDate()].map(n => String(n).padStart(2, '0')).join('-'); }

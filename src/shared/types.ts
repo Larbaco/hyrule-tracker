@@ -145,6 +145,7 @@ export interface PlayerState {
 
 export interface AppState {
   status: 'ok' | 'no-folder' | 'no-slots' | 'error' | 'loading';
+  easterEggs: string[];
   /** Link on the map (live while the game is attached, else the save's position). */
   player?: PlayerState;
   saveReadError?: boolean;

@@ -7,6 +7,7 @@ import { murmur3 } from '../src/gamedata/murmur3.js';
 import { Controller } from '../src/main/controller.js';
 import { LiveSource } from '../src/main/live.js';
 import { SettingsStore } from '../src/main/settings.js';
+import discoveries from '../data/easter-eggs.json';
 
 describe('a temporarily missing pinned slot', () => {
   let dir: string;
@@ -89,5 +90,48 @@ describe('a temporarily missing pinned slot', () => {
     expect(controller.state.slotMode).toBe('manual');
     expect(controller.state.player).toBeUndefined();
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the same discoveries with no save, the recent save and a pinned save', async () => {
+    const [first, second] = discoveries;
+    expect(controller.setEasterEggFound(first.id, true)).toBe(true);
+    await controller.start();
+    controller.stop();
+    const summary = controller.state.summary;
+    expect(controller.state.easterEggs).toEqual([first.id]);
+    expect(controller.setEasterEggFound('unknown-discovery', true)).toBe(false);
+    expect(controller.setEasterEggFound(second.id, true)).toBe(true);
+    expect(controller.setEasterEggFound(second.id, true)).toBe(true);
+    expect(controller.state.easterEggs).toEqual([first.id, second.id]);
+    expect(controller.state.summary).toBe(summary);
+
+    await controller.pinSlot('slot_00');
+    expect(controller.state.easterEggs).toEqual([first.id, second.id]);
+    await controller.useFolder(undefined);
+    expect(controller.state.status).toBe('no-folder');
+    expect(controller.state.easterEggs).toEqual([first.id, second.id]);
+    const persisted = new SettingsStore(join(dir, 'settings.json'));
+    expect(persisted.data.easterEggs).toEqual([first.id, second.id]);
+    expect(persisted.data.manual).toEqual({});
+  });
+
+  it('keeps the shown discovery unchanged when writing settings fails', () => {
+    vi.spyOn(settings, 'save').mockImplementationOnce(() => { throw new Error('Disk full'); });
+    expect(() => controller.setEasterEggFound(discoveries[0].id, true)).toThrow('Disk full');
+    expect(controller.state.easterEggs).toEqual([]);
+    expect(settings.data.easterEggs).toEqual([]);
+    expect(controller.setEasterEggFound(discoveries[0].id, true)).toBe(true);
+    expect(controller.setEasterEggFound(discoveries[0].id, false)).toBe(true);
+    expect(controller.state.easterEggs).toEqual([]);
+  });
+
+  it('combines marks from preview builds that saved separate lists', () => {
+    const [first, second] = discoveries;
+    const file = join(dir, 'settings.json');
+    writeFileSync(file, JSON.stringify({ easterEggs: {
+      standalone: { [first.id]: true, [second.id]: false },
+      [`${dir}|@recent`]: { [first.id]: true, [second.id]: true },
+    } }));
+    expect(new SettingsStore(file).data.easterEggs).toEqual([first.id, second.id]);
   });
 });

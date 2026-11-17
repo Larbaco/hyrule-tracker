@@ -66,7 +66,7 @@ export function createWebApi(): TrackerApi & { onConnection: (fn: Listener<Conne
     onLanguage: fn => { language.add(fn); return () => { language.delete(fn); }; },
     pinSlot: (name: string | null) => rpc('pinSlot', name),
     toggleManual: (id: string) => rpc('toggleManual', id),
-    captureGame: () => rpc<string | undefined>('captureGame'),
+    setEasterEggFound: (id: string, found: boolean) => rpc<boolean>('setEasterEggFound', id, found),
     refreshProgress: () => rpc<void>('refreshProgress'),
     scanFolders: () => rpc<AppState>('scanFolders'),
     browseFolder: () => rpc<AppState>('getState'), // picking a folder happens on the PC

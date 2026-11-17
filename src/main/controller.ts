@@ -49,6 +49,8 @@ export class Controller {
   private atlasItems: AtlasRule[];
   private atlasPlaces: AtlasPlace[];
   private atlasLinks: Record<string, string>;
+  private readonly easterEggIds: ReadonlySet<string>;
+  private readonly easterEggSources: ReadonlySet<string>;
   /** Link's position in the shown save (caption.sav), for when there's no live position. */
   private savePlayer?: PlayerState;
   private playerListeners = new Set<(p: PlayerState | undefined) => void>();
@@ -68,6 +70,9 @@ export class Controller {
 
   constructor(readonly paths: ControllerPaths, readonly settings: SettingsStore) {
     const read = (f: string) => JSON.parse(fs.readFileSync(path.join(paths.appDir, 'data', f), 'utf8'));
+    const easterEggs: { id: string; sources: string[] }[] = read('easter-eggs.json');
+    this.easterEggIds = new Set(easterEggs.map(entry => entry.id));
+    this.easterEggSources = new Set(easterEggs.flatMap(entry => entry.sources.map(source => new URL(source).href)));
     // A detailed local checklist (built from your own guide text, never published) wins
     // over the public one; both use the same ids.
     const local = path.join(paths.appDir, 'data', 'checklist.local.json');
@@ -92,6 +97,7 @@ export class Controller {
     const o = settings.data.overlay;
     this.state = {
       status: 'loading', slots: [], slotMode: 'recent', categories: [], snapshots: [], toasts: [], devPanel: settings.data.devPanel, version: paths.version,
+      easterEggs: settings.data.easterEggs.filter(id => this.easterEggIds.has(id)),
       areaRegions: [],
       available: [],
       canBeAdult: false,
@@ -473,7 +479,7 @@ export class Controller {
   private lastShownBySlot = new Map<string, { mtimeMs: number; data: GameDataFile; buf: Buffer }>();
 
   private get activityPath() { return path.join(this.paths.userData, 'activity.json'); }
-  async captureGame(width?: number) {
+  private async captureGame(width: number) {
     const pid = this.live?.gamePid;
     return pid ? this.paths.captureGame?.(pid, width) : undefined;
   }
@@ -656,6 +662,25 @@ export class Controller {
 
   private manualKey(slot: string, pinned = this.state.slotMode === 'manual') { return `${this.userDir}|${pinned ? slot : '@recent'}`; }
   private manualFor(slot: string, pinned?: boolean) { return this.settings.data.manual[this.manualKey(slot, pinned)] ?? {}; }
+
+  isEasterEggSource(url: string): boolean {
+    return this.easterEggSources.has(url);
+  }
+
+  setEasterEggFound(id: unknown, found: unknown): boolean {
+    if (typeof id !== 'string' || !this.easterEggIds.has(id) || typeof found !== 'boolean') return false;
+    const marks = this.settings.data.easterEggs;
+    if (found === marks.includes(id)) return true;
+    const next = found ? [...marks, id] : marks.filter(mark => mark !== id);
+    try {
+      this.settings.update(s => { s.easterEggs = next; });
+    } catch (error) {
+      this.settings.data.easterEggs = marks;
+      throw error;
+    }
+    this.patch({ easterEggs: next.filter(mark => this.easterEggIds.has(mark)) });
+    return true;
+  }
 
   async toggleManual(itemId: string) {
     const slot = this.state.activeSlot;

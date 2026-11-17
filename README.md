@@ -6,10 +6,6 @@
 
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-0078D6?logo=windows&logoColor=white)
 ![Linux](https://img.shields.io/badge/Linux-AppImage%20(experimental)-FCC624?logo=linux&logoColor=black)
-![Electron](https://img.shields.io/badge/Electron-47848F?logo=electron&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Languages](https://img.shields.io/badge/languages-12-orange)
 ![Open Source](https://img.shields.io/badge/open%20source-contributions%20welcome-brightgreen)
@@ -27,7 +23,7 @@ A desktop app for Windows and Linux that **reads your local save** and updates t
 ## 🚀 First use
 
 1. 🎮 Open the game in a compatible environment and load a game with at least one save.
-2. 📦 Download `Hyrule-Tracker-Setup-1.3.0.exe` (Windows) or `Hyrule-Tracker-1.3.0-x86_64.AppImage` ([Linux](#-linux-experimental)) from the [Releases](https://github.com/jv-prado/hyrule-tracker/releases) tab, run it and open **Hyrule Tracker**. The tracker looks for saves automatically in known installations.
+2. Download the Windows installer (`.exe`) or the [Linux AppImage](#-linux-experimental) from [Releases](https://github.com/jv-prado/hyrule-tracker/releases). Open **Hyrule Tracker** to search for saves in known installations.
    > 🛡️ The installer is not code-signed yet, so Windows SmartScreen may show "Windows protected your PC". Click **More info → Run anyway**.
 3. 🟢 Check the status next to the installation name:
    - **Save connected** → the tracker read the save from disk.
@@ -61,8 +57,8 @@ The Linux build is new and hasn't been tested on many systems yet. **Please tell
 | ⏳ | **Threads of Time+** | Chapters, story steps and seven expandable side quests with guidance and progress from the save. |
 | 🎯 | **Minigames** | 18 activities with wins, prizes and scores: shooting galleries, Bombchu Bowling, fishing, races. Deku Theater and expert modes accept manual marking. |
 | ⚔️ | **Hall of Enemies** | 84 statues, 25 rematches and three trials, with best times from your save and reference images. |
+| | **Easter Eggs and Secrets** | Browse region photos and discover hidden details, reactions and dialogue. Mark finds by hand in a single list that works with or without a connected save. |
 | 📅 | **Daily log and My data** | Progress seen while the tracker is open, local captures and medals calculated from your game. |
-| 📸 | **Rumor quests** | The tracker's photo hunt: follow clues, visit the region and capture the game window in **Live** mode. |
 | 🧩 | **Daily quiz** | Test your knowledge of the game with rotating questions. |
 | 📱 | **Second screen** | Open the tracker on a phone, tablet or another computer on the same Wi-Fi while you play on the TV. The page shows the address to type, and the layout adapts to phones and tablets, portrait or landscape. |
 

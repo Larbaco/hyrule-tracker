@@ -1,17 +1,11 @@
 import { t } from './i18n';
 import { useCallback, useRef, useState } from 'react';
-import type { AppState } from '../shared/types';
-import { api } from './api';
-import { regionPhoto, quizImages } from './referenceImages';
-import { ObjectiveName } from './ObjectiveName';
+import { quizImages } from './referenceImages';
 
 const prefix = 'hyrule-tracker.';
 const day = () => new Intl.DateTimeFormat('sv-SE').format(new Date());
 /**
- * A value kept in localStorage. The setter applies functional updates to the latest value
- * (not the one from the render that created it) and returns whether the value was written.
- * With `keepOnFailure: false`, a value that can't be stored (quota) is not kept in memory
- * either, so the screen never shows something that will be gone after a restart.
+ * Functional updates use the latest value, including changes that React has yet to render.
  */
 export function useStored<T>(key: string, initial: T) {
   const read = () => {
@@ -22,82 +16,14 @@ export function useStored<T>(key: string, initial: T) {
   const value = item.key === key ? item.value : read();
   const latest = useRef(item);
   if (latest.current.key !== key) latest.current = { key, value };
-  const change = useCallback((next: T | ((value: T) => T), { keepOnFailure = true }: { keepOnFailure?: boolean } = {}) => {
+  const change = useCallback((next: T | ((value: T) => T)) => {
     const current = latest.current.key === key ? latest.current.value : read();
     const updated = typeof next === 'function' ? (next as (v: T) => T)(current) : next;
-    let saved = true;
-    try { localStorage.setItem(prefix + key, JSON.stringify(updated)); } catch { saved = false; /* quota or unavailable storage */ }
-    if (saved || keepOnFailure) {
-      latest.current = { key, value: updated };
-      setItem({ key, value: updated });
-    }
-    return saved;
+    try { localStorage.setItem(prefix + key, JSON.stringify(updated)); } catch { /* storage may be unavailable */ }
+    latest.current = { key, value: updated };
+    setItem({ key, value: updated });
   }, [key]);
   return [value, change] as const;
-}
-
-/** A small JPEG copy of a screenshot, so a handful of them fit in localStorage. */
-async function thumbnail(src: string, maxWidth = 480, quality = 0.7): Promise<string> {
-  const img = new Image();
-  img.src = src;
-  await img.decode();
-  const scale = Math.min(1, maxWidth / img.naturalWidth);
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
-  canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('canvas unavailable');
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL('image/jpeg', quality);
-}
-
-const quests = [
-  { id: 'forest', name: 'A aldeia atrás das árvores', clue: 'Procure o povoado de crianças protegido pela Grande Árvore.', area: 'KokiriForest', hint: 'Floresta Kokiri' },
-  { id: 'farm', name: 'O lugar das corridas', clue: 'Visite o lugar onde Malon cuida dos cavalos.', area: 'LonLonRanch', hint: 'Rancho Lon Lon' },
-  { id: 'lake', name: 'A água sob a ponte', clue: 'Procure o grande lago onde também se pode pescar.', area: 'LakeHylia', hint: 'Lago Hylia' },
-  { id: 'village', name: 'O moinho da vila', clue: 'Siga para o vilarejo ao pé da Montanha da Morte.', area: 'KakarikoVillage', hint: 'Vila Kakariko' },
-  { id: 'mountain', name: 'Na cidade de pedra', clue: 'O caminho pela montanha leva aos amigos de Darunia.', area: 'GoronCity', hint: 'Cidade Goron' },
-  { id: 'desert', name: 'À sombra do colosso', clue: 'Procure o monumento além do deserto assombrado.', area: 'DesertColossus', hint: 'Colosso do Deserto' },
-];
-export function Gossip({ state }: { state: AppState }) {
-  const [done, setDone] = useStored<string[]>('gossip.completed', []);
-  const [points, setPoints] = useStored('gossip.points', 0);
-  const [photos, setPhotos] = useStored<Record<string, string>>('gossip.photos', {});
-  const [hint, setHint] = useState('');
-  const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState(false);
-  const area = (state.summary?.area ?? '').replace(/\(.*\)$/, '').replace(/[^a-z]/gi, '').toLowerCase();
-  async function capture(id: string) {
-    setBusy(true);
-    try {
-      const shot = await api.captureGame();
-      if (!shot) return setMessage('A janela do jogo precisa estar visível.');
-      let small: string;
-      try { small = await thumbnail(shot); } catch { return setMessage('Não foi possível abrir a imagem.'); }
-      if (!setPhotos(p => ({ ...p, [id]: small }), { keepOnFailure: false })) {
-        return setMessage('Não foi possível guardar a foto: o armazenamento está cheio.');
-      }
-      setDone(d => (d.includes(id) ? d : [...d, id]));
-      setPoints(p => p + 1);
-      setMessage('Foto aceita. Você ganhou um ponto.');
-    } finally { setBusy(false); }
-  }
-  return <section className="focus-panel"><div className="section-line"><h2>{t("Caça fotográfica")}</h2><span>{done.length}/{quests.length} · {points}{t("pontos")}</span></div>
-    <p className="quiet">{t("Encontre a região descrita, fotografe a janela do jogo e troque pontos por partituras.")}</p>
-    <div className="gossip-grid">{quests.map(q => <article className="gossip-quest" key={q.id}>
-      {(photos[q.id] || regionPhoto(q.area)) && <img src={photos[q.id] || regionPhoto(q.area)?.file} alt="" loading="lazy" />}
-      <h3><ObjectiveName done={done.includes(q.id)}>{t(q.name)}</ObjectiveName></h3><p>{t(q.clue)}</p>
-      {hint === q.id && <p className="notice">{t(q.hint)}</p>}
-      <div className="page-actions">{done.includes(q.id) ? <span className="quiet">{t("Concluída")}</span> : <>
-        <button className="action" onClick={() => setHint(hint === q.id ? '' : q.id)}>{t("Dica")}</button>
-        <button className="action primary" disabled={busy || !state.live.using} onClick={() => {
-          if (area !== q.area.toLowerCase()) return setMessage('A região atual não corresponde à pista.');
-          void capture(q.id);
-        }}>{t("Fotografar")}</button>
-      </>}</div>
-    </article>)}</div>
-    {message && <p className="notice" role="status">{t(message)}</p>}
-  </section>;
 }
 
 type Question = [string, string, string, string, string, string?];

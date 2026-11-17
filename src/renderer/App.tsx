@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import type { AppState, TrackedCategory, TrackedItem, UiPrefs, ChangeRow, OverlayMode } from '../shared/types';
-import { api, isRemote, timeAgo } from './api';
+import { api, isRemote, onConnection, timeAgo } from './api';
 import { symbolIcons, categoryColor } from './icons';
 import { Symbol } from './symbols';
 import { buildCards, tileItems, Card, TileModel } from './view';
@@ -8,17 +8,23 @@ import { Masonry } from './Masonry';
 import { CompanionPage, Icon, MobileNav, Sidebar, PageHeader, MAP_CATEGORIES, type Page } from './CompanionPages';
 import { WhatToDo } from './WhatToDo';
 import { LanguageSwitch } from './LanguageFlags';
-import { currentLocale, day, message, setLocale, t, tail, tv, type Locale } from './i18n';
+import { currentLocale, day, loadLocale, message, percent, setLocale, t, tail, tv, type Locale } from './i18n';
 import { ObjectiveName } from './ObjectiveName';
+import { PageProgress } from './PageProgress';
 import { UpdateDialog } from './UpdateDialog';
 import { enemyPhoto } from './referenceImages';
 import { GameItemIcon, itemImage, trackedItemIcon } from './GameItemIcon';
+import { useModalDialog } from './useModalDialog';
+import type { Connection } from './webApi';
 
 const icons = symbolIcons;
 
 export function App() {
   const [state, setState] = useState<AppState | null>(null);
   const [prefs, setPrefs] = useState<UiPrefs | null>(null);
+  const [startupAttempt, setStartupAttempt] = useState(0);
+  const [startupFailed, setStartupFailed] = useState(false);
+  const [connection, setConnection] = useState<Connection>('connecting');
   const [selected, setSelected] = useState<string | null>(null);
   const [page, setPage] = useState<Page>('overview');
   // Checklist entry the map should open on ("View on map").
@@ -29,21 +35,53 @@ export function App() {
   const [refreshError, setRefreshError] = useState(false);
   const [query, setQuery] = useState('');
   const [locale, setLanguage] = useState(currentLocale);
-  const changeLanguage = (next: Locale) => {
+  const languageRequest = useRef(0);
+  const [languageError, setLanguageError] = useState(false);
+  const changeLanguage = async (next: Locale) => {
+    const id = ++languageRequest.current;
+    setLanguageError(false);
+    try { await loadLocale(next); }
+    catch {
+      if (id === languageRequest.current) setLanguageError(true);
+      return;
+    }
+    if (id !== languageRequest.current) return;
     setLocale(next);
     setLanguage(next);
-    void api.setLanguage(next);
+    void api.setLanguage(next).catch(console.error);
   };
   const [, tick] = useState(0);
 
   useEffect(() => {
-    setLocale(currentLocale());
-    void api.getState().then(setState);
-    void api.getPrefs().then(setPrefs);
     const off = api.onState(setState);
     const t = setInterval(() => tick(x => x + 1), 15000); // keep "x min ago" fresh
     return () => { off(); clearInterval(t); };
   }, []);
+
+  useEffect(() => {
+    let request = 0;
+    let ready = false;
+    let previousConnection: Connection = 'connecting';
+    function load() {
+      const id = ++request;
+      setStartupFailed(false);
+      void Promise.all([api.getState(), api.getPrefs()]).then(([snapshot, savedPrefs]) => {
+        if (id !== request) return;
+        ready = true;
+        setState(current => current ?? snapshot);
+        setPrefs(savedPrefs);
+      }).catch(() => {
+        if (id === request) setStartupFailed(true);
+      });
+    }
+    const off = onConnection(next => {
+      setConnection(next);
+      if (next === 'open' && previousConnection === 'lost' && !ready) load();
+      previousConnection = next;
+    });
+    load();
+    return () => { ++request; off(); };
+  }, [startupAttempt]);
 
   const updatePrefs = (p: UiPrefs) => { setPrefs(p); void api.setPrefs(p); };
   // Arriving from the map: make the entry's card visible (its part shown, the card open), then scroll to its tile.
@@ -62,7 +100,8 @@ export function App() {
       return;
     }
     const frame = requestAnimationFrame(() => {
-      document.querySelector(`[data-item="${CSS.escape(reveal)}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.querySelector(`[data-item="${CSS.escape(reveal)}"]`)?.scrollIntoView({ block: 'center', behavior: reducedMotion ? 'auto' : 'smooth' });
       setReveal(undefined);
     });
     return () => cancelAnimationFrame(frame);
@@ -114,9 +153,13 @@ export function App() {
     return null;
   }, [state, cards, selected]);
 
+  const lost = connection === 'lost';
   if (!state || !prefs) return <main className="startup-screen">
     <img className="brand-logo" src="./brand/logo.webp" alt="Hyrule Tracker" />
-    <p role="status">{t("Preparando o diário…")}</p>
+    {lost ? <p role="alert">{t('Sem conexão com o PC. Tentando reconectar…')}</p>
+      : startupFailed ? <p role="alert">{t('Não foi possível abrir o diário.')}</p>
+      : <p role="status">{t('Preparando o diário…')}</p>}
+    {(lost || startupFailed) && <button type="button" className="primary" onClick={() => setStartupAttempt(attempt => attempt + 1)}>{t('Tentar novamente')}</button>}
     <AuthorCredit />
   </main>;
 
@@ -134,6 +177,7 @@ export function App() {
       </button>
       {refreshError && <small role="alert">{t('Falha na atualização. Tente novamente.')}</small>}
       {scanError && <small role="alert">{t('Não foi possível buscar os saves. Tente novamente.')}</small>}
+      {languageError && <small role="alert">{t('Não foi possível carregar o idioma.')}</small>}
     </div>
     <LanguageSwitch locale={locale} onChange={changeLanguage} />
   </>;
@@ -144,13 +188,15 @@ export function App() {
       <Sidebar page={page} onPage={p => { setMapFocus(undefined); setPage(p); }} state={state} />
       <MobileNav page={page} onPage={p => { setMapFocus(undefined); setPage(p); }} state={state} />
       {page !== 'checklist' ? (
-        <CompanionPage key={locale} mapFocus={mapFocus} onShowInChecklist={showInChecklist} page={page}
-          todoView={page === 'todo' ? <WhatToDo state={state} onShowInChecklist={showInChecklist} onShowOnMap={showOnMap} /> : undefined} state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} />
+        <CompanionPage mapFocus={mapFocus} onShowInChecklist={showInChecklist} page={page}
+          todoView={page === 'todo' ? <WhatToDo state={state} onShowInChecklist={showInChecklist} onShowOnMap={showOnMap} /> : undefined} state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} connectionLost={lost} />
       ) : state.status !== 'ok' ? (
-        <CompanionPage key={locale} page="checklist" state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} />
+        <CompanionPage page="checklist" state={state} onPage={setPage} onScan={scan} scanning={scanning} onLanguage={changeLanguage} headerActions={headerActions} connectionLost={lost} />
       ) : (
     <div className="app">
-      <PageHeader page="checklist" state={state} headerActions={headerActions} />
+      <PageHeader page="checklist" state={state} headerActions={headerActions} connectionLost={lost} />
+      {state.summary && <PageProgress done={state.summary.percent} total={100} label="Progresso do checklist"
+        text={`${t('Progresso do checklist')} · ${percent(state.summary.percent / 100, 1)}`} />}
       <Toolbar state={state} cards={cards} prefs={prefs} onPrefs={updatePrefs} query={query} onQuery={setQuery} />
       {state.message && <div className="banner">{tv(state.message, state.messageValues)}</div>}
       {!query.trim() && state.available.length > 0 && <button type="button" className="todo-link" onClick={() => setPage('todo')}>
@@ -182,11 +228,11 @@ export function App() {
             );
           })}
         </main>
-        <aside className={selectedItem ? "side has-detail" : "side"}>
+        <aside className="side">
           {state.identify.length > 0 && <IdentifyCard q={state.identify[0]} more={state.identify.length - 1} onShow={setSelected} />}
-          {selectedItem && 'stack' in selectedItem
-            ? <StackDetails stack={selectedItem.stack} onShow={setSelected} onClose={() => setSelected(null)} />
-            : selectedItem ? <Details cat={selectedItem.cat} item={selectedItem.item} dev={state.devPanel} onClose={() => setSelected(null)} onShowOnMap={showOnMap} /> : <Legend />}
+          {selectedItem
+            ? <ChecklistDetails selection={selectedItem} dev={state.devPanel} onShow={setSelected} onClose={() => setSelected(null)} onShowOnMap={showOnMap} />
+            : <Legend />}
           {state.devPanel && <DevPanel state={state} />}
         </aside>
       </div>
@@ -200,7 +246,6 @@ export function App() {
   );
 }
 
-/** Search text: accents removed, lower case. */
 const cleanText = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
 function AuthorCredit() {
@@ -209,6 +254,15 @@ function AuthorCredit() {
 
 function Toolbar({ state, cards, prefs, onPrefs, query, onQuery }: { state: AppState; cards: Card[]; prefs: UiPrefs; onPrefs: (p: UiPrefs) => void; query: string; onQuery: (s: string) => void }) {
   const [catsOpen, setCatsOpen] = useState(false);
+  const categories = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!catsOpen) return;
+    const outside = (e: PointerEvent) => {
+      if (!categories.current?.contains(e.target as Node)) setCatsOpen(false);
+    };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [catsOpen]);
   const recent = [...state.slots].sort((a, b) => b.mtimeMs - a.mtimeMs)[0];
   return (
     <div className="toolbar">
@@ -229,10 +283,16 @@ function Toolbar({ state, cards, prefs, onPrefs, query, onQuery }: { state: AppS
       </span>
       <label className="check"><input type="checkbox" checked={prefs.showParts.B} onChange={e => onPrefs({ ...prefs, showParts: { ...prefs.showParts, B: e.target.checked } })} />{t("Quest progress")}</label>
       <label className="check"><input type="checkbox" checked={prefs.showParts.C} onChange={e => onPrefs({ ...prefs, showParts: { ...prefs.showParts, C: e.target.checked } })} />{t('Extras')}</label>
-      <div className="dropdown">
-        <button onClick={() => setCatsOpen(o => !o)}>{t("Categories ▾")}</button>
+      <div className="dropdown categories" ref={categories} onKeyDown={e => {
+        if (e.key !== 'Escape' || !catsOpen) return;
+        setCatsOpen(false);
+        e.currentTarget.querySelector('button')?.focus();
+      }} onBlur={e => {
+        if (!e.currentTarget.contains(e.relatedTarget)) setCatsOpen(false);
+      }}>
+        <button aria-expanded={catsOpen} onClick={() => setCatsOpen(o => !o)}>{t("Categories ▾")}</button>
         {catsOpen && (
-          <div className="dropdown-menu" onMouseLeave={() => setCatsOpen(false)}>
+          <div className="dropdown-menu">
             {cards.map(c => (
               <label key={c.id} className="check">
                 <input type="checkbox" checked={!prefs.hiddenCategories.includes(c.id)}
@@ -268,7 +328,7 @@ function SettingsButton({ state }: { state: AppState }) {
   const o = state.overlay;
   return (
     <div className="dropdown" ref={ref}>
-      <button className={open ? 'on' : ''} onClick={() => setOpen(x => !x)}>{t("Settings ▾")}</button>
+      <button className={open ? 'on' : ''} aria-expanded={open} onClick={() => setOpen(x => !x)}>{t("Settings ▾")}</button>
       {open && (
         <div className="settings-pop">
           <b>{t("Saves")}</b>
@@ -314,12 +374,12 @@ function CardView({ card, hideCollected, selected, onSelect, collapsed, onToggle
   const wide = !!card.wide && !collapsed;
   return (
     <div className={`card ${wide ? 'wide' : ''} ${complete ? 'complete' : ''} ${collapsed ? 'collapsed' : ''}`} style={{ ['--cat' as string]: categoryColor(card.colorCat) }}>
-      <button className="card-head" onClick={onToggle} title={t(collapsed ? 'Expand' : 'Collapse')}>
-        <span className="chev">{collapsed ? '▸' : '▾'}</span>
+      <button className="card-head" onClick={onToggle} aria-expanded={!collapsed}>
+        <span className="chev" aria-hidden="true">{collapsed ? '▸' : '▾'}</span>
         <span className="card-title"><ObjectiveName done={complete}>{t(card.label)}</ObjectiveName></span>
         <span className="card-count">{card.kind === 'counter' && card.value === null ? '?' : card.done}/{card.total}</span>
       </button>
-      <div className="bar"><div className="fill" style={{ width: `${pct}%` }} /></div>
+      <div className="bar" aria-hidden="true"><div className="fill" style={{ transform: `scaleX(${pct / 100})` }} /></div>
       {!collapsed && (
         <>
           {card.hint && <div className="hint">{tv(card.hint, card.hintValues)}</div>}
@@ -353,7 +413,7 @@ function StackTile({ stack, selected, onSelect }: { stack: Extract<TileModel, { 
   const asset = trackedItemIcon(items[0]);
   const cls = ['tile', 'stack', n === items.length ? 'done' : n > 0 ? 'partial' : 'todo', items.some(i => i.justCollected) ? 'glow' : '', selected ? 'selected' : ''].join(' ');
   return (
-    <button className={cls} style={{ ['--c' as string]: icon.color }} onClick={() => onSelect(stack.key)}
+    <button className={cls} style={{ ['--c' as string]: icon.color }} aria-current={selected || undefined} onClick={() => onSelect(stack.key)}
       title={`${t(stack.label)} · ${n}/${items.length}\n${stack.members.map(m => `${m.item.done ? '✓' : '·'} ${t(m.item.name)}`).join('\n')}`}>
       <span className="glyph">{itemImage(asset) ? <GameItemIcon id={asset} size={30} /> : icon.symbol ? <Symbol name={icon.symbol} size={26} /> : icon.glyph}</span>
       <span className="level">{n}/{items.length}</span>
@@ -367,6 +427,9 @@ function Tile({ catId, item, selected, onSelect, major, numbered }: { catId: str
   const icon = icons.get(item.iconId, catId, item.name);
   const asset = trackedItemIcon(item);
   const photo = ENEMY_ROWS.has(catId) ? enemyPhoto(item.id, item.name) : undefined;
+  const label = `${numbered ? `#${item.number} ` : ''}${t(item.name)}`;
+  const status = item.manual ? 'Ticked by hand' : item.done ? 'Collected'
+    : item.state === 'unmapped' || item.state === 'unknown' ? 'Situação não mapeada' : 'Not collected yet';
   const cls = [
     'tile',
     item.done ? 'done' : 'todo',
@@ -379,8 +442,9 @@ function Tile({ catId, item, selected, onSelect, major, numbered }: { catId: str
   ].join(' ');
   return (
     <button className={cls} data-item={item.id} style={{ ['--c' as string]: icon.color }} onClick={() => onSelect(item.id)}
+      aria-label={`${label} · ${t(status)}`} aria-current={selected || undefined}
       onDoubleClick={() => item.state !== 'yes' && void api.toggleManual(item.id)}
-      title={`${numbered ? `#${item.number} ` : ''}${t(item.name)}${item.where ? `\n${t(item.where)}` : ''}`}>
+      title={`${label}${item.where ? `\n${t(item.where)}` : ''}`}>
       {numbered && <GameItemIcon id={asset} size={15} />}
       <span className="glyph">{numbered ? item.number : photo ? <img className="tile-photo" src={photo.file} alt="" draggable={false} /> : itemImage(asset) ? <GameItemIcon id={asset} size={30} /> : icon.symbol ? <Symbol name={icon.symbol} size={26} /> : icon.glyph}</span>
       {item.manual && <span className="badge m">M</span>}
@@ -409,7 +473,31 @@ function caption(n: string): string {
   return full !== n ? shortName(full) : short;
 }
 
-/** Details for a combined tile: each part with its own status and hand-tick button. */
+const COMPACT_DETAILS = '(max-width: 900px), (max-height: 500px)';
+
+function ChecklistDetails({ selection, dev, onShow, onClose, onShowOnMap }: {
+  selection: { stack: Extract<TileModel, { kind: 'stack' }> } | { cat: TrackedCategory; item: TrackedItem };
+  dev: boolean;
+  onShow: (id: string) => void;
+  onClose: () => void;
+  onShowOnMap: (id: string) => void;
+}) {
+  const [compact, setCompact] = useState(() => matchMedia(COMPACT_DETAILS).matches);
+  const dialog = useModalDialog(compact);
+  useEffect(() => {
+    const media = matchMedia(COMPACT_DETAILS);
+    const update = () => setCompact(media.matches);
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+
+  const content = 'stack' in selection
+    ? <StackDetails stack={selection.stack} onShow={onShow} onClose={onClose} />
+    : <Details cat={selection.cat} item={selection.item} dev={dev} onClose={onClose} onShowOnMap={onShowOnMap} />;
+  return compact ? <dialog ref={dialog} className="checklist-sheet" aria-labelledby="checklist-detail-title"
+    onCancel={e => { e.preventDefault(); onClose(); }}>{content}</dialog> : content;
+}
+
 function StackDetails({ stack, onShow, onClose }: { stack: Extract<TileModel, { kind: 'stack' }>; onShow: (id: string) => void; onClose: () => void }) {
   const n = stack.members.filter(m => m.item.done).length;
   return (
@@ -417,9 +505,9 @@ function StackDetails({ stack, onShow, onClose }: { stack: Extract<TileModel, { 
       <div className="panel-head">
         <span className="dot" style={{ background: categoryColor(stack.categoryId) }} />
         <span>{t(stack.label)} · {n}/{stack.members.length}</span>
-        <button className="x" onClick={onClose}>×</button>
+        <button className="x" onClick={onClose} aria-label={t('Close')}>×</button>
       </div>
-      <h3>{t(stack.label)}</h3>
+      <h3 id="checklist-detail-title">{t(stack.label)}</h3>
       <div className="members">
         {stack.members.map(({ categoryLabel, item }) => (
           <div key={item.id} className={`member ${item.done ? 'is-done' : ''}`}>
@@ -431,7 +519,7 @@ function StackDetails({ stack, onShow, onClose }: { stack: Extract<TileModel, { 
               {item.manual && <span className="muted small">{t("(ticked by hand)")}</span>}
             </div>
             {item.state !== 'yes' && (
-              <button className="small-btn" onClick={() => void api.toggleManual(item.id)}>{item.manual ? 'Untick' : 'Tick'}</button>
+              <button className="small-btn" onClick={() => void api.toggleManual(item.id)}>{t(item.manual ? 'Remove hand tick' : 'Tick by hand')}</button>
             )}
           </div>
         ))}
@@ -459,9 +547,9 @@ function Details({ cat, item, dev, onClose, onShowOnMap }: { cat: TrackedCategor
       <div className="panel-head">
         <span className="dot" style={{ background: categoryColor(cat.id) }} />
         <span>{t(cat.label)} #{item.number}</span>
-        <button className="x" onClick={onClose} title={t("Close")}>×</button>
+        <button className="x" onClick={onClose} aria-label={t('Close')}>×</button>
       </div>
-      <h3><GameItemIcon id={trackedItemIcon(item)} /> <ObjectiveName done={item.done}>{t(title)}</ObjectiveName>{item.newInRemake && <span className="new">{t("new in remake")}</span>}</h3>
+      <h3 id="checklist-detail-title"><GameItemIcon id={trackedItemIcon(item)} /> <ObjectiveName done={item.done}>{t(title)}</ObjectiveName>{item.newInRemake && <span className="new">{t("new in remake")}</span>}</h3>
       {item.chapter && <p className="area">{t(item.chapter)}</p>}
       {item.where && <p className="where">{t(item.where)}</p>}
       <p className={`status s-${item.done ? 'done' : item.state}`}>{t(stateText)}</p>

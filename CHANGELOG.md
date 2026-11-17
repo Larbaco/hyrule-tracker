@@ -2,17 +2,28 @@
 
 Player-facing changes in each Hyrule Tracker version. Every published version needs a `## [version]` section here:
 `scripts/ensure-release.mjs` uses it as the GitHub release text, and the in-app updater shows it before the player decides to update.
-Format: `New`, `Improved`, `Fixed`, `Known` (open issue).
+Format: `New`, `Improved`, `Fixed`, `Removed`, `Known` (open issue).
 
 ## [1.4.0] - 2026-11-17
 
 ### New
-- **Second screen.** Play on the TV and follow along on your phone, tablet or another computer at home. Connect the device to the same Wi-Fi as the PC and open the address shown on the new **Second screen** page in its browser (for example `http://192.168.0.10:5184/`). Progress updates by itself while you play, and you can tick items, answer "which one was this?" and switch slots from the device. It's on by default; the page has a step-by-step guide and a switch to turn it off. The first time, Windows may ask about the firewall: allow Hyrule Tracker on private networks.
-- **Phone and tablet layout.** On phones, a tab bar at the bottom (Home, What to do?, Map, Checklist, More) and a compact header; checklist details open as a sheet from the bottom. Tablets get a side menu with labels. Portrait and landscape both work.
+- **Second screen.** Open the tracker in a browser on the same Wi-Fi to follow your progress on a phone, tablet or another computer. Thanks to jrmedd for the suggestion. [#4](https://github.com/jv-prado/hyrule-tracker/issues/4)
+- **Easter Eggs and Secrets.** Explore 45 discoveries by region and check them off even without a connected save.
+- **Progress bars.** See completion in the checklist, Threads of Time+, Minigames and Hall of Fallen Foes.
+
+### Improved
+- **Navigation.** Added layouts for phones and tablets, improved keyboard focus and simplified the map and checklist.
+- **Language loading.** Translations load when you select a language.
 
 ### Fixed
-- **Daily log.** The day's totals had no space between the number and the text ("0enemies").
-- **Linux startup.** The AppImage opens on Wayland-only desktops without setting `HYRULE_TRACKER_WAYLAND=1`. By default, the tracker requests X11 only when the session advertises it through `DISPLAY`.
+- **Second screen.** Recover from a dropped connection and retry if the tracker fails to open.
+- **Daily log.** Added the missing space between counts and labels.
+- **Linux startup.** The AppImage opens on Wayland-only desktops. Thanks to Digital-Storm for requesting the Linux build. [#3](https://github.com/jv-prado/hyrule-tracker/issues/3)
+- **Windows overlay.** Fixed mouse lag after switching out of the game with Alt+Tab.
+- **Proper names.** Kept the original spelling of recomp, emulator and character names. Thanks to h1ghland3r for reporting the mouse lag and suggesting the naming fix. [#5](https://github.com/jv-prado/hyrule-tracker/issues/5)
+
+### Removed
+- Removed the Rumor Quests photo hunt.
 
 ## [1.3.0] - 2026-11-17
 

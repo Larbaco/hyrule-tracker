@@ -4,6 +4,7 @@ import { api } from './api';
 import { GameItemIcon } from './GameItemIcon';
 import { number, t } from './i18n';
 import { ObjectiveName } from './ObjectiveName';
+import { PageProgress } from './PageProgress';
 
 const games = [
   ['Tiro ao alvo no Mercado', 'fairy_slingshot', 'shooting_child', 'shooting_child_upgrade', 'shooting_child_expert'],
@@ -39,14 +40,15 @@ export function Minigames({ state }: { state: AppState }) {
     const done = objectives.filter(item => item.done).length;
     return { name, icon, objectives, done, score: state.companion?.minigameScores?.[ids[0]], id: ids[0] };
   });
-  const completed = cards.filter(card => card.done > 0).length;
+  const done = cards.reduce((count, card) => count + card.done, 0);
+  const total = cards.reduce((count, card) => count + card.objectives.length, 0);
   const visible = cards.filter(card => filter === 'all' || (filter === 'cleared' ? card.done > 0 : card.done === 0));
   return <>
+    <PageProgress done={done} total={total} />
     <div className="section-line minigame-controls">
       <div className="segment" role="group" aria-label={t('Filtrar minijogos')}>
         {filters.map(([id, label]) => <button key={id} aria-pressed={id === filter} onClick={() => setFilter(id)}>{t(label)}</button>)}
       </div>
-      <span className="quiet">{completed}/{cards.length} {t('com conclusão registrada')}</span>
     </div>
     <div className="minigame-grid">
       {visible.map(({ id, name, icon, objectives, done, score }) => <section className="focus-panel minigame-card" key={id}>

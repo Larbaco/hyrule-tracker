@@ -1,4 +1,4 @@
-import { currentLocale, languages, message, percent, setLocale, t, tail, tv, type Locale } from './i18n';
+import { currentLocale, languages, loadLocale, message, percent, setLocale, t, tail, tv, type Locale } from './i18n';
 import { GameItemIcon } from './GameItemIcon';
 import { useEffect, useRef, useState } from 'react';
 import type { AppState, TrackedCategory, OverlayMode } from '../shared/types';
@@ -12,14 +12,20 @@ export function Overlay() {
   const [locale, setLanguage] = useState(currentLocale);
   useEffect(() => {
     document.body.classList.add('overlay-body');
-    void api.getState().then(setState);
+    void api.getState().then(setState).catch(console.error);
     const off = api.onState(setState);
+    let languageRequest = 0;
     const offLanguage = api.onLanguage(next => {
       if (!Object.hasOwn(languages, next)) return;
-      setLocale(next as Locale);
-      setLanguage(next as Locale);
+      const locale = next as Locale;
+      const id = ++languageRequest;
+      void loadLocale(locale).then(() => {
+        if (id !== languageRequest) return;
+        setLocale(locale);
+        setLanguage(locale);
+      }).catch(console.error);
     });
-    return () => { off(); offLanguage(); };
+    return () => { ++languageRequest; off(); offLanguage(); };
   }, []);
   const s = state?.summary;
   // Numbers that just went up pulse for a few seconds.

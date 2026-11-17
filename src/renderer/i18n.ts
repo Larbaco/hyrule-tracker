@@ -12,11 +12,14 @@ export type Locale = keyof typeof languages;
 /** The languages kept in strings.txt and catalog-strings.json; the others have a file in locales/. */
 type BaseLocale = 'pt-BR' | 'en-US' | 'es-ES';
 const isBase = (l: Locale): l is BaseLocale => l === 'pt-BR' || l === 'en-US' || l === 'es-ES';
-/** locales/<code>.json: source text -> translation. Missing entries fall back to English. */
+const dictionariesByFile = import.meta.glob<Record<string, string>>('./locales/*.json', { import: 'default' });
 const dictionaries: Partial<Record<Locale, Record<string, string>>> = {};
-for (const [file, dict] of Object.entries(import.meta.glob<Record<string, string>>('./locales/*.json', { eager: true, import: 'default' }))) {
-  const code = /([\w-]+)\.json$/.exec(file)?.[1];
-  if (code && Object.hasOwn(languages, code)) dictionaries[code as Locale] = dict;
+
+export async function loadLocale(next: Locale) {
+  if (isBase(next) || dictionaries[next]) return;
+  const load = dictionariesByFile[`./locales/${next}.json`];
+  if (!load) throw new Error(`Missing dictionary for ${next}`);
+  dictionaries[next] = await load();
 }
 const storage = 'hyrule-tracker.locale';
 function initial(): Locale {

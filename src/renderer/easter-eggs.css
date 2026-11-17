@@ -1,0 +1,97 @@
+.easter-eggs { max-width: 1060px; }
+.easter-metadata { color: var(--hyrule-muted); font-size: 13px; }
+.easter-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 14px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.easter-region-card, .easter-area-banner {
+  border: 1px solid var(--hyrule-line);
+  border-radius: var(--hyrule-radius);
+  background: var(--hyrule-panel);
+}
+.easter-region-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  color: var(--hyrule-text);
+  font: inherit;
+  text-align: start;
+}
+.easter-region-card:hover { border-color: #a28051; background: #242019; }
+.easter-region-card:active { border-color: var(--hyrule-gold); }
+.easter-photo { display: block; overflow: hidden; aspect-ratio: 20 / 9; background: #2b231b; }
+.easter-photo img { width: 100%; height: 100%; object-fit: cover; }
+.easter-photo img[hidden] { display: none; }
+.easter-region-preview, .easter-area-body { padding: 12px 14px 15px; }
+.easter-region-preview { display: grid; align-content: space-between; gap: 8px; }
+.easter-region-preview strong { font-size: 15px; }
+.easter-region-meter { display: block; color: var(--hyrule-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.easter-area { margin-top: 18px; }
+.easter-area .easter-back { min-height: 44px; margin-bottom: 12px; }
+.easter-area-banner { display: grid; grid-template-columns: minmax(150px, 32%) minmax(0, 1fr); align-items: center; overflow: hidden; }
+.easter-area-banner .easter-photo { height: 100%; }
+.easter-area-body { min-width: 0; }
+.easter-area-body h2 { color: var(--hyrule-gold); margin: 0 0 8px; font-size: 20px; letter-spacing: -.014em; }
+.easter-area-body progress { max-width: 320px; }
+.easter-region {
+  padding: 0;
+  margin: 18px 0 0;
+  list-style: none;
+  border: 1px solid var(--hyrule-line);
+  border-radius: var(--hyrule-radius);
+  background: var(--hyrule-panel);
+}
+.easter-entry { padding: 13px 18px 15px; overflow-wrap: anywhere; }
+.easter-entry + .easter-entry { border-top: 1px solid var(--hyrule-line); }
+.easter-entry-heading { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+.easter-entry-heading h3 { margin: 0; font-size: 16px; letter-spacing: -.013em; }
+.easter-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  color: var(--hyrule-text);
+  font-size: 13px;
+}
+.easter-mark:hover { background: #232b24; }
+.easter-mark:has(input:checked) { color: var(--hyrule-accent); }
+.easter-mark:has(input[aria-disabled="true"]) { opacity: .68; cursor: default; }
+.easter-mark input { width: 16px; height: 16px; margin: 0; }
+.easter-metadata { margin: 0 0 6px; }
+.easter-metadata strong { color: var(--hyrule-gold); font-weight: 600; }
+.easter-hint, .easter-solution p { max-width: 68ch; line-height: 1.48; }
+.easter-hint { margin: 0 0 3px; }
+.easter-solution summary {
+  width: fit-content;
+  min-height: 44px;
+  padding: 10px 4px;
+  color: var(--hyrule-accent);
+  font-size: 13px;
+  line-height: 24px;
+}
+.easter-solution summary:hover { text-decoration: underline; }
+.easter-solution p { margin: 0 0 8px; }
+.easter-sources { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 0; list-style: none; }
+.easter-sources a { display: inline-flex; align-items: center; min-height: 44px; color: var(--hyrule-muted); font-size: 13px; }
+.easter-error { margin: 8px 0; color: #ffb9a8; }
+@media (max-width: 700px) {
+  .easter-entry { padding-inline: 12px; }
+  .easter-mark { gap: 5px; padding-inline: 4px; }
+}
+@media (max-width: 440px) {
+  .easter-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .easter-region-preview { padding: 9px; }
+  .easter-region-preview strong { overflow-wrap: anywhere; }
+  .easter-area-banner { grid-template-columns: minmax(0, 1fr); }
+  .easter-area-banner .easter-photo { max-height: 138px; }
+}

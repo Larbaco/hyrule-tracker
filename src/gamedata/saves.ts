@@ -90,7 +90,7 @@ const installations: Record<string, string> = {
   fritchii: 'Fritchii', lichii: 'Lichii', eden: 'Eden', orchid: 'Orchid', eglantine: 'Eglantine',
   pokedinner: 'PokeDinner', triforce: 'Triforce', longshot: 'Longshot', hookshot: 'Hookshot',
   nx2navi: 'NX2navi', 'ocarina reborn': 'Ocarina Reborn', 'ocarina-reborn': 'Ocarina Reborn',
-  ocarinareborn: 'Ocarina Reborn', relink: 'ReLink', 'relink-game': 'ReLink',
+  ocarinareborn: 'Ocarina Reborn', 'ocarina-reborn-game': 'Ocarina Reborn', relink: 'ReLink', 'relink-game': 'ReLink',
 };
 export function installationLabel(saveDir: string): string | undefined {
   const dirs: string[] = [];
@@ -99,7 +99,10 @@ export function installationLabel(saveDir: string): string | undefined {
     const name = installations[path.basename(dir).toLowerCase()];
     if (name) return name;
     if (/^(save|user|nand|[0-9a-f]{16,32})$/i.test(path.basename(dir))) continue;
-    const game = readdir(dir).find(isGameFile);
+    const game = readdir(dir).find(file => {
+      if (!isGameFile(file)) return false;
+      try { return fs.statSync(path.join(dir, file)).isFile(); } catch { return false; }
+    });
     if (game) return installations[programName(game)];
   }
 }

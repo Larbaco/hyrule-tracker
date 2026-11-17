@@ -95,17 +95,18 @@ export function LanguageSwitch({ locale, onChange, labelled = false }: { locale:
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLUListElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!open) return;
     const outside = (e: PointerEvent) => { if (!root.current?.contains(e.target as Node)) setOpen(false); };
-    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('pointerdown', outside);
-    document.addEventListener('keydown', key);
     list.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.focus();
-    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', key); };
+    return () => document.removeEventListener('pointerdown', outside);
   }, [open]);
-  const pick = (code: Locale) => { setOpen(false); if (code !== locale) onChange(code); };
+  const close = () => { setOpen(false); trigger.current?.focus(); };
+  const pick = (code: Locale) => { close(); onChange(code); };
   const move = (e: ReactKeyboardEvent<HTMLUListElement>) => {
+    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
     e.preventDefault();
     const items = [...(list.current?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])];
@@ -113,8 +114,10 @@ export function LanguageSwitch({ locale, onChange, labelled = false }: { locale:
     items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length]?.focus();
   };
   const label = `${t('Idioma')}: ${languages[locale]}`;
-  return <div className={`language-menu${labelled ? ' labelled' : ''}`} ref={root}>
-    <button type="button" className="language-switch" aria-label={label} title={label} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen(o => !o)}>
+  return <div className={`language-menu${labelled ? ' labelled' : ''}`} ref={root} onBlur={e => {
+    if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false);
+  }}>
+    <button ref={trigger} type="button" className="language-switch" aria-label={label} title={label} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen(o => !o)}>
       <Flag locale={locale} size={labelled ? 26 : 24} />{labelled && <span>{languages[locale]}</span>}
       <span className="language-caret" aria-hidden="true">▾</span>
     </button>

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { UiPrefs, IdentifyRequest, OverlayMode } from '../shared/types.js';
 import type { LearnedGroup } from '../core/pools.js';
-import type { MainLocale } from './validate.js';
+import { isPlainObject, type MainLocale } from './validate.js';
 
 export interface OverlaySettings {
   bounds?: { x: number; y: number; width: number; height: number };
@@ -22,6 +22,7 @@ export interface Settings {
   pinnedSlot: string | null;
   /** manual ticks: "<userDir>|<slot>" -> item id -> true */
   manual: Record<string, Record<string, boolean>>;
+  easterEggs: string[];
   ui: UiPrefs;
   devPanel: boolean;
   mainBounds?: { x: number; y: number; width: number; height: number };
@@ -47,6 +48,7 @@ export interface Settings {
 export const DEFAULTS: Settings = {
   pinnedSlot: null,
   manual: {},
+  easterEggs: [],
   ui: { hideCollected: false, hiddenCategories: [], collapsed: [], showParts: { B: true, C: false } },
   devPanel: false,
   overlay: { opacity: 0.85, locked: true, mode: 'counters' },
@@ -79,13 +81,23 @@ export function migrateIds(s: Settings): boolean {
   return changed;
 }
 
+function readEasterEggMarks(saved: unknown): string[] {
+  if (Array.isArray(saved)) return [...new Set(saved.filter((id): id is string => typeof id === 'string'))];
+  if (!isPlainObject(saved)) return [];
+  // Earlier builds kept one set of marks per save. Carry every marked entry into the shared list.
+  return [...new Set(Object.values(saved).flatMap(marks =>
+    isPlainObject(marks) ? Object.keys(marks).filter(id => marks[id] === true) : []))];
+}
+
 export class SettingsStore {
   data: Settings;
   constructor(private file: string) {
     this.data = structuredClone(DEFAULTS);
     try {
       const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
-      this.data = { ...this.data, ...raw, ui: { ...DEFAULTS.ui, ...raw.ui }, overlay: { ...DEFAULTS.overlay, ...raw.overlay }, hotkeys: { ...DEFAULTS.hotkeys, ...raw.hotkeys }, live: { ...DEFAULTS.live, ...raw.live }, lan: { ...DEFAULTS.lan, ...raw.lan } };
+      this.data = { ...this.data, ...raw, ui: { ...DEFAULTS.ui, ...raw.ui }, overlay: { ...DEFAULTS.overlay, ...raw.overlay }, hotkeys: { ...DEFAULTS.hotkeys, ...raw.hotkeys }, live: { ...DEFAULTS.live, ...raw.live }, lan: { ...DEFAULTS.lan, ...raw.lan },
+        easterEggs: readEasterEggMarks(raw.easterEggs),
+      };
       if (migrateIds(this.data)) this.save();
     } catch { /* first run or unreadable: use defaults */ }
   }

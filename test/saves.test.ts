@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, it, expect, afterAll } from 'vitest';
-import { userFolderForExe, resolveUserFolders, listSlots, mostRecentSlot, OOT_TITLE_ID } from '../src/gamedata/saves.js';
+import { installationLabel, userFolderForExe, resolveUserFolders, listSlots, mostRecentSlot, OOT_TITLE_ID } from '../src/gamedata/saves.js';
 
 // Made-up game folders in a temp directory (no real saves involved).
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bt-saves-'));
@@ -41,6 +41,18 @@ describe('the running game\'s save folder', () => {
   it('gives nothing when that install has no saves yet', () => {
     expect(userFolderForExe(gameFolder('Fresh', { saves: false }).exe)).toBeNull();
   });
+});
+
+it('identifies the installation from its directory or executable', () => {
+  const { user } = gameFolder('Reborn build', { exe: 'ocarina-reborn-game.exe' });
+  const saveDir = path.join(root, 'Library', 'Local save');
+  const emulator = path.join(root, 'Library', 'Fritchii');
+  fs.mkdirSync(saveDir, { recursive: true });
+  fs.mkdirSync(emulator);
+
+  expect(installationLabel(user)).toBe('Ocarina Reborn');
+  expect(installationLabel(emulator)).toBe('Fritchii');
+  expect(installationLabel(saveDir)).toBeUndefined();
 });
 
 it('orders Triforce slots by the timestamp inside the caption when file times tie', () => {

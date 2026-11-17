@@ -1,0 +1,1216 @@
+[
+  {
+    "id": "ranch-clasps",
+    "region": "Rancho Lon Lon",
+    "kind": "detail",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Um detalhe nos fechos",
+        "hint": "Olhe de perto as roupas de duas pessoas do rancho.",
+        "solution": "Aproxime a câmera do fecho no lenço de Malon e do prendedor no pescoço de Talon. Os dois têm o rosto do Bowser."
+      },
+      "en": {
+        "title": "A detail on the clasps",
+        "hint": "Take a closer look at what two people on the ranch are wearing.",
+        "solution": "Look closely at Malon’s scarf clasp and Talon’s bolo tie. Both show Bowser’s face."
+      },
+      "es": {
+        "title": "Un detalle en los broches",
+        "hint": "Fíjate en la ropa de dos personas del rancho.",
+        "solution": "Acerca la cámara al broche del pañuelo de Malon y al de la corbata de Talon. Los dos tienen la cara de Bowser."
+      }
+    },
+    "sources": [
+      "https://gameinformer.com/2026/11/05/the-zelda-ocarina-of-time-easter-eggs-that-did-and-did-not-make-it-into-the-2026-remake",
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://gameinformer.com/interview/2026/11/03/zelda-interview-title-tbd"
+    ]
+  },
+  {
+    "id": "malons-drawings",
+    "region": "Rancho Lon Lon",
+    "kind": "detail",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "A arte de Malon",
+        "hint": "Suba um andar na casa do rancho.",
+        "solution": "Entre no quarto de Malon no segundo andar e veja os desenhos na parede. Um deles mostra Malon, Talon e Ingo juntos."
+      },
+      "en": {
+        "title": "Malon’s artwork",
+        "hint": "Go upstairs in the ranch house.",
+        "solution": "Enter Malon’s room upstairs and look at the drawings on the wall. One shows Malon, Talon and Ingo together."
+      },
+      "es": {
+        "title": "Los dibujos de Malon",
+        "hint": "Sube un piso en la casa del rancho.",
+        "solution": "Entra en la habitación de Malon y mira los dibujos de la pared. En uno aparecen Malon, Talon e Ingo juntos."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.watchmojo.com/articles/10-new-secrets-and-easter-eggs-in-the-ocarina-of-time-remake",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=180s"
+    ]
+  },
+  {
+    "id": "courtyard-right-window",
+    "region": "Castelo de Hyrule",
+    "kind": "detail",
+    "age": "child",
+    "early": true,
+    "text": {
+      "pt": {
+        "title": "A janela à direita",
+        "hint": "Ao chegar ao pátio de Zelda, examine o que se vê do lado de dentro.",
+        "solution": "Na primeira visita de Link criança ao pátio, olhe pela janela à direita de Zelda. A tapeçaria dos Fios do Tempo já está completa."
+      },
+      "en": {
+        "title": "The right-hand window",
+        "hint": "At Zelda’s courtyard, look through the glass before moving on.",
+        "solution": "On Child Link’s first visit to the courtyard, look through the window to Zelda’s right. The Threads of Time tapestry is already complete."
+      },
+      "es": {
+        "title": "La ventana de la derecha",
+        "hint": "En el patio de Zelda, mira a través del cristal antes de seguir.",
+        "solution": "En la primera visita de Link niño al patio, mira por la ventana a la derecha de Zelda. El tapiz de los Hilos del Tiempo está completo."
+      }
+    },
+    "sources": [
+      "https://gameinformer.com/2026/11/05/the-zelda-ocarina-of-time-easter-eggs-that-did-and-did-not-make-it-into-the-2026-remake",
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.watchmojo.com/articles/10-new-secrets-and-easter-eggs-in-the-ocarina-of-time-remake",
+      "https://www.nintendolife.com/guides/zelda-ocarina-of-time-hyrule-castle-walkthrough-weird-egg-wake-up-cucco-switch-2"
+    ]
+  },
+  {
+    "id": "courtyard-left-window",
+    "region": "Castelo de Hyrule",
+    "kind": "interaction",
+    "age": "child",
+    "early": true,
+    "text": {
+      "pt": {
+        "title": "A janela à esquerda",
+        "hint": "Leve o estilingue à primeira visita ao pátio.",
+        "solution": "Dispare uma Semente Deku contra a janela à esquerda de Zelda. O guarda responde e joga uma bomba. Repita ao lado de Zelda para ouvir outra reação."
+      },
+      "en": {
+        "title": "The left-hand window",
+        "hint": "Bring the slingshot on your first visit to the courtyard.",
+        "solution": "Fire a Deku Seed at the window to Zelda’s left. A guard answers and throws a bomb. Try again next to Zelda to hear a different response."
+      },
+      "es": {
+        "title": "La ventana de la izquierda",
+        "hint": "Lleva el tirachinas en tu primera visita al patio.",
+        "solution": "Dispara una semilla deku a la ventana a la izquierda de Zelda. Un guardia protesta y lanza una bomba. Repite al lado de Zelda para oír otra reacción."
+      }
+    },
+    "sources": [
+      "https://gameinformer.com/2026/11/05/the-zelda-ocarina-of-time-easter-eggs-that-did-and-did-not-make-it-into-the-2026-remake",
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.watchmojo.com/articles/10-new-secrets-and-easter-eggs-in-the-ocarina-of-time-remake",
+      "https://game8.jp/zelda-tokinoocarina/840757",
+      "https://www.reddit.com/r/switch2/comments/1xon29b/talk_to_everyone/"
+    ]
+  },
+  {
+    "id": "impa-courtyard-warning",
+    "region": "Castelo de Hyrule",
+    "kind": "dialogue",
+    "age": "child",
+    "early": true,
+    "text": {
+      "pt": {
+        "title": "A etiqueta do pátio",
+        "hint": "Veja como a acompanhante de Zelda responde ao comportamento de Link.",
+        "solution": "Após conhecer Zelda e antes de sair do pátio com Impa, balance a espada perto da princesa. Impa repreende Link. Insistir prolonga a reação."
+      },
+      "en": {
+        "title": "Courtyard etiquette",
+        "hint": "See how Zelda’s companion responds to Link’s manners.",
+        "solution": "After meeting Zelda and before leaving the courtyard with Impa, swing the sword near the princess. Impa scolds Link. Keep going to hear her follow-up."
+      },
+      "es": {
+        "title": "Los modales en el patio",
+        "hint": "Observa cómo reacciona la acompañante de Zelda ante los modales de Link.",
+        "solution": "Después de conocer a Zelda y antes de salir del patio con Impa, blande la espada cerca de la princesa. Impa riñe a Link. Si insistes, la reacción continúa."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.watchmojo.com/articles/10-new-secrets-and-easter-eggs-in-the-ocarina-of-time-remake",
+      "https://www.reddit.com/r/switch2/comments/1xon29b/talk_to_everyone/"
+    ]
+  },
+  {
+    "id": "castle-gate-deal",
+    "region": "Castelo de Hyrule",
+    "kind": "dialogue",
+    "age": "child",
+    "early": true,
+    "text": {
+      "pt": {
+        "title": "Conversa no portão",
+        "hint": "Volte ao começo do caminho depois que os guardas o encontrarem.",
+        "solution": "Durante a infiltração de Link criança, deixe um guarda expulsá-lo. Fale com o soldado junto à guarita. Ele oferece abrir o portão por rupias e pede discrição."
+      },
+      "en": {
+        "title": "A word at the gate",
+        "hint": "Go back to the start of the path after the guards spot you.",
+        "solution": "During Child Link’s visit, let the guards catch and eject him. Talk to the soldier by the gatehouse. He offers to open the gate for rupees and asks for discretion."
+      },
+      "es": {
+        "title": "Una charla en la entrada",
+        "hint": "Vuelve al inicio del camino después de que te descubran los guardias.",
+        "solution": "Durante la visita de Link niño, deja que un guardia lo expulse. Habla con el soldado junto a la garita. Te ofrece abrir la puerta a cambio de rupias y te pide discreción."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.watchmojo.com/articles/10-new-secrets-and-easter-eggs-in-the-ocarina-of-time-remake"
+    ]
+  },
+  {
+    "id": "castle-town-crest",
+    "region": "Mercado",
+    "kind": "interaction",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "O adorno da entrada",
+        "hint": "Olhe para cima ao passar pela entrada da cidade.",
+        "solution": "Aproxime-se da escultura em forma de pássaro na entrada da cidade e interaja com ela. A escultura informa a hora."
+      },
+      "en": {
+        "title": "An ornament at the gate",
+        "hint": "Look up as you pass through the town entrance.",
+        "solution": "Approach the bird-shaped sculpture at the town gate and interact with it. It tells you the time."
+      },
+      "es": {
+        "title": "El adorno de la entrada",
+        "hint": "Mira hacia arriba al pasar por la entrada de la ciudad.",
+        "solution": "Acércate a la escultura con forma de ave en la entrada de la ciudad e interactúa con ella. Te dirá la hora."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=194s"
+    ]
+  },
+  {
+    "id": "shooting-gallery-manners",
+    "region": "Mercado",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "As regras do estande",
+        "hint": "Veja o que o dono faz quando alguém ignora os alvos.",
+        "solution": "Pague uma rodada no estande de tiro do Mercado e dispare algumas vezes na direção do dono. Ele expulsa Link. Volte e peça desculpas para jogar de novo."
+      },
+      "en": {
+        "title": "Rules of the gallery",
+        "hint": "See what the owner does when a customer ignores the targets.",
+        "solution": "Pay for a round at the Market Shooting Gallery and fire a few shots at the owner. He throws Link out. Go back in and apologize to play again."
+      },
+      "es": {
+        "title": "Las reglas de la galería",
+        "hint": "Observa qué hace el dueño cuando alguien ignora las dianas.",
+        "solution": "Paga una ronda en la galería de tiro del Mercado y dispara varias veces hacia el dueño. Expulsará a Link. Vuelve y discúlpate para jugar otra vez."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.watchmojo.com/articles/10-new-secrets-and-easter-eggs-in-the-ocarina-of-time-remake"
+    ]
+  },
+  {
+    "id": "bunny-hood-after-dark",
+    "region": "Campo de Hyrule",
+    "kind": "interaction",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Passeio depois de escurecer",
+        "hint": "Compare dois passeios noturnos com um acessório diferente.",
+        "solution": "Com Link criança, use o Capuz de Coelho no Campo de Hyrule à noite. Os Stalchildren ficam debaixo da terra enquanto Link estiver com o capuz."
+      },
+      "en": {
+        "title": "A walk after dark",
+        "hint": "Compare two nighttime walks with a change of headwear.",
+        "solution": "As Child Link, wear the Bunny Hood in Hyrule Field at night. Stalchildren stay underground while Link is wearing it."
+      },
+      "es": {
+        "title": "Un paseo nocturno",
+        "hint": "Compara dos paseos nocturnos cambiando de accesorio.",
+        "solution": "De niño, ponte la capucha de conejo en la llanura de Hyrule de noche. Los Stalchildren permanecen bajo tierra mientras Link la lleva."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=91s",
+      "https://www.keengamer.com/articles/guides/zelda-ocarina-of-time-remake-all-masks-and-where-to-get-them/"
+    ]
+  },
+  {
+    "id": "gossip-stone-reactions",
+    "region": "Templo do Tempo",
+    "kind": "interaction",
+    "text": {
+      "pt": {
+        "title": "Uma pedra, várias respostas",
+        "hint": "Experimente ferramentas diferentes ao lado das pedras com um olho gravado.",
+        "solution": "No pátio do Templo do Tempo, bata numa Pedra Falante com a espada para ouvir as horas, ponha uma bomba ao lado para vê-la decolar ou achate-a com o Martelo Megaton. O Fogo de Din também provoca uma reação própria."
+      },
+      "en": {
+        "title": "One stone, several replies",
+        "hint": "Try different tools on the stones marked with an eye.",
+        "solution": "In the Temple of Time courtyard, strike a Gossip Stone with a sword to hear the time, set a bomb beside it to send it flying, or flatten it with the Megaton Hammer. Din’s Fire causes a separate reaction."
+      },
+      "es": {
+        "title": "Una piedra, varias respuestas",
+        "hint": "Prueba distintas herramientas junto a las piedras con un ojo grabado.",
+        "solution": "En el patio del Templo del Tiempo, golpea una piedra chismosa con la espada para oír la hora, pon una bomba al lado para verla despegar o aplástala con el martillo Megatón. El fuego de Din provoca otra reacción."
+      }
+    },
+    "sources": [
+      "https://gameinformer.com/2026/11/05/the-zelda-ocarina-of-time-easter-eggs-that-did-and-did-not-make-it-into-the-2026-remake",
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=20s",
+      "https://game8.jp/zelda-tokinoocarina/840757"
+    ]
+  },
+  {
+    "id": "restore-wooden-sign",
+    "region": "Floresta Kokiri",
+    "kind": "interaction",
+    "text": {
+      "pt": {
+        "title": "Leitura interrompida",
+        "hint": "Uma placa cortada ainda pode ser útil. Pense em uma melodia que Link já aprendeu.",
+        "solution": "Corte uma placa de madeira com a espada e toque a Canção de Ninar da Zelda ao lado. A placa volta a se montar."
+      },
+      "en": {
+        "title": "Interrupted reading",
+        "hint": "A chopped sign can still be useful. Think of a melody Link already knows.",
+        "solution": "Cut a wooden sign with the sword and play Zelda’s Lullaby next to it. The sign puts itself back together."
+      },
+      "es": {
+        "title": "Lectura interrumpida",
+        "hint": "Un cartel cortado aún puede ser útil. Piensa en una melodía que Link ya conoce.",
+        "solution": "Corta un cartel de madera con la espada y toca al lado la nana de Zelda. El cartel vuelve a montarse."
+      }
+    },
+    "sources": [
+      "https://gameinformer.com/2026/11/05/the-zelda-ocarina-of-time-easter-eggs-that-did-and-did-not-make-it-into-the-2026-remake",
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=152s",
+      "https://game8.jp/zelda-tokinoocarina/840757"
+    ]
+  },
+  {
+    "id": "tall-grass-posture",
+    "region": "Campo de Hyrule",
+    "kind": "detail",
+    "age": "both",
+    "text": {
+      "pt": {
+        "title": "Pelo capim alto",
+        "hint": "Atravesse a mesma vegetação nas duas idades.",
+        "solution": "Corra por um trecho de capim alto com Link criança e repita com Link adulto. A criança cobre o rosto e o adulto mantém os braços em outra altura."
+      },
+      "en": {
+        "title": "Through the tall grass",
+        "hint": "Run through the same patch at both ages.",
+        "solution": "Run through tall grass as Child Link and then as Adult Link. Young Link shields his face while Adult Link holds his arms at a different height."
+      },
+      "es": {
+        "title": "Entre la hierba alta",
+        "hint": "Atraviesa la misma vegetación a las dos edades.",
+        "solution": "Corre entre la hierba alta con Link niño y repite con Link adulto. El niño se cubre la cara y el adulto lleva los brazos a otra altura."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=164s"
+    ]
+  },
+  {
+    "id": "deku-stick-butterfly",
+    "region": "Floresta Kokiri",
+    "kind": "interaction",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Visitante alado",
+        "hint": "Aproxime-se devagar de um grupo de borboletas com um item simples.",
+        "solution": "Com Link criança, segure um Graveto Deku e ande devagar ou pare perto das borboletas. Quando uma pousar no graveto, ela vira uma fada."
+      },
+      "en": {
+        "title": "A winged visitor",
+        "hint": "Approach a group of butterflies slowly with a simple item in hand.",
+        "solution": "As Child Link, hold a Deku Stick and walk slowly or stop near butterflies. One turns into a fairy when it lands on the stick."
+      },
+      "es": {
+        "title": "Una visita alada",
+        "hint": "Acércate despacio a un grupo de mariposas con un objeto sencillo.",
+        "solution": "Con Link niño, sostén un palo deku y camina despacio o detente junto a las mariposas. Cuando una se posa en el palo, se convierte en hada."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=172s",
+      "https://game8.jp/zelda-tokinoocarina/840757",
+      "https://arcadebot.co/en/ocarina-of-time-switch-2-gossip-stones/"
+    ]
+  },
+  {
+    "id": "bean-sprout-in-rain",
+    "region": "Rio Zora",
+    "kind": "interaction",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Chuva na horta",
+        "hint": "Toque uma melodia junto ao broto perto do vendedor de feijões.",
+        "solution": "Plante um Feijão Mágico no solo macio e toque a Canção das Tempestades ao lado do broto com Link criança. A chuva faz aparecer uma fada."
+      },
+      "en": {
+        "title": "Rain on the sprout",
+        "hint": "Play a melody beside the sprout near the bean seller.",
+        "solution": "Plant a Magic Bean in soft soil and play the Song of Storms beside its sprout as Child Link. The rain calls out a fairy."
+      },
+      "es": {
+        "title": "Lluvia en el brote",
+        "hint": "Toca una melodía junto al brote cerca del vendedor de judías.",
+        "solution": "Planta una judía mágica en tierra blanda y toca la canción de las tormentas junto al brote con Link niño. Con la lluvia aparece un hada."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=313s"
+    ]
+  },
+  {
+    "id": "lakeside-lab-pool",
+    "region": "Lago Hylia",
+    "kind": "detail",
+    "text": {
+      "pt": {
+        "title": "O fundo do laboratório",
+        "hint": "Preste atenção à piscina dentro do laboratório à beira do lago.",
+        "solution": "No laboratório do Lago Hylia, observe a parte funda da piscina. Há um tubarão que passa despercebido à primeira vista."
+      },
+      "en": {
+        "title": "The bottom of the lab",
+        "hint": "Take a closer look at the pool inside the Lakeside Laboratory.",
+        "solution": "Look into the deep part of the pool in the Lakeside Laboratory. A shark lurks where it is easy to overlook."
+      },
+      "es": {
+        "title": "El fondo del laboratorio",
+        "hint": "Observa con calma la piscina del laboratorio del lago.",
+        "solution": "Mira la parte profunda de la piscina del laboratorio. Hay un tiburón que puede pasar desapercibido a primera vista."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=76s"
+    ]
+  },
+  {
+    "id": "keaton-guard-confession",
+    "region": "Vila Kakariko",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "A encomenda do guarda",
+        "hint": "O guarda tem mais a dizer sobre a máscara que comprou. Importa de que lado você se aproxima.",
+        "solution": "Após vender a Máscara Keaton e completar as trocas, vista a Máscara da Verdade. Aproxime-se pelas costas do guarda que protege o caminho da Montanha da Morte e leia seu pensamento. Ele queria a máscara para si."
+      },
+      "en": {
+        "title": "The guard’s order",
+        "hint": "The guard has more to say about the mask he bought. The side you approach from matters.",
+        "solution": "After selling the Keaton Mask and completing the trades, wear the Mask of Truth. Approach the Death Mountain gate guard from behind and read his thoughts. He wanted the mask for himself."
+      },
+      "es": {
+        "title": "El encargo del guardia",
+        "hint": "El guardia tiene algo más que decir sobre la máscara que compró. Importa por dónde te acerques.",
+        "solution": "Tras vender la máscara de Keaton y completar los intercambios, ponte la Máscara de la Verdad. Acércate por detrás al guardia de la Montaña de la Muerte y lee sus pensamientos. Quería la máscara para él."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=426s",
+      "https://www.watchmojo.com/articles/10-new-secrets-and-easter-eggs-in-the-ocarina-of-time-remake"
+    ]
+  },
+  {
+    "id": "cow-inner-voice",
+    "region": "Rancho Lon Lon",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Uma visita ao estábulo",
+        "hint": "Leve a Máscara da Verdade quando visitar os animais do rancho.",
+        "solution": "Vista a Máscara da Verdade com Link criança e interaja com uma vaca no rancho para ouvir o que ela pensa."
+      },
+      "en": {
+        "title": "A visit to the stable",
+        "hint": "Bring the Mask of Truth when you visit the ranch animals.",
+        "solution": "Wear the Mask of Truth as Child Link and interact with a cow on the ranch to hear what it is thinking."
+      },
+      "es": {
+        "title": "Una visita al establo",
+        "hint": "Lleva la Máscara de la Verdad cuando visites a los animales del rancho.",
+        "solution": "Ponte la Máscara de la Verdad con Link niño e interactúa con una vaca del rancho para oír lo que piensa."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=388s",
+      "https://www.keengamer.com/articles/guides/zelda-ocarina-of-time-remake-all-masks-and-where-to-get-them/"
+    ]
+  },
+  {
+    "id": "market-couple-perspectives",
+    "region": "Mercado",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Dois lados da conversa",
+        "hint": "Mude de posição ao se aproximar de um casal no Mercado.",
+        "solution": "Com a Máscara da Verdade, aproxime-se de cada pessoa do casal do Mercado de forma que ela esteja mais perto de Link ao começar a conversa. Você ouve um pensamento diferente de cada lado."
+      },
+      "en": {
+        "title": "Two sides of a conversation",
+        "hint": "Change positions when approaching a couple in the Market.",
+        "solution": "Wear the Mask of Truth and approach each member of the couple so that person is nearer to Link when the conversation starts. Each side has different thoughts."
+      },
+      "es": {
+        "title": "Dos lados de la conversación",
+        "hint": "Cambia de posición al acercarte a una pareja del Mercado.",
+        "solution": "Con la Máscara de la Verdad, acércate a cada persona de modo que sea la más cercana a Link al empezar a hablar. Oirás pensamientos distintos de cada una."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=480s",
+      "https://automaton-media.com/articles/newsjp/20261108-478108/"
+    ]
+  },
+  {
+    "id": "kokiri-tree-carving",
+    "region": "Floresta Kokiri",
+    "kind": "detail",
+    "text": {
+      "pt": {
+        "title": "Um risco na madeira",
+        "hint": "Dê a volta na árvore que sustenta a casa de Link.",
+        "solution": "Observe perto da base da árvore da casa de Link. O entalhe mostra uma figura com espada e escudo diante de uma criatura grande."
+      },
+      "en": {
+        "title": "A mark in the wood",
+        "hint": "Walk around the tree that holds Link’s house.",
+        "solution": "Look near the base of the tree holding Link’s house. A carving shows someone with a sword and shield facing a large creature."
+      },
+      "es": {
+        "title": "Una marca en la madera",
+        "hint": "Rodea el árbol que sostiene la casa de Link.",
+        "solution": "Mira cerca de la base del árbol de la casa de Link. El grabado muestra a una figura con espada y escudo frente a una criatura grande."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/"
+    ]
+  },
+  {
+    "id": "saria-mask-reactions",
+    "region": "Clareira Sagrada",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Saria e os disfarces",
+        "hint": "Mostre a Saria mais de uma máscara emprestada.",
+        "solution": "Volte a falar com Saria na Clareira Sagrada com Link criança usando uma máscara da loja. Troque de máscara em outra visita para comparar as respostas e ouvir a expressão Kokiri que ela usa."
+      },
+      "en": {
+        "title": "Saria and the disguises",
+        "hint": "Show Saria more than one borrowed mask.",
+        "solution": "Return to Saria in the Sacred Forest Meadow as Child Link wearing a mask from the shop. Try another mask on a separate visit to compare her replies and hear the Kokiri expression she uses."
+      },
+      "es": {
+        "title": "Saria y los disfraces",
+        "hint": "Enséñale a Saria más de una máscara prestada.",
+        "solution": "Vuelve a hablar con Saria en la Pradera Sagrada con Link niño y una máscara de la tienda. Prueba otra máscara en otra visita para comparar sus respuestas y oír la expresión kokiri que usa."
+      }
+    },
+    "sources": [
+      "https://www.watchmojo.com/articles/10-new-secrets-and-easter-eggs-in-the-ocarina-of-time-remake",
+      "https://note.com/fronfron/n/n8a02f5d6c160"
+    ]
+  },
+  {
+    "id": "saria-two-ocarinas",
+    "region": "Clareira Sagrada",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Um instrumento diferente",
+        "hint": "Depois de obter a segunda ocarina, volte à clareira onde aprendeu uma melodia.",
+        "solution": "Mostre a Ocarina do Tempo a Saria na Clareira Sagrada com Link criança. Ela reage ao novo instrumento."
+      },
+      "en": {
+        "title": "A different instrument",
+        "hint": "After getting the second ocarina, revisit the meadow where you learned a melody.",
+        "solution": "Show Saria the Ocarina of Time in the Sacred Forest Meadow as Child Link. She reacts to the new instrument."
+      },
+      "es": {
+        "title": "Un instrumento distinto",
+        "hint": "Tras conseguir la segunda ocarina, vuelve a la pradera donde aprendiste una melodía.",
+        "solution": "Muéstrale a Saria la Ocarina del Tiempo en la Pradera Sagrada con Link niño. Reaccionará al nuevo instrumento."
+      }
+    },
+    "sources": [
+      "https://note.com/fronfron/n/n8a02f5d6c160",
+      "https://www.reddit.com/r/OcarinaOfTime/comments/1xvph32/little_changes_that_make_the_remake_better/"
+    ]
+  },
+  {
+    "id": "forest-music-layers",
+    "region": "Bosque Perdido",
+    "kind": "detail",
+    "text": {
+      "pt": {
+        "title": "O caminho pelo som",
+        "hint": "Preste atenção à música desde a entrada do labirinto.",
+        "solution": "Percorra o Bosque Perdido em direção à Clareira Sagrada. À medida que você avança no caminho certo, a ocarina se destaca e entram cordas e percussão."
+      },
+      "en": {
+        "title": "A path by ear",
+        "hint": "Listen to the music from the start of the maze.",
+        "solution": "Walk through the Lost Woods toward the Sacred Forest Meadow. The ocarina grows louder and strings and percussion join as you follow the right path."
+      },
+      "es": {
+        "title": "Un camino de oído",
+        "hint": "Escucha la música desde la entrada del laberinto.",
+        "solution": "Recorre el Bosque Perdido hacia la Pradera Sagrada. La ocarina suena más fuerte y se suman cuerdas y percusión al avanzar por el camino correcto."
+      }
+    },
+    "sources": [
+      "https://www.reddit.com/r/OcarinaOfTime/comments/1xsq12p/my_top_10_super_random_little_details_in_the/"
+    ]
+  },
+  {
+    "id": "cucco-at-the-well",
+    "region": "Vila Kakariko",
+    "kind": "interaction",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Curiosidade no poço",
+        "hint": "Veja como um Cucco reage se cair perto do poço.",
+        "solution": "Com Link criança, pegue um Cucco da vila e jogue-o dentro do poço. Ele sobe de volta e se sacode para tirar a água."
+      },
+      "en": {
+        "title": "Curiosity at the well",
+        "hint": "See how a Cucco reacts to a fall near the well.",
+        "solution": "As Child Link, pick up a village Cucco and throw it into the well. It climbs out and shakes off the water."
+      },
+      "es": {
+        "title": "Curiosidad en el pozo",
+        "hint": "Observa cómo reacciona un cuco al caer cerca del pozo.",
+        "solution": "Con Link niño, recoge un cuco del pueblo y tíralo dentro del pozo. Trepa para salir y se sacude el agua."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/"
+    ]
+  },
+  {
+    "id": "cucco-swarm",
+    "region": "Vila Kakariko",
+    "kind": "interaction",
+    "text": {
+      "pt": {
+        "title": "Um aviso emplumado",
+        "hint": "Teste a paciência de um Cucco perto de uma saída.",
+        "solution": "Golpeie o mesmo Cucco várias vezes até ele chamar o bando. Entre num prédio ou saia da área para se afastar."
+      },
+      "en": {
+        "title": "A feathered warning",
+        "hint": "Test a Cucco’s patience near an exit.",
+        "solution": "Strike the same Cucco several times until it calls the flock. Step into a building or leave the area to get away."
+      },
+      "es": {
+        "title": "Un aviso con plumas",
+        "hint": "Pon a prueba la paciencia de un cuco cerca de una salida.",
+        "solution": "Golpea varias veces al mismo cuco hasta que llame a la bandada. Entra en un edificio o sal de la zona para escapar."
+      }
+    },
+    "sources": [
+      "https://game8.jp/zelda-tokinoocarina/840757"
+    ]
+  },
+  {
+    "id": "windmill-music-box",
+    "region": "Vila Kakariko",
+    "kind": "interaction",
+    "text": {
+      "pt": {
+        "title": "O ritmo do moinho",
+        "hint": "Veja de perto o que o músico faz com o cilindro.",
+        "solution": "Dentro do moinho, olhe os furos no cilindro da caixa de música. Dê um golpe de espada no músico para ver como ele interrompe o movimento por um instante."
+      },
+      "en": {
+        "title": "The windmill’s rhythm",
+        "hint": "Take a close look at what the musician is doing with the cylinder.",
+        "solution": "Inside the windmill, look at the holes in the music box cylinder. Swing the sword at the musician to see him stop cranking for a moment."
+      },
+      "es": {
+        "title": "El ritmo del molino",
+        "hint": "Mira de cerca qué hace el músico con el cilindro.",
+        "solution": "Dentro del molino, fíjate en los agujeros del cilindro de la caja de música. Da un golpe de espada al músico para ver cómo deja de girarlo por un momento."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/"
+    ]
+  },
+  {
+    "id": "graveyard-boy-warning",
+    "region": "Cemitério",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "O pequeno vigia",
+        "hint": "Experimente interagir com uma lápide quando o menino estiver por perto.",
+        "solution": "Visite o cemitério de dia com Link criança. Tente mexer nas lápides perto do menino e repita a ação para ouvir os avisos mais severos."
+      },
+      "en": {
+        "title": "The little lookout",
+        "hint": "Try interacting with a gravestone while the boy is nearby.",
+        "solution": "Visit the graveyard during the day as Child Link. Move gravestones near the boy and try again to hear his sterner warnings."
+      },
+      "es": {
+        "title": "El pequeño vigilante",
+        "hint": "Prueba a interactuar con una lápida mientras el niño esté cerca.",
+        "solution": "Visita el cementerio de día con Link niño. Mueve lápidas cerca del niño y repite la acción para oír advertencias más severas."
+      }
+    },
+    "sources": [
+      "https://www.reddit.com/r/OcarinaOfTime/comments/1xsq12p/my_top_10_super_random_little_details_in_the/"
+    ]
+  },
+  {
+    "id": "dampe-table-sculpture",
+    "region": "Cemitério",
+    "kind": "detail",
+    "text": {
+      "pt": {
+        "title": "Uma peça na cabana",
+        "hint": "A mesa da cabana do coveiro guarda algo além de comida.",
+        "solution": "Entre na cabana de Dampé no cemitério e procure na mesa a escultura de uma cabeça. Observe os traços do rosto."
+      },
+      "en": {
+        "title": "Something in the shack",
+        "hint": "The gravedigger’s table holds more than food.",
+        "solution": "Enter Dampé’s shack in the graveyard and look for a sculpted head on the table. Take a close look at its features."
+      },
+      "es": {
+        "title": "Una pieza en la cabaña",
+        "hint": "La mesa de la cabaña del sepulturero guarda algo más que comida.",
+        "solution": "Entra en la cabaña de Dampé en el cementerio y busca una cabeza esculpida sobre la mesa. Fíjate en sus rasgos."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/"
+    ]
+  },
+  {
+    "id": "graveyard-boys-drawings",
+    "region": "Vila Kakariko",
+    "kind": "detail",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Desenhos do lado de fora",
+        "hint": "Dê a volta na casa do menino que passa o dia no cemitério.",
+        "solution": "Procure a casa onde a mãe fala do menino que visita o cemitério. Do lado de fora, contorne a parede até achar os desenhos dele, com Cuccos e Dampé."
+      },
+      "en": {
+        "title": "Drawings outside",
+        "hint": "Walk around the house of the boy who spends his day at the graveyard.",
+        "solution": "Find the house where a mother mentions her son visiting the graveyard. Follow the exterior wall until you see his pictures of Cuccos and Dampé."
+      },
+      "es": {
+        "title": "Dibujos por fuera",
+        "hint": "Rodea la casa del niño que pasa el día en el cementerio.",
+        "solution": "Busca la casa donde la madre habla del niño que visita el cementerio. Sigue la pared exterior hasta ver sus dibujos de cucos y de Dampé."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/"
+    ]
+  },
+  {
+    "id": "pot-room-guard",
+    "region": "Mercado",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "O outro turno",
+        "hint": "Passe pela sala cheia de vasos em horários diferentes.",
+        "solution": "Na sala dos vasos junto à entrada do Mercado, converse com o guarda. Volte em outro horário para encontrar o vigia que fala de pesquisar fantasmas e usar uma garrafa para capturá-los."
+      },
+      "en": {
+        "title": "The other shift",
+        "hint": "Visit the room full of pots at different times.",
+        "solution": "In the pot room by the Market entrance, talk to the guard. Return at another time to find the guard who talks about studying ghosts and catching them in a bottle."
+      },
+      "es": {
+        "title": "El otro turno",
+        "hint": "Visita la sala de las vasijas a distintas horas.",
+        "solution": "En la sala de las vasijas junto a la entrada del Mercado, habla con el guardia. Vuelve a otra hora para encontrar al vigilante que habla de investigar fantasmas y atraparlos en una botella."
+      }
+    },
+    "sources": [
+      "https://www.watchmojo.com/articles/10-new-secrets-and-easter-eggs-in-the-ocarina-of-time-remake",
+      "https://www.reddit.com/r/zelda/comments/1xpn1k4/oothdso_this_two_theories_have_finally_been/"
+    ]
+  },
+  {
+    "id": "market-cucco-pursuit",
+    "region": "Mercado",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "A perseguição no Mercado",
+        "hint": "O que a criança que corre atrás do Cucco está planejando?",
+        "solution": "No Mercado, equipe a Máscara da Verdade e fale com a criança que corre atrás de um Cucco. O pensamento revela que ela quer comê-lo."
+      },
+      "en": {
+        "title": "The chase in the Market",
+        "hint": "What is the child chasing a Cucco planning?",
+        "solution": "Wear the Mask of Truth in the Market and talk to the child chasing a Cucco. The child is thinking about eating it."
+      },
+      "es": {
+        "title": "La persecución en el Mercado",
+        "hint": "¿Qué planea la niña que corre detrás del cuco?",
+        "solution": "Ponte la Máscara de la Verdad en el Mercado y habla con la niña que corre tras un cuco. Su pensamiento revela que se lo quiere comer."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://automaton-media.com/articles/newsjp/20261108-478108/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=350s"
+    ]
+  },
+  {
+    "id": "kokiri-twins-thoughts",
+    "region": "Floresta Kokiri",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Uma questão entre irmãs",
+        "hint": "Mostre a Máscara da Verdade às gêmeas Kokiri.",
+        "solution": "Equipe a Máscara da Verdade e converse com a irmã mais velha da dupla de gêmeas na Floresta Kokiri. Ela está pensando em pegar rupias emprestadas da irmã para fazer compras."
+      },
+      "en": {
+        "title": "Something between sisters",
+        "hint": "Bring the Mask of Truth to the Kokiri twins.",
+        "solution": "Put on the Mask of Truth and talk to the elder of the twins in Kokiri Forest. She is thinking about borrowing rupees from her sister to go shopping."
+      },
+      "es": {
+        "title": "Una cuestión entre hermanas",
+        "hint": "Lleva la Máscara de la Verdad a las gemelas kokiri.",
+        "solution": "Ponte la Máscara de la Verdad y habla con la mayor de las gemelas del Bosque Kokiri. Está pensando en pedirle rupias prestadas a su hermana para ir de compras."
+      }
+    },
+    "sources": [
+      "https://automaton-media.com/articles/newsjp/20261108-478108/"
+    ]
+  },
+  {
+    "id": "market-laughing-men",
+    "region": "Mercado",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Uma piada em comum",
+        "hint": "Há dois homens rindo juntos no Mercado. Ouça cada um deles.",
+        "solution": "Com a Máscara da Verdade, fale com os dois homens que riem juntos no Mercado. Um está cansado de fingir que acha graça e o outro percebeu."
+      },
+      "en": {
+        "title": "A shared joke",
+        "hint": "Two men are laughing together in the Market. Listen to each of them.",
+        "solution": "Wear the Mask of Truth and talk to both men laughing together in the Market. One is tired of pretending to find it funny and the other has noticed."
+      },
+      "es": {
+        "title": "Una broma compartida",
+        "hint": "Dos hombres se ríen juntos en el Mercado. Escucha a cada uno.",
+        "solution": "Ponte la Máscara de la Verdad y habla con los dos hombres que ríen juntos en el Mercado. Uno está cansado de fingir que le causa gracia y el otro ya se ha dado cuenta."
+      }
+    },
+    "sources": [
+      "https://automaton-media.com/articles/newsjp/20261108-478108/"
+    ]
+  },
+  {
+    "id": "market-stall-customer",
+    "region": "Mercado",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "O primeiro da fila",
+        "hint": "Mostre a Máscara da Verdade a um cliente que espera em uma banca.",
+        "solution": "Use a Máscara da Verdade e converse com o homem na fila de uma banca do Mercado. Ele está pensando em comprar todo o estoque."
+      },
+      "en": {
+        "title": "First in line",
+        "hint": "Bring the Mask of Truth to a customer waiting at a stall.",
+        "solution": "Wear the Mask of Truth and talk to the man lining up at a Market stall. He is thinking about buying out the stock."
+      },
+      "es": {
+        "title": "El primero de la fila",
+        "hint": "Lleva la Máscara de la Verdad a un cliente que espera en un puesto.",
+        "solution": "Ponte la Máscara de la Verdad y habla con el hombre en la cola de un puesto del Mercado. Está pensando en comprar todas las existencias."
+      }
+    },
+    "sources": [
+      "https://automaton-media.com/articles/newsjp/20261108-478108/"
+    ]
+  },
+  {
+    "id": "zora-prayer-thoughts",
+    "region": "Domínio Zora",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "O que pensa quem reza",
+        "hint": "Observe um Zora que faz uma prece a Jabu-Jabu.",
+        "solution": "Já com a Máscara da Verdade, fale com o Zora que reza a Jabu-Jabu no Domínio Zora. Ele se pergunta se rezar vai mesmo mudar alguma coisa."
+      },
+      "en": {
+        "title": "A thought during prayer",
+        "hint": "Look for a Zora praying to Jabu-Jabu.",
+        "solution": "After obtaining the Mask of Truth, talk to the Zora praying to Jabu-Jabu in Zora’s Domain. He wonders whether praying will change anything."
+      },
+      "es": {
+        "title": "Un pensamiento durante la oración",
+        "hint": "Busca a un zora que le reza a Jabu-Jabu.",
+        "solution": "Después de conseguir la Máscara de la Verdad, habla con el zora que le reza a Jabu-Jabu en la región de los zora. Se pregunta si rezar cambiará algo."
+      }
+    },
+    "sources": [
+      "https://automaton-media.com/articles/newsjp/20261108-478108/"
+    ]
+  },
+  {
+    "id": "zora-curious-mask",
+    "region": "Domínio Zora",
+    "kind": "dialogue",
+    "age": "child",
+    "early": true,
+    "text": {
+      "pt": {
+        "title": "Uma pergunta sobre máscaras",
+        "hint": "Antes da terceira masmorra, leve uma máscara emprestada para conversar com os Zoras.",
+        "solution": "Antes de concluir a Barriga de Jabu-Jabu, visite o Domínio Zora como criança usando uma máscara da loja, como o Capuz de Coelho. Converse com os moradores para encontrar o Zora que comenta o uso de máscaras em rituais."
+      },
+      "en": {
+        "title": "A question about masks",
+        "hint": "Before the third dungeon, bring a borrowed mask when you talk to the Zoras.",
+        "solution": "Before clearing Jabu-Jabu’s Belly, visit Zora’s Domain as a child wearing a shop mask, such as the Bunny Hood. Talk to the residents to find the Zora who mentions masks being used in rituals."
+      },
+      "es": {
+        "title": "Una pregunta sobre máscaras",
+        "hint": "Antes de la tercera mazmorra, lleva una máscara prestada al hablar con los zora.",
+        "solution": "Antes de completar la tripa de Jabu-Jabu, visita la región de los zora de niño con una máscara de la tienda, como la capucha de conejo. Habla con los habitantes hasta encontrar al zora que menciona el uso de máscaras en rituales."
+      }
+    },
+    "sources": [
+      "https://www.reddit.com/r/NintendoSwitch/comments/1xqmo9f/i_may_have_found_a_majoras_mask_reference_in/",
+      "https://www.watchmojo.com/articles/10-new-secrets-and-easter-eggs-in-the-ocarina-of-time-remake"
+    ]
+  },
+  {
+    "id": "malons-private-thought",
+    "region": "Rancho Lon Lon",
+    "kind": "dialogue",
+    "age": "child",
+    "text": {
+      "pt": {
+        "title": "Uma palavra com Malon",
+        "hint": "Volte ao rancho com a Máscara da Verdade e converse com Malon.",
+        "solution": "Equipe a Máscara da Verdade e fale com Malon no rancho. Em seu pensamento, ela acha Link fofo."
+      },
+      "en": {
+        "title": "A word with Malon",
+        "hint": "Return to the ranch with the Mask of Truth and talk to Malon.",
+        "solution": "Put on the Mask of Truth and talk to Malon on the ranch. She privately thinks Link is cute."
+      },
+      "es": {
+        "title": "Una palabra con Malon",
+        "hint": "Vuelve al rancho con la Máscara de la Verdad y habla con Malon.",
+        "solution": "Ponte la Máscara de la Verdad y habla con Malon en el rancho. En su fuero interno, Link le parece adorable."
+      }
+    },
+    "sources": [
+      "https://automaton-media.com/articles/newsjp/20261108-478108/",
+      "https://www.reddit.com/r/zelda/comments/1xpn1k4/oothdso_this_two_theories_have_finally_been/"
+    ]
+  },
+  {
+    "id": "ranch-new-name",
+    "region": "Rancho Lon Lon",
+    "kind": "detail",
+    "age": "adult",
+    "text": {
+      "pt": {
+        "title": "O nome na outra época",
+        "hint": "Repare em como o rancho se apresenta na primeira visita depois da passagem do tempo.",
+        "solution": "Visite o rancho como Link adulto na época em que Ingo o controla. O nome exibido é Rancho do Ingo."
+      },
+      "en": {
+        "title": "The name in another age",
+        "hint": "Notice how the ranch introduces itself on your first visit after time travel.",
+        "solution": "Visit the ranch as Adult Link while Ingo is in charge. The location name shown is Ingo’s Ranch."
+      },
+      "es": {
+        "title": "El nombre en otra época",
+        "hint": "Fíjate en cómo se presenta el rancho en tu primera visita tras viajar en el tiempo.",
+        "solution": "Visita el rancho con Link adulto mientras Ingo lo dirige. El nombre que aparece es Rancho de Ingo."
+      }
+    },
+    "sources": [
+      "https://www.reddit.com/r/OcarinaOfTime/comments/1xsq12p/my_top_10_super_random_little_details_in_the/"
+    ]
+  },
+  {
+    "id": "fishing-owners-cap",
+    "region": "Lago Hylia",
+    "kind": "interaction",
+    "age": "adult",
+    "text": {
+      "pt": {
+        "title": "Uma fisgada fora d’água",
+        "hint": "Há um alvo improvável perto do balcão do lago de pesca.",
+        "solution": "Com Link adulto, alugue uma vara e lance o anzol na direção do chapéu do dono. A linha pode fisgar o chapéu. Evite jogá-lo na água se não quiser provocar a multa."
+      },
+      "en": {
+        "title": "A catch out of water",
+        "hint": "There is an unlikely target near the fishing pond counter.",
+        "solution": "As Adult Link, rent a rod and cast toward the owner’s hat. The line can hook his hat. Avoid casting it into the pond if you want to avoid a fine."
+      },
+      "es": {
+        "title": "Una captura fuera del agua",
+        "hint": "Hay un blanco inesperado cerca del mostrador del estanque de pesca.",
+        "solution": "Con Link adulto, alquila una caña y lanza el anzuelo hacia el gorro del dueño. El sedal puede engancharlo. Evita lanzarlo al agua si no quieres provocar una multa."
+      }
+    },
+    "sources": [
+      "https://game8.jp/zelda-tokinoocarina/840757",
+      "https://ggene.site/okarinare/okarinare-kowaza/"
+    ]
+  },
+  {
+    "id": "skull-kid-grown-up",
+    "region": "Bosque Perdido",
+    "kind": "interaction",
+    "age": "adult",
+    "text": {
+      "pt": {
+        "title": "Uma visita depois de crescer",
+        "hint": "Volte à clareira do Skull Kid depois que Link crescer.",
+        "solution": "Retorne ao ponto do Skull Kid no Bosque Perdido como Link adulto. O encontro que era amistoso na infância vira um combate."
+      },
+      "en": {
+        "title": "A visit after growing up",
+        "hint": "Return to Skull Kid’s clearing after Link grows up.",
+        "solution": "Return to Skull Kid’s spot in the Lost Woods as Adult Link. The friendly encounter of his childhood turns into a fight."
+      },
+      "es": {
+        "title": "Una visita de adulto",
+        "hint": "Regresa al claro del Skull Kid después de que Link se haga adulto.",
+        "solution": "Vuelve al lugar del Skull Kid en el Bosque Perdido con Link adulto. El encuentro amistoso de la infancia se convierte en un combate."
+      }
+    },
+    "sources": [
+      "https://game8.jp/zelda-tokinoocarina/840757"
+    ]
+  },
+  {
+    "id": "sun-song-redead",
+    "region": "Cemitério",
+    "kind": "interaction",
+    "text": {
+      "pt": {
+        "title": "Um silêncio na cripta",
+        "hint": "Leve a ocarina ao próximo encontro com um ReDead.",
+        "solution": "Depois de aprender a Canção do Sol, volte a uma cripta com ReDeads e toque a melodia antes de se aproximar. Ela imobiliza o inimigo por um tempo."
+      },
+      "en": {
+        "title": "Silence in the crypt",
+        "hint": "Bring the ocarina to your next encounter with a ReDead.",
+        "solution": "After learning the Sun’s Song, return to a crypt with ReDeads and play the melody before you approach. It temporarily stops the enemy from moving."
+      },
+      "es": {
+        "title": "Silencio en la cripta",
+        "hint": "Lleva la ocarina al próximo encuentro con un ReDead.",
+        "solution": "Después de aprender la canción del Sol, vuelve a una cripta con ReDeads y toca la melodía antes de acercarte. Inmoviliza al enemigo por un tiempo."
+      }
+    },
+    "sources": [
+      "https://game8.jp/zelda-tokinoocarina/840757",
+      "https://ggene.site/okarinare/okarinare-kowaza/"
+    ]
+  },
+  {
+    "id": "bottle-volley",
+    "region": "Castelo de Ganon",
+    "kind": "interaction",
+    "age": "adult",
+    "text": {
+      "pt": {
+        "title": "Uma devolução improvável",
+        "hint": "Leve uma garrafa vazia quando enfrentar o feiticeiro.",
+        "solution": "Equipe uma garrafa vazia. Na luta contra Ganondorf, balance a garrafa quando o orbe de energia estiver próximo para rebatê-lo."
+      },
+      "en": {
+        "title": "An unlikely return",
+        "hint": "Bring an empty bottle when you face the sorcerer.",
+        "solution": "Equip an empty bottle. During the fight with Ganondorf, swing it when his energy orb is within reach to send the orb back."
+      },
+      "es": {
+        "title": "Una devolución inesperada",
+        "hint": "Lleva una botella vacía cuando te enfrentes al hechicero.",
+        "solution": "Equipa una botella vacía. Durante el combate contra Ganondorf, agítala cuando la esfera de energía esté al alcance para devolvérsela."
+      }
+    },
+    "sources": [
+      "https://vulkk.com/2026/11/17/how-to-beat-ganondorf-in-the-legend-of-zelda-ocarina-of-time/",
+      "https://ggene.site/okarinare/okarinare-kowaza/",
+      "https://www.reddit.com/r/zelda/comments/1xp0pku/oothd_forest_temple_you_can_do_the_thing/"
+    ]
+  },
+  {
+    "id": "gerudo-map-figures",
+    "region": "Fortaleza Gerudo",
+    "kind": "detail",
+    "text": {
+      "pt": {
+        "title": "As figuras do mapa",
+        "hint": "Veja de perto a ilustração da Fortaleza Gerudo no mapa do jogo.",
+        "solution": "Abra o mapa de Hyrule dentro do jogo e aproxime a imagem da Fortaleza Gerudo. Entre as figuras das guerreiras há uma criança."
+      },
+      "en": {
+        "title": "Figures on the map",
+        "hint": "Take a close look at Gerudo Fortress on the in-game map.",
+        "solution": "Open the in-game Hyrule map and zoom in on Gerudo Fortress. There is a child among the illustrated warriors."
+      },
+      "es": {
+        "title": "Las figuras del mapa",
+        "hint": "Observa de cerca la fortaleza gerudo en el mapa del juego.",
+        "solution": "Abre el mapa de Hyrule dentro del juego y amplía la fortaleza gerudo. Hay una niña entre las guerreras del dibujo."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=278s"
+    ]
+  },
+  {
+    "id": "tektite-hammer-flip",
+    "region": "Lago Hylia",
+    "kind": "interaction",
+    "age": "adult",
+    "text": {
+      "pt": {
+        "title": "De pernas para o ar",
+        "hint": "Veja se um golpe pesado no chão muda a posição de um Tektite.",
+        "solution": "Com Link adulto, use o Martelo Megaton no chão perto de um Tektite. O impacto pode virá-lo de costas."
+      },
+      "en": {
+        "title": "Legs in the air",
+        "hint": "See whether a heavy blow to the ground changes a Tektite’s footing.",
+        "solution": "As Adult Link, use the Megaton Hammer on the ground near a Tektite. The impact can flip it onto its back."
+      },
+      "es": {
+        "title": "Patas arriba",
+        "hint": "Mira si un golpe fuerte en el suelo cambia la postura de un Tektite.",
+        "solution": "Con Link adulto, golpea el suelo cerca de un Tektite con el martillo Megatón. El impacto puede dejarlo patas arriba."
+      }
+    },
+    "sources": [
+      "https://www.triforcetimes.com/2026/11/11/ocarina-of-time-remake-secrets-easter-eggs/",
+      "https://www.youtube.com/watch?v=-0cwlyMdre8&t=106s"
+    ]
+  },
+  {
+    "id": "kakariko-sunset-score",
+    "region": "Vila Kakariko",
+    "kind": "detail",
+    "text": {
+      "pt": {
+        "title": "O som do entardecer",
+        "hint": "Passe algum tempo em Kakariko enquanto o céu muda de cor.",
+        "solution": "Fique ao ar livre na Vila Kakariko do fim da tarde até anoitecer. Ouça como o arranjo do tema da vila muda no pôr do sol."
+      },
+      "en": {
+        "title": "The sound of sunset",
+        "hint": "Spend some time in Kakariko while the sky changes colour.",
+        "solution": "Stay outdoors in Kakariko Village from late afternoon until night. Listen for the change in the arrangement of the village theme at sunset."
+      },
+      "es": {
+        "title": "El sonido del atardecer",
+        "hint": "Pasa un rato en Kakariko mientras el cielo cambia de color.",
+        "solution": "Quédate al aire libre en Kakariko desde el final de la tarde hasta la noche. Escucha cómo cambia el arreglo del tema del pueblo al ponerse el sol."
+      }
+    },
+    "sources": [
+      "https://www.reddit.com/r/OcarinaOfTime/comments/1xsq12p/my_top_10_super_random_little_details_in_the/"
+    ]
+  },
+  {
+    "id": "poe-drinking-reaction",
+    "region": "Campo de Hyrule",
+    "kind": "dialogue",
+    "age": "adult",
+    "text": {
+      "pt": {
+        "title": "A voz da garrafa",
+        "hint": "Uma garrafa que guarda um Poe ainda tem algo a dizer.",
+        "solution": "Capture a alma de um Poe comum em uma garrafa. Use a garrafa para beber a alma e escute a reação do Poe."
+      },
+      "en": {
+        "title": "The voice in the bottle",
+        "hint": "A bottle holding a Poe still has something to say.",
+        "solution": "Catch an ordinary Poe’s soul in a bottle. Use the bottle to drink the soul and listen to the Poe react."
+      },
+      "es": {
+        "title": "La voz de la botella",
+        "hint": "Una botella que guarda a un Poe todavía tiene algo que decir.",
+        "solution": "Atrapa el alma de un Poe común en una botella. Usa la botella para beberte el alma y escucha la reacción del Poe."
+      }
+    },
+    "sources": [
+      "https://www.reddit.com/r/OcarinaOfTime/comments/1xsq12p/my_top_10_super_random_little_details_in_the/",
+      "https://www.reddit.com/r/OcarinaOfTime/comments/1xvph32/little_changes_that_make_the_remake_better/"
+    ]
+  }
+]

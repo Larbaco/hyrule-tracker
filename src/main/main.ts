@@ -131,7 +131,7 @@ function createMain() {
   main.webContents.setWindowOpenHandler(({ url }) => {
     let target: URL;
     try { target = new URL(url); } catch { return { action: 'deny' }; }
-    if (target.protocol === 'https:' && ['nintendoeverything.com', 'www.nintendo.com', 'zelda.mtwildwood.net', 'github.com', 'www.nintenduo.com'].includes(target.hostname)) void shell.openExternal(target.href);
+    if (target.protocol === 'https:' && (['nintendoeverything.com', 'www.nintendo.com', 'zelda.mtwildwood.net', 'github.com', 'www.nintenduo.com'].includes(target.hostname) || controller.isEasterEggSource(target.href))) void shell.openExternal(target.href);
     return { action: 'deny' };
   });
   lockNavigation(main);
@@ -169,8 +169,8 @@ function applyOverlaySettings() {
   if (!overlay) return;
   const o = settings.data.overlay;
   overlay.setOpacity(o.opacity);
-  // Locked: clicks pass through to the game. Unlocked: drag/resize it.
-  overlay.setIgnoreMouseEvents(o.locked, { forward: true });
+  // Forwarding mouse moves installs a global hook on Windows, even for a hidden overlay.
+  overlay.setIgnoreMouseEvents(o.locked);
   overlay.setFocusable(!o.locked);
   overlay.setResizable(!o.locked);
 }
@@ -285,12 +285,12 @@ function remoteApi() {
     getPrefs: () => settings.data.ui,
     pinSlot: (name: unknown) => (name === null || isString(name, 100)) ? controller.pinSlot(name) : undefined,
     toggleManual: (id: unknown) => isString(id) ? controller.toggleManual(id) : undefined,
+    setEasterEggFound: (id: unknown, found: unknown) => controller.setEasterEggFound(id, found),
     answerIdentify: (reqId: unknown, itemIds: unknown) => isString(reqId) && isStringArray(itemIds) ? controller.answerIdentify(reqId, itemIds) : undefined,
     skipIdentify: (reqId: unknown) => isString(reqId) ? controller.skipIdentify(reqId) : undefined,
     forgetIdentification: (itemId: unknown) => isString(itemId) ? controller.forgetIdentification(itemId) : undefined,
     refreshProgress: () => controller.refreshNow(),
     scanFolders: () => controller.scanFolders(),
-    captureGame: () => controller.captureGame(),
   };
 }
 
@@ -389,8 +389,8 @@ if (primaryInstance) app.whenReady().then(async () => {
   });
   ipcMain.handle('slot:pin', (_e, name: unknown) => (name === null || isString(name, 100)) ? controller.pinSlot(name) : undefined);
   ipcMain.handle('manual:toggle', (_e, id: unknown) => isString(id) ? controller.toggleManual(id) : undefined);
+  ipcMain.handle('easter-eggs:set', (_e, id: unknown, found: unknown) => controller.setEasterEggFound(id, found));
   ipcMain.handle('dev:set', (_e, on: unknown) => controller.setDevPanel(on === true));
-  ipcMain.handle('capture:get', () => controller.captureGame());
   ipcMain.handle('capture:set', (_e, on: unknown) => controller.setCaptureActivity(on === true));
   ipcMain.handle('log:set', (_e, on: unknown) => controller.setChangeLog(on === true));
   ipcMain.handle('log:open', () => shell.openPath(controller.logDir()));

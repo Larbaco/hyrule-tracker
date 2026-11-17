@@ -5,10 +5,25 @@ Fios do Tempo+||Threads of Time+|Hilos del Tiempo+
 Salão dos Inimigos||Hall of Fallen Foes|Salón de los enemigos caídos
 Registro do dia||Today's record|Registro del día
 Meus dados||My play data|Mis datos
-Missões de rumores||Gossip quests|Misiones de rumores
 Estúdio de fotos||Photo studio|Estudio fotográfico
 Tocar ocarina||Play ocarina|Tocar la ocarina
 Quiz diário||Daily quiz|Cuestionario diario
+Easter Eggs and Secrets||Easter Eggs and Secrets|Easter eggs y secretos
+Explore interações escondidas, referências e diálogos do remake.||Find hidden interactions, references and dialogue in the remake.|Descubre interacciones ocultas, referencias y diálogos del remake.
+Carregando descobertas…||Loading discoveries…|Cargando descubrimientos…
+Detalhe visual||Visual detail|Detalle visual
+Interação||Interaction|Interacción
+Diálogo||Dialogue|Diálogo
+{done} de {total} descobertas||{done} of {total} discoveries|{done} de {total} descubrimientos
+Progresso das descobertas||Discovery progress|Progreso de los descubrimientos
+Marcação manual com progresso próprio, separado do Checklist 100%.||Mark discoveries yourself. Progress is separate from the 100% checklist.|Marca tus descubrimientos. El progreso es independiente de la lista del 100 %.
+Encontrei||Found it|Lo encontré
+Criança e adulto||Child and adult|Niño y adulto
+Janela de acesso limitada||Limited window|Acceso limitado
+Não foi possível salvar a marcação. Tente novamente.||Could not save the mark. Try again.|No se pudo guardar la marca. Inténtalo de nuevo.
+Revelar como encontrar||Reveal how to find it|Mostrar cómo encontrarlo
+Fontes||Sources|Fuentes
+Voltar às regiões||Back to regions|Volver a las regiones
 Configurações||Settings|Ajustes
 Idioma||Language|Idioma
 Flying Pot|Vaso voador|Flying Pot|Vasija voladora
@@ -49,7 +64,7 @@ From the summit entrance, climb down the wall to a hidden ledge. A child can gra
 Rooftop behind Impa's house|Telhado atrás da casa da Impa|Rooftop behind Impa's house|Tejado tras la casa de Impa
 On the roof above Impa's cow pen. As a child, let Kaepora Gaebora carry you down from the Death Mountain summit (he only offers once you have Din's Fire); as an adult, Hookshot up.|O pedaço está no telhado acima do curral da Impa. Como criança, peça a Kaepora Gaebora para levar você do cume da Montanha da Morte ao telhado após obter o Fogo de Din. Como adulto, suba com o gancho.|On the roof above Impa's cow pen. As a child, let Kaepora Gaebora carry you down from the Death Mountain summit (he only offers once you have Din's Fire); as an adult, Hookshot up.|La pieza está sobre el corral de Impa. De niño, pide a Kaepora Gaebora que te lleve desde la cima de la Montaña de la Muerte cuando tengas el Fuego de Din. De adulto, sube con el gancho.
 Bombchu Bowling|Boliche de Bombchu|Bombchu Bowling|Bolos Bombchu
-One of the prizes at the Bombchu Bowling Alley. The alley opens after you defeat King Dodongo.|O pedaço é um dos prêmios do Boliche de Bombchu, que abre após você derrotar o Rei Dodongo.|One of the prizes at the Bombchu Bowling Alley. The alley opens after you defeat King Dodongo.|La pieza es un premio de la bolera Bombchu, que abre después de derrotar al Rey Dodongo.
+One of the prizes at the Bombchu Bowling Alley. The alley opens after you defeat King Dodongo.|O pedaço é um dos prêmios do Boliche de Bombchu, que abre após você derrotar o King Dodongo.|One of the prizes at the Bombchu Bowling Alley. The alley opens after you defeat King Dodongo.|La pieza es un premio de la bolera Bombchu, que abre después de derrotar al King Dodongo.
 Raised platform|Plataforma elevada|Raised platform|Plataforma elevada
 On top of a pillar near the start of the river. Glide there with a Cucco as a child, or use the Hover Boots as an adult.|O pedaço está no topo de um pilar perto do início do rio. Como criança, plane até lá com um Cucco. Como adulto, use as Botas Flutuantes.|On top of a pillar near the start of the river. Glide there with a Cucco as a child, or use the Hover Boots as an adult.|La pieza está sobre un pilar cerca del comienzo del río. Planea con un cuco de niño o usa las botas flotantes de adulto.
 Ledge by the waterfall|Plataforma perto da cachoeira|Ledge by the waterfall|Saliente junto a la cascada
@@ -101,7 +116,7 @@ The scrub sells it for 100 Rupees (the starting wallet holds 200).|O Deku Mercad
 As a child, from the summit entrance go left and drop down to the ledge below. The scrub there sells the piece for 100 Rupees.|Como criança, entre pela passagem do cume, vire à esquerda e desça até a plataforma. O Deku Mercador vende o pedaço por 100 rupees.|As a child, from the summit entrance go left and drop down to the ledge below. The scrub there sells the piece for 100 Rupees.|De niño, entra por la cima, gira a la izquierda y baja al saliente. El Deku comerciante vende la pieza por 100 rupias.
 A child can grab it before the heat gets too much; as adult, wear the Goron Tunic. No Hookshot needed.|Link criança consegue pegar o pedaço antes de o calor ficar insuportável. Como adulto, vista a Túnica Goron. Dá para chegar sem o gancho.|A child can grab it before the heat gets too much; as adult, wear the Goron Tunic. No Hookshot needed.|Link niño puede recoger la pieza antes de que el calor sea insoportable. De adulto, usa la túnica goron. Puedes llegar sin el gancho.
 Child: the owl at the Death Mountain summit drops you on Impa's roof, but only once you have Din's Fire. Adult: Hookshot.|Como criança, peça à coruja do cume da Montanha da Morte para levar você ao telhado da Impa. É preciso ter o Fogo de Din. Como adulto, use o gancho.|Child: the owl at the Death Mountain summit drops you on Impa's roof, but only once you have Din's Fire. Adult: Hookshot.|De niño, la lechuza de la cima de la Montaña de la Muerte te lleva al tejado de Impa cuando ya tienes el Fuego de Din. De adulto, usa el gancho.
-The Bombchu Bowling Alley opens only after King Dodongo.|O Boliche de Bombchu abre depois que você derrota o Rei Dodongo.|The Bombchu Bowling Alley opens only after King Dodongo.|La bolera Bombchu abre después de derrotar al Rey Dodongo.
+The Bombchu Bowling Alley opens only after King Dodongo.|O Boliche de Bombchu abre depois que você derrota o King Dodongo.|The Bombchu Bowling Alley opens only after King Dodongo.|La bolera Bombchu abre después de derrotar al King Dodongo.
 Child: the Boomerang. Adult: through Dampé's grave (Song of Time).|Como criança, use o bumerangue. Como adulto, entre pelo túmulo de Dampé e use a Canção do Tempo.|Child: the Boomerang. Adult: through Dampé's grave (Song of Time).|De niño, usa el bumerán. De adulto, entra por la tumba de Dampé con la Canción del Tiempo.
 The soil is behind the Dodongo's Cavern boulder, which the bracelet's bomb flower opens.|A terra fofa fica atrás da rocha da Caverna dos Dodongos. Com o Bracelete Goron, use uma Flor-Bomba para destruir a rocha.|The soil is behind the Dodongo's Cavern boulder, which the bracelet's bomb flower opens.|La tierra blanda está detrás de la roca de la Cueva de los Dodongos. Con el brazalete goron, usa una flor bomba para destruir la roca.
 No Sun's Song in the remake. As a child the grave can only be pulled at night.|O remake permite abrir esse túmulo sem tocar a Canção do Sol. Como criança, puxe a lápide durante a noite.|No Sun's Song needed in the remake. As a child the grave can only be pulled at night.|En el remake puedes abrir esa tumba sin tocar la Canción del Sol. De niño, mueve la lápida de noche.
@@ -113,15 +128,15 @@ Out of reach on the house wall: the Boomerang brings the token back.|Na parede d
 Kill the Skulltula in the marsh grotto as a child; as adult, break the crate for the token.|Como criança, derrote a Skulltula na gruta do pântano. Como adulto, quebre o caixote para pegar a ficha.|Kill the Skulltula in the marsh grotto as a child; as adult, break the crate for the token.|De niño, derrota a la Skulltula en la gruta del pantano. De adulto, rompe la caja para obtener la ficha.
 Talon has to be back at the ranch first: get the Weird Egg from Malon at Hyrule Castle, let it hatch, and wake Talon there with the Cucco.|Talon precisa voltar ao rancho. Pegue o Ovo Estranho com Malon no Castelo de Hyrule, espere nascer o Cucco e use-o para acordar Talon.|Talon has to be back at the ranch first: get the Weird Egg from Malon at Hyrule Castle, let it hatch, and wake Talon there with the Cucco.|Talon debe volver al rancho. Consigue el Huevo Raro de Malon en el castillo de Hyrule, espera a que nazca el cuco y úsalo para despertar a Talon.
 Zelda's Lullaby opens Darunia's door; he gives the bracelet after you play Saria's Song.|Toque a Canção de Ninar da Zelda para abrir a porta de Darunia. Ele entrega o bracelete depois que você toca a Canção de Saria.|Zelda's Lullaby opens Darunia's door; he gives the bracelet after you play Saria's Song.|Toca la Nana de Zelda para abrir la puerta de Darunia. Te da el brazalete cuando tocas la Canción de Saria.
-The Bombchu Shop opens at night, after King Dodongo.|A Loja de Bombchus abre à noite após você derrotar o Rei Dodongo.|The Bombchu Shop opens at night, after King Dodongo.|La tienda de bombchus abre de noche después de derrotar al Rey Dodongo.
+The Bombchu Shop opens at night, after King Dodongo.|A Loja de Bombchus abre à noite após você derrotar o King Dodongo.|The Bombchu Shop opens at night, after King Dodongo.|La tienda de bombchus abre de noche después de derrotar al King Dodongo.
 Available as soon as you reach Castle Town; no other requirement.|Disponível assim que você chega à Cidade do Castelo.|Available as soon as you reach Castle Town; no other requirement.|Disponible en cuanto llegas a la Ciudadela.
 Appears only once you have Din's Fire. 50 Rupees.|Aparece após obter o Fogo de Din. Custa 50 rupees.|Appears only once you have Din's Fire. 50 Rupees.|Aparece cuando consigues el Fuego de Din. Cuesta 50 rupias.
 Appears only once you have Din's Fire. 100 Rupees.|Aparece após obter o Fogo de Din. Custa 100 rupees.|Appears only once you have Din's Fire. 100 Rupees.|Aparece cuando consigues el Fuego de Din. Cuesta 100 rupias.
 Appears only once you have Din's Fire. 200 Rupees.|Aparece após obter o Fogo de Din. Custa 200 rupees.|Appears only once you have Din's Fire. 200 Rupees.|Aparece cuando consigues el Fuego de Din. Cuesta 200 rupias.
 Appears only once you have Din's Fire. 300 Rupees: more than the starting wallet holds.|Aparece após obter o Fogo de Din. Custa 300 Rupias, acima da capacidade da carteira inicial.|Appears only once you have Din's Fire. 300 Rupees: more than the starting wallet holds.|Aparece cuando consigues el Fuego de Din. Cuesta 300 rupias, más de lo que admite la bolsa inicial.
 Appears only once you have Din's Fire. 500 Rupees: needs the Adult's Wallet.|Aparece após obter o Fogo de Din. Custa 500 Rupias e exige a Carteira de Adulto.|Appears only once you have Din's Fire. 500 Rupees: needs the Adult's Wallet.|Aparece cuando consigues el Fuego de Din. Cuesta 500 rupias y requiere la bolsa de adulto.
-King Dodongo|Rei Dodongo|King Dodongo|Rey Dodongo
-Phantom Ganon|Ganon Fantasma|Phantom Ganon|Ganon Fantasma
+King Dodongo|King Dodongo|King Dodongo|King Dodongo
+Phantom Ganon|Phantom Ganon|Phantom Ganon|Phantom Ganon
 Din's Fire|Fogo de Din|Din's Fire|Fuego de Din
 Nayru's Love|Amor de Nayru|Nayru's Love|Amor de Nayru
 Zora Tunic|Túnica Zora|Zora Tunic|Túnica zora
@@ -309,7 +324,6 @@ In Kakariko Graveyard, play Zelda's Lullaby at the Royal Family's Tomb to open i
 Missões principais||Main quests|Misiones principales
 Missões secundárias||Side quests|Misiones secundarias
 Concluído||Complete|Completado
-Concluída||Complete|Completada
 Em andamento||In progress|En curso
 Aguardando||Waiting|Pendiente
 Estátuas||Statues|Estatuas
@@ -357,10 +371,6 @@ Baixar QR||Download QR|Descargar QR
 Código da melodia||Melody code|Código de la melodía
 Cole o texto lido do QR||Paste the text read from the QR|Pega el texto leído del QR
 Importar||Import|Importar
-Partituras de rumores||Gossip quest scores|Partituras de rumores
-pontos disponíveis||points available|puntos disponibles
-Desbloqueada||Unlocked|Desbloqueada
-Trocar por 1 ponto||Exchange for 1 point|Canjear por 1 punto
 Livre||Free play|Modo libre
 Guiado||Guided play|Modo guiado
 Demonstração||Demo play|Demostración
@@ -393,14 +403,6 @@ Exportar PNG||Export PNG|Exportar PNG
 Não foi possível abrir a imagem.||The image could not be opened.|No se pudo abrir la imagen.
 Escolha uma imagem de até 20 MB.||Choose an image of up to 20 MB.|Elige una imagen de hasta 20 MB.
 Abra a janela do jogo para capturar.||Open the game window to take a screenshot.|Abre la ventana del juego para capturarla.
-Caça fotográfica||Photo hunt|Búsqueda fotográfica
-pontos||points|puntos
-Encontre a região descrita, fotografe a janela do jogo e troque pontos por partituras.||Find the described region, capture the game window and exchange points for sheet music.|Encuentra la región descrita, captura la ventana del juego y canjea puntos por partituras.
-Dica||Hint|Pista
-Fotografar||Take photo|Tomar foto
-A região atual não corresponde à pista.||The current region does not match the clue.|La región actual no coincide con la pista.
-A janela do jogo precisa estar visível.||The game window must be visible.|La ventana del juego debe estar visible.
-Foto aceita. Você ganhou um ponto.||Photo accepted. You earned one point.|Foto aceptada. Ganaste un punto.
 Conhecimentos de Hyrule||Hyrule knowledge|Conocimientos de Hyrule
 Treino||Practice|Práctica
 Rodada diária||Daily round|Ronda diaria
@@ -431,6 +433,9 @@ Ações||Actions|Acciones
 Remover||Remove|Eliminar
 Este arquivo não é um resumo válido do Hyrule Tracker.||This file is not a valid Hyrule Tracker summary.|Este archivo no es un resumen válido de Hyrule Tracker.
 Preparando o diário…||Opening the journal…|Abriendo el diario…
+Não foi possível abrir o diário.||Could not open the journal.|No se pudo abrir el diario.
+Não foi possível carregar o idioma.||Could not load the language.|No se pudo cargar el idioma.
+Abra o Hyrule Tracker no PC e selecione a pasta da partida.||Open Hyrule Tracker on the PC and choose the save folder.|Abre Hyrule Tracker en el PC y selecciona la carpeta de la partida.
 Criado por João Victor Prado||Created by João Victor Prado|Creado por João Victor Prado
 Veja o progresso da sua partida e retome a jornada.||See your save progress and pick up where you left off.|Consulta el progreso de tu partida y retoma la aventura.
 Explore as regiões de Hyrule e localize os colecionáveis.||Explore Hyrule's regions and find collectibles.|Explora las regiones de Hyrule y localiza los coleccionables.
@@ -439,7 +444,6 @@ Acompanhe os capítulos da história e as missões secundárias.||Track the stor
 Confira as estátuas de inimigos, as revanches e as provações.||Check your enemy statues, rematches and trials.|Consulta las estatuas de enemigos, las revanchas y las pruebas.
 Consulte o progresso registrado pelo tracker ao longo de cada dia.||See the progress the tracker recorded each day.|Consulta el progreso que el rastreador registró cada día.
 Veja seus totais e os marcos conquistados na jornada.||See your totals and the milestones you've reached.|Consulta tus totales y los hitos alcanzados durante la aventura.
-Siga as pistas e fotografe as regiões indicadas.||Follow the clues and photograph the areas they describe.|Sigue las pistas y fotografía las regiones que describen.
 Explore os desafios de fotografia e organize suas capturas.||Explore photo challenges and organize your snapshots.|Explora los retos fotográficos y organiza tus capturas.
 Pratique as melodias do jogo e compartilhe suas composições.||Practice songs from the game and share your own melodies.|Practica las melodías del juego y comparte tus composiciones.
 Teste seus conhecimentos sobre Hyrule no desafio diário.||Test your knowledge of Hyrule in the daily quiz.|Pon a prueba tus conocimientos de Hyrule en el reto diario.
@@ -701,18 +705,6 @@ Conquiste as Flechas de Gelo||Obtain the Ice Arrows|Consigue las Flechas de Hiel
 Colecionador de fantasmas||Ghost collector|Coleccionista de fantasmas
 Libere a Casa das Skulltulas||Lift the House of Skulltula curse|Rompe la maldición de la Casa Skulltula
 Complete os combates do Salão||Complete the Hall battles|Completa los combates del salón
-A aldeia atrás das árvores||The village behind the trees|La aldea tras los árboles
-Procure o povoado de crianças protegido pela Grande Árvore.||Find the children's village protected by the Great Tree.|Busca la aldea de niños protegida por el Gran Árbol.
-O lugar das corridas||The racing grounds|El lugar de las carreras
-Visite o lugar onde Malon cuida dos cavalos.||Visit the place where Malon cares for horses.|Visita el lugar donde Malon cuida de los caballos.
-A água sob a ponte||The water beneath the bridge|El agua bajo el puente
-Procure o grande lago onde também se pode pescar.||Find the large lake with a fishing pond.|Busca el gran lago donde también se puede pescar.
-O moinho da vila||The village windmill|El molino del pueblo
-Siga para o vilarejo ao pé da Montanha da Morte.||Head to the village at the foot of Death Mountain.|Ve a la aldea al pie de la Montaña de la Muerte.
-Na cidade de pedra||In the stone city|En la ciudad de piedra
-O caminho pela montanha leva aos amigos de Darunia.||The mountain path leads to Darunia's friends.|El camino por la montaña conduce a los amigos de Darunia.
-À sombra do colosso||In the shadow of the colossus|A la sombra del coloso
-Procure o monumento além do deserto assombrado.||Look for the monument beyond the Haunted Wasteland.|Busca el monumento más allá del Desierto Encantado.
 Canção de ninar de Zelda|Canção de Ninar da Zelda|Zelda's Lullaby|Nana de Zelda
 Canção de Epona||Epona's Song|Canción de Epona
 Canção de Saria||Saria's Song|Canción de Saria
@@ -750,7 +742,7 @@ O que Link usa para refletir ataques?||What does Link use to deflect attacks?|¿
 Qual chefe espera no Templo da Floresta?||Which boss awaits in the Forest Temple?|¿Qué jefe espera en el Templo del Bosque?
 Quem guarda a Pedra Espiritual da Água?||Who holds the Spiritual Stone of Water?|¿Quién guarda la Piedra Espiritual del Agua?
 Qual é a arma encontrada no Templo do Fogo?||Which weapon is found in the Fire Temple?|¿Qué arma se encuentra en el Templo del Fuego?
-Em que templo aparece Dark Link?||Which temple features Dark Link?|¿En qué templo aparece Link oscuro?
+Em que templo aparece Dark Link?||Which temple features Dark Link?|¿En qué templo aparece Dark Link?
 Qual a primeira masmorra de Link criança?||What is young Link's first dungeon?|¿Cuál es la primera mazmorra de Link niño?
 Quem se torna o Sábio do Fogo?||Who becomes the Sage of Fire?|¿Quién se convierte en el Sabio del Fuego?
 Qual chefe é combatido no Templo das Sombras?||Which boss do you fight in the Shadow Temple?|¿Contra qué jefe luchas en el Templo de las Sombras?
@@ -851,7 +843,6 @@ Ver todos os créditos||See all credits|Ver todos los créditos
 Não foi possível buscar os saves. Tente novamente.||Couldn't search for saves. Try again.|No se pudieron buscar las partidas guardadas. Inténtalo de nuevo.
 Não foi possível abrir a pasta escolhida. Tente novamente.||Couldn't open the chosen folder. Try again.|No se pudo abrir la carpeta elegida. Inténtalo de nuevo.
 Não encontrou? Selecione manualmente a pasta do perfil que contém as pastas slot_*.||Not found? Choose the profile folder that contains the slot_* folders yourself.|¿No la encuentras? Selecciona manualmente la carpeta del perfil que contiene las carpetas slot_*.
-Não foi possível guardar a foto: o armazenamento está cheio.||Couldn't keep the photo: storage is full.|No se pudo guardar la foto: el almacenamiento está lleno.
 You can get this now as {ages}.|Disponível agora como {ages}.|Available now as {ages}.|Disponible ahora como {ages}.
 You can get this now as {ages}, at night.|Disponível agora como {ages}, à noite.|Available now as {ages}, at night.|Disponible ahora como {ages}, de noche.
 {n}/4 pedaço para o próximo||{n}/4 piece to the next heart|{n}/4 pieza para el siguiente corazón
@@ -887,6 +878,7 @@ Grandes Fadas||Great Fairies|Grandes Hadas
 Defeated in Hyrule Field: {done}/{total}|Derrotados no Campo de Hyrule: {done}/{total}|Defeated in Hyrule Field: {done}/{total}|Derrotados en el Campo de Hyrule: {done}/{total}
 Conclusão da área||Area completion|Progreso del área
 Progresso de conclusão||Completion progress|Progreso de finalización
+{done} de {total} objetivos concluídos||{done} of {total} objectives completed|{done} de {total} objetivos completados
 Taxa de conclusão por região||Completion rate by region|Tasa de finalización por región
 Voltar ao mapa de Hyrule||Back to the Hyrule map|Volver al mapa de Hyrule
 Mostrar painel||Show panel|Mostrar panel
